@@ -154,6 +154,12 @@ public class MyApplication {
 
 - Similarly we can do for logging, securities and for other types of configurations where alot of manual tedious configuration which is require when we use spring, is eliminated by springboot. 
 
+- Lets start a simple springboot project. So to initialize any spring project you can refer to the [spring initializer site](https://start.spring.io/)
+
+![image](https://github.com/user-attachments/assets/4b34cc9d-8a03-4387-9191-2ced2c7d2c75)
+
+
+
 ## Disadvantage of SpringBoot
 - Spring Boot is an opinionated framework. It suggests specific ways to structure your application, handle dependencies, and configure settings. This means you don't have to make as many decisions, and you can get started quickly. However, it also means you might have less flexibility to customize things exactly as you want.
 - The auto-configuration can sometimes hide complexities, making it harder to understand what’s happening behind the scenes. This can be problematic when troubleshooting or needing custom configurations.
