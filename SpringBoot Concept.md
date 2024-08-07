@@ -158,20 +158,198 @@ public class MyApplication {
 
 ![image](https://github.com/user-attachments/assets/4b34cc9d-8a03-4387-9191-2ced2c7d2c75)
 
+- When we unzip the project and import it we can see the following dependencies
 
+```
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+```
+
+- We also get a main method which has `@SpringBootApplication` annotation , we have added an sysout to and run our project.
+
+```
+package com.spring.boot.project;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class SimpleprojectApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(SimpleprojectApplication.class, args);
+		System.out.println("Spring Project");
+	}
+
+}
+
+
+Output:
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.2)
+
+2024-08-07T14:41:50.450+05:30  INFO 20524 --- [simpleproject] [           main] c.s.b.project.SimpleprojectApplication   : Starting SimpleprojectApplication using Java 22.0.1 with PID 20524 (C:\Users\Harsh\Desktop\LearnSpringBoot\simpleproject\simpleproject\target\classes started by Harsh in C:\Users\Harsh\Desktop\LearnSpringBoot\simpleproject\simpleproject)
+2024-08-07T14:41:50.454+05:30  INFO 20524 --- [simpleproject] [           main] c.s.b.project.SimpleprojectApplication   : No active profile set, falling back to 1 default profile: "default"
+2024-08-07T14:41:51.193+05:30  INFO 20524 --- [simpleproject] [           main] c.s.b.project.SimpleprojectApplication   : Started SimpleprojectApplication in 1.278 seconds (process running for 1.66)
+Spring Project
+```
+
+- There is no **web.xml** file and not even any spring configuration file mentioned. Spring Boot eliminates the need for traditional web.xml files or extensive Spring configuration files (applicationContext.xml, etc.). Instead, it uses a **convention over configuration** approach, where configurations defaults are automatically applied, significantly reducing the need for boilerplate code.
+
+![alt text](image.png) 
+
+- Thats amazing right!! spring boot automatically does configuration, but if we observed maven dependencies there are unnecessary libraries added.
+
+![alt text](image-1.png)
+
+- So the spring-boot-starter dependencies brings this libraries and due to which whatever structure or libraries springboot provides we need to accept that , thus springboot is an opinionated framework. These starters can include many libraries that you might not specifically need, which leads to some unused or unnecessary dependencies being included in your project.
+
+## Dependency Injection (DI) and IoC Container
+
+- Not sure what is DI and Ioc?, learn [here](https://github.com/codophilic/LearnSpring/blob/main/Spring%20Concepts.md#dependency-injection-di-and-inversion-of-control-iocbean-container)
+- Lets inject some objects like we use to do in spring. So here we create a class call coders, here we tell springboot that class coders is my bean, so to specify this we use annotation `@Component`.
+
+```
+package com.spring.boot.project;
+
+import org.springframework.stereotype.Component;
+
+@Component
+public class Coders {
+
+	public void code() {
+		System.out.println("Coding...");
+	}
+}
+
+```
+
+- We can define dependencies in configuration files (like applicationContext.xml) or through annotations (like `@Component, @Service, @Autowired`). But these dependencies must be present in a container or Ioc (Inversion of Control Container) as it is the core of the Spring Framework. It manages the lifecycle of beans and their dependencies. So where is it?
+- In Spring Boot, **SpringApplication.run()** is the method bootstraps (initialize and loading) the application, creating the **ApplicationContext (which is an IoC container)** and loading all the beans and their dependencies.
+- The **SpringApplication.run()** method sets up the IoC container, automatically configuring and managing dependencies based on the classpath and configuration properties.
+
+```
+package com.spring.boot.project;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+
+@SpringBootApplication
+public class SimpleprojectApplication {
+
+	public static void main(String[] args) {
+		
+		//IOC Container
+		ApplicationContext context=SpringApplication.run(SimpleprojectApplication.class, args);
+		//Get bean
+		Coders coders=context.getBean(Coders.class);
+		coders.code();
+	}
+
+}
+
+Output:
+Coding...
+```
 
 ## Disadvantage of SpringBoot
 - Spring Boot is an opinionated framework. It suggests specific ways to structure your application, handle dependencies, and configure settings. This means you don't have to make as many decisions, and you can get started quickly. However, it also means you might have less flexibility to customize things exactly as you want.
 - The auto-configuration can sometimes hide complexities, making it harder to understand what’s happening behind the scenes. This can be problematic when troubleshooting or needing custom configurations.
 - The embedded servers and additional layers can increase the memory footprint and disk usage compared to a traditional Spring application that might use a lighter server or more fine-tuned configurations.
-- Spring Boot's starter dependencies bundle multiple libraries together, which might include some you don't need, leading to larger application sizes and potentially unused dependencies.
+- Spring Boot's starter dependencies bundle multiple libraries together, which might include some you don't need, leading to larger application sizes and potentially unused dependencies. Whenever we add dependencies , spring boot download that require dependencies along with interrelated dependencies.
 - The embedded server and bundled dependencies might increase memory consumption.
 - If your application requires highly customized configurations that deviate significantly from the defaults provided by Spring Boot, achieving this can sometimes be more complex than with a traditional Spring setup.
 
 - While Spring Boot is designed to streamline development and reduce boilerplate, it’s important to consider these potential disadvantages in the context of your specific project requirements. In scenarios where fine-grained control, resource optimization, or legacy compatibility are critical, traditional Spring might offer advantages despite the additional setup complexity.
 
+- Continuing the above example of coders, lets add some dependencies on coders by creating a bug class and **Autowiring** it.
 
+```
+package com.spring.boot.project;
 
+import org.springframework.stereotype.Component;
+
+@Component
+public class Bugs {
+
+	public void fixBugs() {
+		System.out.println("404 Bugs found");
+	}
+}
+```
+
+- So we have updated class of coders and here we are using field injection
+
+```
+package com.spring.boot.project;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.*;
+
+@Component
+public class Coders {
+
+	//Instance variable
+	@Autowired
+	private Bugs bugs; // field injection
+	
+	public Bugs getBugs() {
+		return bugs;
+	}
+
+	public void setBugs(Bugs bugs) {
+		this.bugs = bugs;
+	}
+
+	public void code() {
+		System.out.println("Coding...");
+	}
+}
+```
+
+- Post execution of main method, we get the output
+
+```
+package com.spring.boot.project;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+
+@SpringBootApplication
+public class SimpleprojectApplication {
+
+	public static void main(String[] args) {
+		
+		//IOC Container
+		ApplicationContext context=SpringApplication.run(SimpleprojectApplication.class, args);
+		//Get bean
+		Coders coders=context.getBean(Coders.class);
+		coders.code();
+		coders.getBugs().fixBugs();
+	}
+
+}
+
+Output:
+Coding...
+404 Bugs found
+```
 
 
 
