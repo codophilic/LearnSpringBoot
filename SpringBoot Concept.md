@@ -210,11 +210,11 @@ Spring Project
 
 - There is no **web.xml** file and not even any spring configuration file mentioned. Spring Boot eliminates the need for traditional web.xml files or extensive Spring configuration files (applicationContext.xml, etc.). Instead, it uses a **convention over configuration** approach, where configurations defaults are automatically applied, significantly reducing the need for boilerplate code.
 
-![alt text](image.png) 
+![alt text](Images/springbootConcepts/image.png) 
 
 - Thats amazing right!! spring boot automatically does configuration, but if we observed maven dependencies there are unnecessary libraries added.
 
-![alt text](image-1.png)
+![alt text](Images/springbootConcepts/image-1.png)
 
 - So the spring-boot-starter dependencies brings this libraries and due to which whatever structure or libraries springboot provides we need to accept that , thus springboot is an opinionated framework. These starters can include many libraries that you might not specifically need, which leads to some unused or unnecessary dependencies being included in your project.
 
