@@ -1,4 +1,5 @@
 # About SpringBoot
+- [Pre-requisite is Spring](https://github.com/codophilic/LearnSpring)
 - Spring Framework is powerful, but it can be complex and requires a lot of boilerplate code and configuration to set up a project. Spring Boot was introduced to simplify this process.
 - Spring Boot is built on top of the conventional spring framework. So, it provides all the features of spring and is easier to use than spring.
 - Lets see what SprintBoot can do which Spring can't
@@ -207,6 +208,20 @@ Output:
 2024-08-07T14:41:51.193+05:30  INFO 20524 --- [simpleproject] [           main] c.s.b.project.SimpleprojectApplication   : Started SimpleprojectApplication in 1.278 seconds (process running for 1.66)
 Spring Project
 ```
+
+## About SpringBootApplication Annotation
+- **@SpringBootApplication** is an annotation used to mark the main class of a Spring Boot application. This is the class that will be executed to run your application.
+- This single annotation encapsulates three crucial Spring annotations:
+	1. **@SpringBootConfiguration**:
+		- Indicates that this class can be used by Spring's Inversion of Control (IoC) container as a source of bean definitions.
+		- It's similar to the **@Configuration** annotation in a regular Spring application.
+	2. **@EnableAutoConfiguration**:
+		- Tells Spring Boot to start adding beans based on classpath settings, other beans, and various property settings.
+		- For example, if spring-webmvc is on the classpath, this annotation flags the application as a web application and activates key behaviors, like setting up a DispatcherServlet.
+	3. **@ComponentScan**:
+		- Tells Spring to look for other components, configurations, and services in the specified package, allowing it to find controllers, services, and other components you define.
+- Instead of using three separate annotations (@Configuration, @EnableAutoConfiguration, and @ComponentScan), you can just use one.
+- Reduces the amount of configuration you need to write, letting you focus on writing the application logic.
 
 - There is no **web.xml** file and not even any spring configuration file mentioned. Spring Boot eliminates the need for traditional web.xml files or extensive Spring configuration files (applicationContext.xml, etc.). Instead, it uses a **convention over configuration** approach, where configurations defaults are automatically applied, significantly reducing the need for boilerplate code.
 
