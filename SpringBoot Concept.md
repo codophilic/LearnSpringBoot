@@ -1,6 +1,3 @@
-  <img align="center" alt="image"  src="https://github.com/user-attachments/assets/7ee7156e-8164-4fcd-a35b-4b4674efb43d"/>
-
-
 # About SpringBoot
 - Spring Framework is powerful, but it can be complex and requires a lot of boilerplate code and configuration to set up a project. Spring Boot was introduced to simplify this process.
 - Spring Boot is built on top of the conventional spring framework. So, it provides all the features of spring and is easier to use than spring.
