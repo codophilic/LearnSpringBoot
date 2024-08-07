@@ -173,7 +173,7 @@ public class MyApplication {
 		</dependency>
 ```
 
-- We also get a main method which has `@SpringBootApplication` annotation , we have added an sysout to and run our project.
+- We also get a main method which has `@SpringBootApplication` annotation . This annotation can be co-relate with `@Configuration`,`@AutoConfiguration` and `@ComponentScan`. Here we have added an sysout to and run our project.
 
 ```
 package com.spring.boot.project;
@@ -351,7 +351,203 @@ Coding...
 404 Bugs found
 ```
 
+- Lets define a Error class
 
+```
+package com.spring.boot.project;
+
+import org.springframework.stereotype.Component;
+
+@Component
+public class Error {
+
+	public void showError() {
+		System.out.println("404 Errors found");
+	}
+}
+```
+
+- Lets create an setter injection in Coder class
+
+```
+package com.spring.boot.project;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.*;
+
+@Component
+public class Coders {
+
+	//Instance variable
+	@Autowired
+	private Bugs bugs; // field injection
+	
+	private Error error;
+		
+	public Bugs getBugs() {
+		return bugs;
+	}
+
+	public Error getError() {
+		return error;
+	}
+
+	/**
+	 * Setters Injection
+	 */
+	@Autowired
+	public void setError(Error error) {
+		this.error = error;
+	}
+
+	public void setBugs(Bugs bugs) {
+		this.bugs = bugs;
+	}
+
+	public void code() {
+		System.out.println("Coding...");
+	}
+	
+}
+```
+
+- Post execution of main method
+
+```
+package com.spring.boot.project;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+
+@SpringBootApplication
+public class SimpleprojectApplication {
+
+	public static void main(String[] args) {
+		
+		//IOC Container
+		ApplicationContext context=SpringApplication.run(SimpleprojectApplication.class, args);
+		//Get bean
+		Coders coders=context.getBean(Coders.class);
+		coders.code();
+		coders.getBugs().fixBugs();
+		coders.getError().showError();
+	}
+
+}
+
+Output:
+Coding...
+404 Bugs found
+404 Errors found
+```
+
+- Lets do constructor injection, we will create a class of lines
+
+```
+package com.spring.boot.project;
+
+import org.springframework.stereotype.Component;
+
+@Component
+public class Lines {
+
+	public void linesOfCodes() {
+		System.out.println("1000 lines of codes written, still got error and bugs");
+	}
+}
+```
+
+- Lets update the coders class
+
+```
+package com.spring.boot.project;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.*;
+
+@Component
+public class Coders {
+
+	//Instance variable
+	@Autowired
+	private Bugs bugs; // field injection
+	
+	private Error error;
+	
+	private Lines lines;
+	
+	public Bugs getBugs() {
+		return bugs;
+	}
+
+	public Error getError() {
+		return error;
+	}
+
+	/**
+	 * Setters Injection
+	 */
+	@Autowired
+	public void setError(Error error) {
+		this.error = error;
+	}
+
+	public void setBugs(Bugs bugs) {
+		this.bugs = bugs;
+	}
+
+	public void code() {
+		System.out.println("Coding...");
+		lines.linesOfCodes(); // Utilizing the method via constructor injection
+	}
+	
+	/**
+	 * Constructor Injection
+	 */
+	@Autowired
+	public Coders(Lines lines) {
+		this.lines=lines;
+	}
+	
+}
+```
+
+- Post execution of main controller
+
+```
+package com.spring.boot.project;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+
+@SpringBootApplication
+public class SimpleprojectApplication {
+
+	public static void main(String[] args) {
+		
+		//IOC Container
+		ApplicationContext context=SpringApplication.run(SimpleprojectApplication.class, args);
+		//Get bean
+		Coders coders=context.getBean(Coders.class);
+		coders.code();
+		coders.getBugs().fixBugs();
+		coders.getError().showError();
+	}
+
+}
+
+Output:
+Coding...
+1000 lines of codes written, still got error and bugs
+404 Bugs found
+404 Errors found
+```
+
+- All the basic concepts of [spring](https://github.com/codophilic/LearnSpring/blob/main/Spring%20Concepts.md#about-spring) is applicable for springboot.
+- Lets learn how to use MVC and SpringBoot
+- In the above learnings we will be using STS (Spring Tool Suit). STS (Spring Tool Suite) is essentially a preconfigured version of Eclipse specifically tailored for Spring development. STS comes with all the necessary plugins and configurations for Spring development out-of-the-box, saving you time and effort. STS provides advanced features like Spring Boot support, Spring Data JPA support, Spring MVC support, and more, offering a seamless development experience. STS includes templates and wizards to quickly create Spring projects, accelerating development. STS often provides integration with cloud platforms like Cloud Foundry, simplifying deployment.
 
 
 

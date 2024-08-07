@@ -15,6 +15,7 @@ public class SimpleprojectApplication {
 		Coders coders=context.getBean(Coders.class);
 		coders.code();
 		coders.getBugs().fixBugs();
+		coders.getError().showError();
 	}
 
 }
