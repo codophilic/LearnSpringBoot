@@ -501,7 +501,252 @@ Customer [id=1, name=Harsh Pandya, custAddress=Mumbai]
 Third Customer Details: Customer [id=3, name=Harsh Donga, custAddress=Mumbai]
 ```
 
+- What if you wanna sort the data and fetch data in chunks? is it possible in CrudRepository? yes it can but you need to write native query for it . What if SpringBoot JPA provides you an interface just like CrudRepository which has paging and sorting methods?, yes we have **PagingAndSortingRepository** for it.
 
+>[!Note]
+> - In SpringBoot JPA 3.x.x version, PagingAndSortingRepository does not extends CrudRepository.
+> - In earlier version of SpringBoot JPA 2.x.x version, PagingAndSortingRepository extends CrudRepository
+
+- Lets create an entity of Employee
+
+```
+package com.springboot.jpa.entities;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "employee_data")
+public class Employee {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	@Column(name="emp_id")
+	private int id;
+	
+	private String name;
+	
+	private double salary;
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public double getSalary() {
+		return salary;
+	}
+
+	public void setSalary(double salary) {
+		this.salary = salary;
+	}
+
+	@Override
+	public String toString() {
+		return "Employee [id=" + id + ", name=" + name + ", salary=" + salary + "]";
+	}
+}
+```
+
+- Lets create an DAO interface EmployeeDaoInterface and extend PagingAndSortingRepository and CrudRepository.
+
+```
+package com.springboot.jpa.dao;
+
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
+
+import com.springboot.jpa.entities.Employee;
+
+public interface EmployeeDaoInterface extends PagingAndSortingRepository<Employee, Integer>,CrudRepository<Employee,Integer>{
+
+	
+}
+```
+
+- Lets say you wanna sort the data using IDs but in descending order
+
+```
+package com.springboot.jpa;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+import org.springframework.data.domain.Sort;
+
+import com.springboot.jpa.dao.CustomerDaoInterface;
+import com.springboot.jpa.dao.EmployeeDaoInterface;
+import com.springboot.jpa.entities.Customer;
+import com.springboot.jpa.entities.Employee;
+
+@SpringBootApplication
+public class MainMethod {
+
+	public static void main(String[] args) {
+		ApplicationContext context= SpringApplication.run(MainMethod.class, args);		
+		EmployeeDaoInterface edi=context.getBean(EmployeeDaoInterface.class);
+		
+		/**
+		 * Creating Employee details
+		 */
+		Employee emp1=new Employee();
+		emp1.setName("Harsh");
+		emp1.setSalary(1200000);
+		
+		Employee emp2=new Employee();
+		emp2.setName("Meet");
+		emp2.setSalary(2400000);
+		
+		/**
+		 * Saving data using CrudRepository
+		 */
+		edi.saveAll(List.of(emp1,emp2));
+		
+		/**
+		 * Sort data by id
+		 */
+		Sort sort = Sort.by("id").descending();
+		Iterable<Employee> sortedEmployesbyId = edi.findAll(sort);		
+		sortedEmployesbyId.forEach(i->{
+			System.out.println(i.toString());
+		});
+	}
+
+}
+
+Output:
+Employee [id=2, name=Meet, salary=2400000.0]
+Employee [id=1, name=Harsh, salary=1200000.0]
+```
+
+<details>
+<summary>
+What is Pagination?
+</summary>
+
+- Lets say if you want to retrieve 5 rows out of 100 records in SQL, you can do it using query `SELECT * FROM employee_data ORDER BY emp_id LIMIT 5`
+
+- Lets say if you want to skip first 10 records and fetch 5 records post skipping (11...15), you can do it using `SELECT * FROM employee_data ORDER BY emp_id LIMIT 5 OFFSET 10;`
+
+- Pagination allows you to retrieve a specific "page" of data, e.g., records 5 and 10. LIMIT 5 OFFSET 10 skips the first 10 records and fetches the next 5.
+
+- This improves performance and user experience by loading only a small subset of data at a time.
+
+- Pagination is the process of dividing a large set of data into smaller, more manageable chunks, or "pages." This is especially useful when dealing with large databases where you don't want to load all records at once, which could slow down your application.
+
+![alt text](image-9.png)
+
+</details>
+
+- Lets implement Paging using SpringBoot JPA, in SpringBoot JPA `PageRequest.of` takes page index number, number of data to be present in it and sorting if required.
+- Example for fetching details by skipping first 10 records and fetch 5 records post skipping, it can be done if each page contains 5 records, the first 10 records would be covered by pages 0 and 1 (since 5 records per page * 2 pages = 10 records). To start from the 11th record, you'd be on page 2 (zero-based index).
+- Thus `Pageable pageable = PageRequest.of(2, 5, Sort.by("id").ascending());`
+
+```
+package com.springboot.jpa;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
+import com.springboot.jpa.dao.CustomerDaoInterface;
+import com.springboot.jpa.dao.EmployeeDaoInterface;
+import com.springboot.jpa.entities.Customer;
+import com.springboot.jpa.entities.Employee;
+
+@SpringBootApplication
+public class MainMethod {
+
+	public static void main(String[] args) {
+		ApplicationContext context= SpringApplication.run(MainMethod.class, args);
+		
+		EmployeeDaoInterface edi=context.getBean(EmployeeDaoInterface.class);
+		
+		/**
+		 * Creating Employee details
+		 */
+		Employee emp1=new Employee();
+		emp1.setName("Harsh");
+		emp1.setSalary(1200000);
+		
+		Employee emp2=new Employee();
+		emp2.setName("Meet");
+		emp2.setSalary(2400000);
+		
+		/**
+		 * Saving data using CrudRepository
+		 */
+		edi.saveAll(List.of(emp1,emp2));
+		
+		/**
+		 * Sort data by id
+		 */
+		Sort sort = Sort.by("id").descending();
+		Iterable<Employee> sortedEmployesbyId = edi.findAll(sort);		
+		sortedEmployesbyId.forEach(i->{
+			System.out.println(i.toString());
+		});
+		
+		/**
+		 * Creating 100 Records
+		 */
+		for(int i=0;i<101;i++) {
+			Employee emp=new Employee();
+			emp.setName("User"+i);
+			emp.setSalary(i);
+			edi.save(emp);
+		}
+		
+		/**
+		 * Implementing Pagination for 5 records skipping first 10
+		 * 
+		 * Set page number 2 (which consist set of 5 records starting from 11-15)
+		 */
+		Pageable pageable = PageRequest.of(2,5);
+		Page<Employee> employeesPage = edi.findAll(pageable);
+
+		List<Employee> employees = employeesPage.getContent();
+		System.out.println("Pagination");
+		employees.forEach(i->{
+			System.out.println(i.toString());
+		});
+	}
+
+}
+
+Output:
+Employee [id=2, name=Meet, salary=2400000.0]
+Employee [id=1, name=Harsh, salary=1200000.0]
+Pagination
+Employee [id=11, name=User8, salary=8.0]
+Employee [id=12, name=User9, salary=9.0]
+Employee [id=13, name=User10, salary=10.0]
+Employee [id=14, name=User11, salary=11.0]
+Employee [id=15, name=User12, salary=12.0]
+```
+
+- When moving to actual project developing complex queries for multiple DAO interfaces it could be tedious to extend both the interface into your individual dao interface. What if both of this are already present into a single in-build interface? , thats **JpaRepository** interface for you.
+- **JpaRepository** extends both **PagingAndSortingRepository** and **CrudRepository**, and it provides additional functionality specifically related to JPA, such as batch operations and flushing the persistence context.
 
 
 

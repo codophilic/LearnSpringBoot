@@ -11,7 +11,7 @@ import com.springboot.jpa.entities.Customer;
 public interface CustomerDaoInterface extends CrudRepository<Customer, Integer>{
 
 	List<Customer> findByCustAddress(String custAddress);
-	
+
 	/**
 	 * Find data using name as well as customer address
 	 */

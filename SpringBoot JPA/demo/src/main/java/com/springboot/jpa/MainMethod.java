@@ -6,9 +6,15 @@ import java.util.Optional;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import com.springboot.jpa.dao.CustomerDaoInterface;
+import com.springboot.jpa.dao.EmployeeDaoInterface;
 import com.springboot.jpa.entities.Customer;
+import com.springboot.jpa.entities.Employee;
 
 @SpringBootApplication
 public class MainMethod {
@@ -136,6 +142,58 @@ public class MainMethod {
 		 */
 		Customer thirdCustomer=cdi.retrieveThirdCustomerOnly();
 		System.out.println("Third Customer Details: "+thirdCustomer.toString());
+		
+		
+		EmployeeDaoInterface edi=context.getBean(EmployeeDaoInterface.class);
+		
+		/**
+		 * Creating Employee details
+		 */
+		Employee emp1=new Employee();
+		emp1.setName("Harsh");
+		emp1.setSalary(1200000);
+		
+		Employee emp2=new Employee();
+		emp2.setName("Meet");
+		emp2.setSalary(2400000);
+		
+		/**
+		 * Saving data using CrudRepository
+		 */
+		edi.saveAll(List.of(emp1,emp2));
+		
+		/**
+		 * Sort data by id
+		 */
+		Sort sort = Sort.by("id").descending();
+		Iterable<Employee> sortedEmployesbyId = edi.findAll(sort);		
+		sortedEmployesbyId.forEach(i->{
+			System.out.println(i.toString());
+		});
+		
+		/**
+		 * Creating 100 Records
+		 */
+		for(int i=0;i<101;i++) {
+			Employee emp=new Employee();
+			emp.setName("User"+i);
+			emp.setSalary(i);
+			edi.save(emp);
+		}
+		
+		/**
+		 * Implementing Pagination for 5 records skipping first 10
+		 * 
+		 * Set page number 2 (which consist set of 5 records starting from 11-15)
+		 */
+		Pageable pageable = PageRequest.of(2,5);
+		Page<Employee> employeesPage = edi.findAll(pageable);
+
+		List<Employee> employees = employeesPage.getContent();
+		System.out.println("Pagination");
+		employees.forEach(i->{
+			System.out.println(i.toString());
+		});
 	}
 
 }
