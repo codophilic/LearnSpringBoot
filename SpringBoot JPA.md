@@ -748,7 +748,65 @@ Employee [id=15, name=User12, salary=12.0]
 - When moving to actual project developing complex queries for multiple DAO interfaces it could be tedious to extend both the interface into your individual dao interface. What if both of this are already present into a single in-build interface? , thats **JpaRepository** interface for you.
 - **JpaRepository** extends both **PagingAndSortingRepository** and **CrudRepository**, and it provides additional functionality specifically related to JPA, such as batch operations and flushing the persistence context.
 
+- Lets create an entity of User
 
+```
+package com.springboot.jpa.entities;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "user_details")
+public class User {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	@Column(name = "user_id") 
+	private int id;
+	
+	private String name;
+	
+	private int age;
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public int getAge() {
+		return age;
+	}
+
+	public void setAge(int age) {
+		this.age = age;
+	}
+
+	@Override
+	public String toString() {
+		return "User [id=" + id + ", name=" + name + ", age=" + age + "]";
+	}
+	
+}
+```
+
+- Lets save
+
+
+
+
+
+![alt text](image-10.png)
 
 
 
