@@ -1,12 +1,12 @@
 # About SpringBoot MVC
 - When we create MVC structure in spring a lot of configuration is required example configuring dispatcher servlet, View Resolver and etc. Check here about [Spring MVC](https://github.com/codophilic/LearnSpring/blob/main/Spring%20MVC.md)
-- Lets see how easier we can do MVC structure in SpringBoot. Lets create a simple web project in STS
+- Lets see how easier we can create MVC structure in SpringBoot. Lets create a simple web project in STS
 
-![alt text](image.png) 
+![alt text](Images/springbootmvc/image.png)
 
 - Select Spring web as the required dependency
 
-![alt text](image-1.png)
+![alt text](Images/springbootmvc/image-1.png)
 
 - Click on finish , if you see the dependencies are automatically added in the **pom.xml** file
 
@@ -96,12 +96,12 @@ public class DemoApplication {
 }
 ```
 
-![alt text](image-2.png)
+![alt text](Images/springbootmvc/image-2.png)
 
 - Wait where is the welcome page? , uptil now we have defined jsp file and controller class but we have not said springboot that all my pages are under **pages** folder with extension as **.jsp**.
 - So to do that we have **application.properties** file, where we specify suffix and prefix to resolve the view for ViewResolver.
 
-![alt text](image-3.png) 
+![alt text](Images/springbootmvc/image-3.png) 
 
 - If you see STS provides suggestion while performing configuration in application.properties
 
@@ -115,9 +115,9 @@ spring.mvc.view.suffix=.jsp
 
 - Now if we restart and check again we will get the same page, now what is the issue? if you observe below image when we try to hit the url `http://localhost:8080/welcome` , we can see a file getting downloaded.
 
-![alt text](image-4.png)
+![alt text](Images/springbootmvc/image-4.png)
 
-![alt text](image-5.png) 
+![alt text](Images/springbootmvc/image-5.png) 
 
 - Spring Boot includes an embedded Tomcat server by default for serving web applications. However, it does not include JSP support out of the box because the embedded Tomcat does not include the Jasper JSP engine necessary for processing JSP files.
 - By adding the `tomcat-embed-jasper` dependency, you include the Jasper engine, which enables JSP support. The embedded Tomcat server can then process and render JSP files.
@@ -134,21 +134,21 @@ spring.mvc.view.suffix=.jsp
 - Post running the main method, we get the page
 
 
-![alt text](image-6.png) 
+![alt text](Images/springbootmvc/image-6.png) 
 
 - Currently the project is running on tomcat port number 8080, lets say if we want to change the port , we can do this in **application.properties**
 
-![alt text](image-7.png)
+![alt text](Images/springbootmvc/image-7.png)
 
 - Configuring port 8081 temporarily
 
-![alt text](image-8.png)
+![alt text](Images/springbootmvc/image-8.png)
 
-![alt text](image-9.png) 
+![alt text](Images/springbootmvc/image-9.png) 
 
 - Currently we are running this web springboot project in java perspective in STS, there is no server added and also not open in Java EE perspective.
 
-![alt text](image-10.png)
+![alt text](Images/springbootmvc/image-10.png)
 
 ## What is application.properties?
 
