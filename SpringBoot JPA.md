@@ -800,10 +800,211 @@ public class User {
 }
 ```
 
-- Lets save
+- Lets a DAO interface
 
+```
+package com.springboot.jpa.dao;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 
+import com.springboot.jpa.entities.User;
+
+public interface UserDaoInterface extends JpaRepository<User,Integer> {
+	
+}
+```
+
+- **Jparepository** provides two method for saving an entity, **save()** and **saveAndFlush()**, whats the difference?
+
+<details>
+<summary> What is Flush? difference between Flush and Commit </summary>
+
+- **Flushing** means that the changes you've made in your EntityManager (like inserts, updates, or deletes) are sent to the database. However, these changes are not yet permanently saved in the database; they're just pushed to the database.
+
+- You think of an analogy like writing a letter and putting it into an envelope. You’ve prepared everything, but you haven’t yet mailed it.
+
+- **Committing** is the process of finalizing the transaction. When you commit a transaction, all the changes that have been flushed to the database are permanently saved (persisted) and made visible to other database connections.
+
+- Analogy is mailing the envelope. Now the letter is on its way and cannot be taken back.
+
+- Committing happens at the end of a transaction. If you’re in a transaction, once you commit, it confirms all the changes, and they cannot be undone. Whereas flushing can happen automatically before a query is executed, before a transaction is committed, or manually when you explicitly call `flush()`.
+
+</details>
+
+<br/>
+
+- Lets create a user service layer and see and example of `save`.
+
+```
+package com.springboot.jpa.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+
+import com.springboot.jpa.dao.UserDaoInterface;
+import com.springboot.jpa.entities.User;
+
+import jakarta.persistence.*;
+import jakarta.transaction.Transactional;
+
+@Service
+public class UserService {
+
+    @Autowired
+    private UserDaoInterface udi;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+    
+	@Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Transactional
+    public void saveAndRetrieveUser() {
+        User u = new User();
+        u.setName("Harsh");
+        u.setAge(24);
+
+        // Save the entity
+        udi.save(u);
+
+    	String sqlQuery = "SELECT * FROM user_details WHERE user_id = ?";
+    	List<User> customers = jdbcTemplate.query(sqlQuery,new Object[]{1}, new BeanPropertyRowMapper(User.class));
+    	
+    	if (!customers.isEmpty()) {  
+    		  System.out.println("User found with id: " + customers.get(0).getId());  
+    		} else {  
+    		  System.out.println("User not found when used native query");  
+    		}
+
+        /* Attempt to retrieve the entity
+         * When we save entity is gets save into persistance context
+         * and not into database.
+         */
+        Optional<User> uget = udi.findById(1);
+        if(uget.isPresent()) {
+        	System.out.println("User Details found without using native query");
+        }else {
+        	System.out.println("User Details not found");
+        }
+        
+        entityManager.flush();
+    }
+}
+```
+
+- Post execution of Main Method , we can see when we `save()` and then query the data directly from database, we cannot get it because save stores the data to persistance context of EntityManager.
+
+```
+Main Method
+		UserService us=context.getBean(UserService.class);
+		
+		/**
+		 * Using Save method
+		 */
+		us.saveAndRetrieveUser();
+
+Output:
+User not found when used native query
+User Details found without using native query
+```
+
+- The data is gets save post complete execution
+
+![alt text](image-11.png) 
+
+- Lets see example of SaveAndFlush
+
+```
+package com.springboot.jpa.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+
+import com.springboot.jpa.dao.UserDaoInterface;
+import com.springboot.jpa.entities.User;
+
+import jakarta.persistence.*;
+import jakarta.transaction.Transactional;
+
+@Service
+public class UserService {
+
+    @Autowired
+    private UserDaoInterface udi;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+    
+	@Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Transactional
+    public void saveAndFlushRetrieveUser() {
+        User u = new User();
+        u.setName("Meet");
+        u.setAge(21);
+
+        // Save the entity
+        udi.saveAndFlush(u);
+
+    	String sqlQuery = "SELECT * FROM user_details WHERE user_id = ?";
+    	List<User> customers = jdbcTemplate.query(sqlQuery,new Object[]{2}, new BeanPropertyRowMapper(User.class));
+    	
+    	if (!customers.isEmpty()) {  
+    		  System.out.println("User found using native query, id: " + customers.get(0).getId());  
+    		} else {  
+    		  System.out.println("User not found when used native query");  
+    		}
+
+        /* Attempt to retrieve the entity
+         * When we save entity is gets save into persistance context
+         * and not into database.
+         */
+        Optional<User> uget = udi.findById(1);
+        if(uget.isPresent()) {
+        	System.out.println("User Details found without using native query");
+        }else {
+        	System.out.println("User Details not found");
+        }
+        
+        entityManager.flush();
+    }
+}
+```
+
+- Post execution we can see
+
+```
+Main Method
+		
+		/**
+		 * Using SaveAndFlush
+		 */
+		us.saveAndFlushRetrieveUser();
+Output:
+User found using native query, id: 0
+User Details found without using native query
+```	
+![alt text](image-12.png)
+
+- The difference between save and saveAndFlush in JpaRepository can be understood as follows:
+	- save:
+		- Operation: Saves the entity to the database but doesn't necessarily flush the changes immediately. Flushing means the changes are written to the database and committed.
+		- Retrieving the Value: If you try to retrieve the value immediately after save, it might not reflect the latest state in the database because the changes might not have been flushed yet.
+	- saveAndFlush:
+		- Operation: Saves the entity to the database and immediately flushes the changes. This means the changes are written to the database and committed right away.
+		- Retrieving the Value: If you retrieve the value immediately after saveAndFlush, you'll get the most up-to-date version because the changes have been committed to the database.
 
 
 ![alt text](image-10.png)

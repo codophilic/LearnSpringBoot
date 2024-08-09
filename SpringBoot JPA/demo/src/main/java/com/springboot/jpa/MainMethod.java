@@ -15,6 +15,7 @@ import com.springboot.jpa.dao.CustomerDaoInterface;
 import com.springboot.jpa.dao.EmployeeDaoInterface;
 import com.springboot.jpa.entities.Customer;
 import com.springboot.jpa.entities.Employee;
+import com.springboot.jpa.service.UserService;
 
 @SpringBootApplication
 public class MainMethod {
@@ -194,6 +195,18 @@ public class MainMethod {
 		employees.forEach(i->{
 			System.out.println(i.toString());
 		});
-	}
 
+		UserService us=context.getBean(UserService.class);
+		
+		/**
+		 * Using Save method
+		 */
+		us.saveAndRetrieveUser();
+		
+		/**
+		 * Using SaveAndFlush
+		 */
+		us.saveAndFlushRetrieveUser();
+
+	}
 }
