@@ -1311,6 +1311,7 @@ Hibernate: delete u1_0 from user_details u1_0 where u1_0.user_id=? or u1_0.user_
 
 ![alt text](Images/springjpa/image-10.png)
 
+- Above learnings are implemented [here](https://github.com/codophilic/LearnSpringBoot/tree/main/SpringBoot%20JPA/demo/src/main/java/com/springboot/jpa)
 
 
 
