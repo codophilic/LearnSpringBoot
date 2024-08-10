@@ -1,5 +1,6 @@
 package com.springboot.jpa;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +16,7 @@ import com.springboot.jpa.dao.CustomerDaoInterface;
 import com.springboot.jpa.dao.EmployeeDaoInterface;
 import com.springboot.jpa.entities.Customer;
 import com.springboot.jpa.entities.Employee;
+import com.springboot.jpa.entities.User;
 import com.springboot.jpa.service.UserService;
 
 @SpringBootApplication
@@ -207,6 +209,76 @@ public class MainMethod {
 		 * Using SaveAndFlush
 		 */
 		us.saveAndFlushRetrieveUser();
-
+		
+		/**
+		 * Creating 100 users
+		 */
+		List<User> lsu=new ArrayList<>();
+		for(int i=1;i<101;i++) {
+			User u=new User();
+			u.setAge(i+10);
+			u.setName("Test-"+i);
+			lsu.add(u);
+		}
+		
+		/**
+		 * Save All entities
+		 */
+		us.saveAll(lsu);
+		
+		
+		/**
+		 * Delete all using method deleteAll which generates
+		 * multiple queries
+		 */
+		us.deleteAllDetails();
+		
+		/**
+		 * Creating 100 users
+		 */
+		lsu.clear();
+		for(int i=1;i<101;i++) {
+			User u=new User();
+			u.setAge(i+10);
+			u.setName("Test-"+i);
+			lsu.add(u);
+		}
+		
+		/**
+		 * Save All entities
+		 */
+		us.saveAll(lsu);
+		
+		
+		/**
+		 * Delete All entities in batch operation
+		 * this generates only 1 query and deletes all the data.
+		 */
+		us.deleteAllDetailsInBatch();
+		
+		/**
+		 * Creating 100 users
+		 */
+		lsu.clear();
+		for(int i=1;i<101;i++) {
+			User u=new User();
+			u.setAge(i+10);
+			u.setName("Test-"+i);
+			lsu.add(u);
+		}
+		
+		/**
+		 * Save all the users
+		 */
+		us.saveAll(lsu);
+		
+		List<User> ageGreaterThanEqual90=us.fetchRecordsOFAgeGreaterThanEqual(90);
+		System.out.println("List of records fetch: "+ageGreaterThanEqual90.size());
+		
+		/**
+		 * Delete all the records whos age is greater than equal to 90
+		 */
+		us.deleteDetailsOfParticularEntities(ageGreaterThanEqual90);
+		
 	}
 }

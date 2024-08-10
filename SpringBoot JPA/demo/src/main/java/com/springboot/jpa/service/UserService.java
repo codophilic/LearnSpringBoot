@@ -15,6 +15,7 @@ import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
 
 @Service
+@Transactional
 public class UserService {
 
     @Autowired
@@ -26,7 +27,6 @@ public class UserService {
 	@Autowired
     private JdbcTemplate jdbcTemplate;
 
-    @Transactional
     public void saveAndRetrieveUser() {
         User u = new User();
         u.setName("Harsh");
@@ -58,7 +58,6 @@ public class UserService {
         entityManager.flush();
     }
     
-    @Transactional
     public void saveAndFlushRetrieveUser() {
         User u = new User();
         u.setName("Meet");
@@ -88,5 +87,25 @@ public class UserService {
         }
         
         entityManager.flush();
+    }
+    
+    public void saveAll(List<User> userList) {
+    	udi.saveAll(userList);
+    }
+    
+    public void deleteAllDetails() {
+    	udi.deleteAll();
+    }
+    
+    public void deleteAllDetailsInBatch() {
+    	udi.deleteAllInBatch();
+    }
+    
+    public List<User> fetchRecordsOFAgeGreaterThanEqual(int age){
+    	return udi.findByAgeGreaterThanEqual(age);
+    }
+    
+    public void deleteDetailsOfParticularEntities(List<User> entitiesDetails) {
+    	udi.deleteAllInBatch(entitiesDetails);
     }
 }

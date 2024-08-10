@@ -2,11 +2,11 @@
 - Learn about [JPA](https://github.com/codophilic/Learn-Hibernate-ORM/blob/main/Theory.md#jpa-java-persistence-api)
 - Lets create a SpringBoot JPA project
 
-![alt text](image.png) 
+![alt text](Images/springjpa/image.png) 
 
 - Add dependencies JPA and MySQL driver (here we are using MySQL database)
 
-![alt text](image-1.png)
+![alt text](Images/springjpa/image-1.png)
 
 ```
 		<dependency>
@@ -23,7 +23,7 @@
 
 - If you see , JPA is a specification which is implemented by hibernate, when we download `spring-boot-starter-data-jpa` , hibernate libraries are also provided by SpringBoot.
 
-![alt text](image-2.png)
+![alt text](Images/springjpa/image-2.png)
 
 - Lets say we have a customer entity which has id, name and address as its value
 
@@ -99,11 +99,11 @@ public interface CustomerDaoInterface extends CrudRepository<Customer, Integer>{
     - The type of the entity’s identifier (primary key) (Integer - Wrapper Class).
 - It provides several methods to perform basic CRUD operations
 
-![alt text](image-3.png) 
+![alt text](Images/springjpa/image-3.png) 
 
 - Apart from CRUD operations, SpringBoot Data JPA allows you to define custom query methods by simply declaring them in the repository interface. Spring will generate the query based on the method name.
 
-![alt text](image-4.png) 
+![alt text](Images/springjpa/image-4.png) 
 
 - **CrudRepository** should be implemented by an interface only. The whole idea is to provide a mechanism to perform CRUD operations without writing boilerplate code. SpringBoot Data JPA will automatically create a concrete class for your repository interface at runtime, so you don’t need to manually implement any methods.
 
@@ -133,7 +133,7 @@ spring.jpa.hibernate.ddl-auto = create
 
 - If you see STS provides suggestion while performing configuration in application.properties
 
-![alt text](image-5.png)
+![alt text](Images/springjpa/image-5.png)
 
 - Now lets perform some CRUD operations using Springboot and JPA. Lets create and fetch users. Below is the MainMethod
 
@@ -225,11 +225,11 @@ Customer [id=2, name=Meet, custAddress=Delhi]
 Customer [id=3, name=Jeet, custAddress=MP]
 ```
 
-![alt text](image-6.png)
+![alt text](Images/springjpa/image-6.png)
 
 - Lets fetch customer details by address, should we need to write any custom query? nope , jpa provides those methods you only need to add in your interface.
 
-![alt text](image-7.png) 
+![alt text](Images/springjpa/image-7.png) 
 
 - Below is the main method
 
@@ -330,7 +330,7 @@ Updated user details: Customer [id=3, name=Donga, custAddress=MP]
 Deleted user of ID 3:false
 ```
 
-![alt text](image-8.png)
+![alt text](Images/springjpa/image-8.png)
 
 - Thus **CrudRepository** is an interface that provides a set of methods for performing basic CRUD operations on an entity, and it should be used by creating an interface that extends it. SpringBoot handles the implementation details, allowing you to work with data in a simple and efficient way.
 
@@ -647,7 +647,7 @@ What is Pagination?
 
 - Pagination is the process of dividing a large set of data into smaller, more manageable chunks, or "pages." This is especially useful when dealing with large databases where you don't want to load all records at once, which could slow down your application.
 
-![alt text](image-9.png)
+![alt text](Images/springjpa/image-9.png)
 
 </details>
 
@@ -916,7 +916,7 @@ User Details found without using native query
 
 - The data is gets save post complete execution
 
-![alt text](image-11.png) 
+![alt text](Images/springjpa/image-11.png) 
 
 - Lets see example of SaveAndFlush
 
@@ -996,7 +996,7 @@ Output:
 User found using native query, id: 0
 User Details found without using native query
 ```	
-![alt text](image-12.png)
+![alt text](Images/springjpa/image-12.png)
 
 - The difference between save and saveAndFlush in JpaRepository can be understood as follows:
 	- save:
@@ -1007,7 +1007,309 @@ User Details found without using native query
 		- Retrieving the Value: If you retrieve the value immediately after saveAndFlush, you'll get the most up-to-date version because the changes have been committed to the database.
 
 
-![alt text](image-10.png)
+- Lets us perform delete operation, lets say we need to delete all the data from the table, we have an `deleteAll()` method for it.
+- Adding the below configuration in application.properties
+
+```
+spring.jpa.show-sql=true
+```
+
+- We are now creating 100 users and delete all the users using `deleteAll()`. First create a method in service layer
+
+```
+Service Layer
+    public void saveAll(List<User> userList) {
+    	udi.saveAll(userList);
+    }
+    
+    public void deleteAllDetails() {
+    	udi.deleteAll();
+    }
+```
+
+- Post execution of main method
+
+```
+package com.springboot.jpa;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
+import com.springboot.jpa.dao.CustomerDaoInterface;
+import com.springboot.jpa.dao.EmployeeDaoInterface;
+import com.springboot.jpa.entities.Customer;
+import com.springboot.jpa.entities.Employee;
+import com.springboot.jpa.entities.User;
+import com.springboot.jpa.service.UserService;
+
+@SpringBootApplication
+public class MainMethod {
+
+	public static void main(String[] args) {
+		ApplicationContext context= SpringApplication.run(MainMethod.class, args);
+
+		UserService us=context.getBean(UserService.class);
+		
+		/**
+		 * Creating 100 users
+		 */
+		List<User> lsu=new ArrayList<>();
+		for(int i=1;i<101;i++) {
+			User u=new User();
+			u.setAge(i+10);
+			u.setName("Test-"+i);
+			lsu.add(u);
+		}
+		
+		/**
+		 * Save All entities
+		 */
+		us.saveAll(lsu);
+		
+		
+		/**
+		 * Delete all using method deleteAll which generates
+		 * multiple queries
+		 */
+		us.deleteAllDetails();
+		
+	}
+}
+
+Output:
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+....
+
+Hibernate: delete from user_details where user_id=?
+Hibernate: delete from user_details where user_id=?
+Hibernate: delete from user_details where user_id=?
+Hibernate: delete from user_details where user_id=?
+Hibernate: delete from user_details where user_id=?
+Hibernate: delete from user_details where user_id=?
+Hibernate: delete from user_details where user_id=?
+Hibernate: delete from user_details where user_id=?
+Hibernate: delete from user_details where user_id=?
+```
+
+- If you see `deleteAll()` executes multiple queries, it deletes each row.
+
+```
+Service Layer
+    public void saveAll(List<User> userList) {
+    	udi.saveAll(userList);
+    }
+    
+    public void deleteAllDetailsInBatch() {
+    	udi.deleteAllInBatch();
+    }
+```
+
+- What if, there is a method which executes a single query and delete all the data? - use `deleteAllInBatch()`
+- Post execution of main method
+
+```
+package com.springboot.jpa;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
+import com.springboot.jpa.dao.CustomerDaoInterface;
+import com.springboot.jpa.dao.EmployeeDaoInterface;
+import com.springboot.jpa.entities.Customer;
+import com.springboot.jpa.entities.Employee;
+import com.springboot.jpa.entities.User;
+import com.springboot.jpa.service.UserService;
+
+@SpringBootApplication
+public class MainMethod {
+
+	public static void main(String[] args) {
+		ApplicationContext context= SpringApplication.run(MainMethod.class, args);
+
+		UserService us=context.getBean(UserService.class);
+		
+		/**
+		 * Creating 100 users
+		 */
+		List<User> lsu=new ArrayList<>();
+		for(int i=1;i<101;i++) {
+			User u=new User();
+			u.setAge(i+10);
+			u.setName("Test-"+i);
+			lsu.add(u);
+		}
+		
+		/**
+		 * Save All entities
+		 */
+		us.saveAll(lsu);
+		
+		
+		/**
+		 * Delete All entities in batch operation
+		 * this generates only 1 query and deletes all the data.
+		 */
+		
+		us.deleteAllDetailsInBatch();
+
+	}
+}
+
+Output:
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+...
+Hibernate: delete u1_0 from user_details u1_0
+```
+
+- While **deleteAll** calls delete method iteratively, **deleteAllInBatch** method calls executeUpdate. So, if there are 100 entities to be removed, `deleteAll()` will triggers 100 SQL queries while `deleteAllInBatch()` will trigger just one. This is a very important distinction, performance wise.
+- The **deleteAllInBatch** method in JpaRepository does not use a specific batch size by default. Instead, it deletes all the entities in a single batch operation directly at the database level.
+- Lets say you wanted to delete all the rows who age are 90+, for that we can we still use `deleteAllInBatch()`
+- First we need to create a derived query which will fetch records whos age is greater than equal to 90
+
+```
+Dao Layer
+package com.springboot.jpa.dao;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.springboot.jpa.entities.User;
+
+public interface UserDaoInterface extends JpaRepository<User,Integer> {
+	
+	List<User> findByAgeGreaterThanEqual(int agecriteria);
+}
+
+
+Service Layer
+    public void deleteDetailsOfParticularEntities(List<User> entitiesDetails) {
+    	udi.deleteAllInBatch(entitiesDetails);
+    }
+```
+
+- Post execution of main method
+
+```
+package com.springboot.jpa;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
+import com.springboot.jpa.dao.CustomerDaoInterface;
+import com.springboot.jpa.dao.EmployeeDaoInterface;
+import com.springboot.jpa.entities.Customer;
+import com.springboot.jpa.entities.Employee;
+import com.springboot.jpa.entities.User;
+import com.springboot.jpa.service.UserService;
+
+@SpringBootApplication
+public class MainMethod {
+
+	public static void main(String[] args) {
+		ApplicationContext context= SpringApplication.run(MainMethod.class, args);
+
+		UserService us=context.getBean(UserService.class);
+		
+		/**
+		 * Creating 100 users
+		 */
+		List<User> lsu=new ArrayList<>();
+		for(int i=1;i<101;i++) {
+			User u=new User();
+			u.setAge(i+10);
+			u.setName("Test-"+i);
+			lsu.add(u);
+		}
+		
+		/**
+		 * Save all the users
+		 */
+		us.saveAll(lsu);
+		
+		List<User> ageGreaterThanEqual90=us.fetchRecordsOFAgeGreaterThanEqual(90);
+		System.out.println("List of records fetch: "+ageGreaterThanEqual90.size());
+		
+		/**
+		 * Delete all the records whos age is greater than equal to 90
+		 */
+		us.deleteDetailsOfParticularEntities(ageGreaterThanEqual90);
+		
+	}
+}
+
+
+
+Output:
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+Hibernate: insert into user_details (age,name,user_id) values (?,?,?)
+...
+Hibernate: select u1_0.user_id,u1_0.age,u1_0.name from user_details u1_0 where u1_0.age>=?
+List of records fetch: 21
+Hibernate: delete u1_0 from user_details u1_0 where u1_0.user_id=? or u1_0.user_id=? or u1_0.user_id=? or u1_0.user_id=? or u1_0.user_id=? or u1_0.user_id=? or u1_0.user_id=? or u1_0.user_id=? or u1_0.user_id=? or u1_0.user_id=? or u1_0.user_id=? or u1_0.user_id=? or u1_0.user_id=? or u1_0.user_id=? or u1_0.user_id=? or u1_0.user_id=? or u1_0.user_id=? or u1_0.user_id=? or u1_0.user_id=? or u1_0.user_id=? or u1_0.user_id=?
+```
+
+![alt text](Images/springjpa/image-14.png)
+
+![alt text](Images/springjpa/image-13.png) 
+
+### Analogy 
+
+- Here, the **ListCrudRepository** and **ListPagingAndSortingRepository** interfaces are specific extensions in the Spring Data JPA module, designed to handle List as a return type for collection queries instead of the standard Iterable.
+- **CrudRepository** and **PagingAndSortingRepository** typically return Iterable for collection queries. **ListCrudRepository** and **ListPagingAndSortingRepository** are specialized to return a List directly, which can be more convenient when you need to work with lists specifically.
+- If you often find yourself needing to cast or convert an Iterable to a List, using ListCrudRepository or ListPagingAndSortingRepository can save you time and make your code cleaner.
+- ListCrudRepository and ListPagingAndSortingRepository primarily provide convenience by returning a List instead of an Iterable. There isn't a big difference in functionality but rather a focus on ease of use and consistency in return types.
+
+![alt text](Images/springjpa/image-10.png)
 
 
 
