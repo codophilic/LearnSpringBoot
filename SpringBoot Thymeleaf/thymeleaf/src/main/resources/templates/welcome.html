@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<h1> Welcome <span th:text="${name}"></span></h1>
+<h2> Uppercase <span th:text="${ #strings.toUpperCase(name)}"></span></h2>
+
+<!--  Scope of a,b and n is within the div block -->
+<div th:with="a=10,b=20,n=${ name }">
+	<h1> Value of a <span th:text="${a}"></span></h1>
+	<h1> Value of b <span th:text="${b}"></span></h1>
+	<h1 th:text="'Sum of a + b is '+${a+b}"> </h1>
+	<h1 th:text="'length of string is '+${#strings.length(n)}"></h1>
+	
+</div>
+<h1>Scope of a= <span th:text="${a}"></span> outside the div tag not valid</h1>
+
+<ul>
+	<li th:each="i,iteration: ${listvalues}">
+		<h3> printing value of <span th:text="'index number '+${iteration.index}+' '+${i}"></span> </h3>
+	</li>
+	
+</ul>
+
+<h2> Coloring odd iterable to red</h2>
+
+<ul>
+
+	<li th:each="i, iterationforColor : ${listvalues}">
+		<span th:style="${iterationforColor.odd} ? 'color:red;font-weight:bold'" th:text="${i}"></span> Count: <span th:text="${iterationforColor.count}"></span>
+	</li>
+	
+</ul>
+</body>
+</html>

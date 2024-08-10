@@ -40,9 +40,474 @@
 | **Data Binding**                     | JSP binds data using scriptlets or expression language (EL).                     | Thymeleaf uses simple expressions within HTML attributes for data binding. |
 | **Learning Curve**                   | JSP has a steeper learning curve, especially for front-end developers.           | Thymeleaf is easier to learn for front-end developers as it uses standard HTML syntax. |
 
+- Lets create a thymeleaf springboot project. First lets install the dependencies.
+
+![alt text](image.png)
+
+- Go to Help > Install New Software > Work with , in this section add this link and install the new software by accepting the terms and conditions.
+
+```
+http://www.thymeleaf.org/eclipse-plugin-update-site/
+```
+
+- Lets create a controller
+
+```
+package com.springboot.thymeleaf;
+
+import java.util.Date;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
+
+@Controller
+public class MainController {
+
+	@RequestMapping("/welcome")
+	public ModelAndView welcomePage() {
+		ModelAndView mav=new ModelAndView();
+		mav.setViewName("welcome");
+		mav.addObject("name","Harsh");
+		return mav;
+	}
+}
+```
+
+- Here we have used ModelAndView to set the data in object and view name.
+- Now we need to create a **welcome.html** file. This file needs to be created under folder `src/main/resources/template`.
+
+```
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<h1 th:text="${todaysDate}"></h1>
+<h1> Welcome <span th:text="${name}"></span></h1>
+
+</body>
+</html>
+```
+
+![alt text](image-1.png)
+
+- Lets say you wanna make the string in upper/lower case, you could handle this in java, but thymeleaf provides expression to make it easier.
+
+```
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<h1> Welcome <span th:text="${name}"></span></h1>
+<h2> Uppercase <span th:text="${ #strings.toUpperCase(name)}"></span></h2>
+</body>
+</html>
+```
+
+![alt text](image-3.png)
+
+- Lets say you wanna create variables within the HTML and do some computations
+
+```
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<h1> Welcome <span th:text="${name}"></span></h1>
+<h2> Uppercase <span th:text="${ #strings.toUpperCase(name)}"></span></h2>
+
+<!--  Scope of a,b and n is within the div block -->
+<div th:with="a=10,b=20,n=${ name }">
+	<h1> Value of a <span th:text="${a}"></span></h1>
+	<h1> Value of b <span th:text="${b}"></span></h1>
+	<h1 th:text="'Sum of a + b is '+${a+b}"> </h1>
+	<h1 th:text="'length of string is '+${#strings.length(n)}"></h1>
+	
+</div>
+<h1>Scope of a= <span th:text="${a}"></span> outside the div tag not valid</h1>
+
+</body>
+</html>
+```
+
+![alt text](image-4.png)
+
+- `#strings.toUpperCase(name)`: This is a Thymeleaf utility object for string operations. It calls the toUpperCase method on the name variable, converting it to uppercase. This is a Thymeleaf utility object that provides various methods for string manipulation. It wraps Java's String class methods. Likewise strings there are arrays and various types of operations like #arrays,#collections,#dates,#objects etc..
+- `th:with`: This attribute is used to declare local variables (a, b, and n) within the scope of the <div>. These variables are only available within this block.
+- Lets say you wanna iterate over an items, in thymeleaf you can use `th:each`. So here we have created a list.
+
+```
+package com.springboot.thymeleaf;
+
+import java.util.List;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
+
+@Controller
+public class MainController {
+
+	@RequestMapping("/welcome")
+	public ModelAndView welcomePage() {
+		ModelAndView mav=new ModelAndView();
+		mav.setViewName("welcome");
+		mav.addObject("name","Harsh");
+		mav.addObject("listvalues",List.of("Item1","Item2","Item3"));
+		return mav;
+	}
+}
+
+```
+
+- Below is the welcome page where we are iterating over the list values and printing those in an unordered list tag
+
+```
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<h1> Welcome <span th:text="${name}"></span></h1>
+<h2> Uppercase <span th:text="${ #strings.toUpperCase(name)}"></span></h2>
+
+<!--  Scope of a,b and n is within the div block -->
+<div th:with="a=10,b=20,n=${ name }">
+	<h1> Value of a <span th:text="${a}"></span></h1>
+	<h1> Value of b <span th:text="${b}"></span></h1>
+	<h1 th:text="'Sum of a + b is '+${a+b}"> </h1>
+	<h1 th:text="'length of string is '+${#strings.length(n)}"></h1>
+	
+</div>
+<h1>Scope of a= <span th:text="${a}"></span> outside the div tag not valid</h1>
+
+<ul>
+	<li th:each="i,iteration : ${listvalues}">
+		<h3> printing value of <span th:text="'index number '+${iteration.index}+' '+${i}"></span> </h3>
+	</li>
+	
+</ul>
+
+</body>
+</html>
+```
+
+![alt text](image-5.png)
+
+- The `th:each` attribute in Thymeleaf is used for iterating over collections (like lists, sets, Maps and arrays) within your templates. It allows you to render elements multiple times based on the contents of the collection.
+- When using `th:each`, you can also access additional variables related to the iteration.
+    - `iteration.index`: Current index (0-based).
+    - `iteration.count`: Current count (1-based).
+    - `iteration.size`: Total size of the collection.
+    - `iteration.first`: Boolean indicating if the current item is the first.
+    - `iteration.last`: Boolean indicating if the current item is the last.
+    - `iteration.even` or `iteration.odd` : checks if the current iteration is odd or even.
+
+```
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<h1> Welcome <span th:text="${name}"></span></h1>
+<h2> Uppercase <span th:text="${ #strings.toUpperCase(name)}"></span></h2>
+
+<!--  Scope of a,b and n is within the div block -->
+<div th:with="a=10,b=20,n=${ name }">
+	<h1> Value of a <span th:text="${a}"></span></h1>
+	<h1> Value of b <span th:text="${b}"></span></h1>
+	<h1 th:text="'Sum of a + b is '+${a+b}"> </h1>
+	<h1 th:text="'length of string is '+${#strings.length(n)}"></h1>
+	
+</div>
+<h1>Scope of a= <span th:text="${a}"></span> outside the div tag not valid</h1>
+
+<ul>
+	<li th:each="i,iteration: ${listvalues}">
+		<h3> printing value of <span th:text="'index number '+${iteration.index}+' '+${i}"></span> </h3>
+	</li>
+	
+</ul>
+
+<h2> Coloring odd iterable to red</h2>
+
+<ul>
+
+	<li th:each="i, iterationforColor : ${listvalues}">
+		<span th:style="${iterationforColor.odd} ? 'color:red;font-weight:bold'" th:text="${i}"></span> Count: <span th:text="${iterationforColor.count}"></span>
+	</li>
+	
+</ul>
+</body>
+</html>
+```
+
+![alt text](image-6.png)
+
+- What if you wanna add some conditional statements? is it possible in thymeleaf? , yes there are 3 approach to do with it. Lets create a page with name as conditions.html.
+
+1. **Inline Conditional Expressions or Ternator Operator**
+
+- Main Controller
+
+```
+package com.springboot.thymeleaf;
+
+import java.util.List;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
+
+@Controller
+public class MainController {
+
+	@RequestMapping("/welcome")
+	public ModelAndView welcomePage() {
+		ModelAndView mav=new ModelAndView();
+		mav.setViewName("welcome");
+		mav.addObject("name","Harsh");
+		mav.addObject("listvalues",List.of("Item1","Item2","Item3"));
+		return mav;
+	}
+	
+	@GetMapping("/conditions")
+	public ModelAndView conditionsPage() {
+		ModelAndView mav=new ModelAndView();
+		mav.setViewName("conditions");
+		mav.addObject("userActive",true);
+		return mav;
+	}
+}
+```
+
+- Conditions page
+
+![alt text](image-7.png)
+
+2. **Switch Case**
+
+- Main Controller
+
+```
+package com.springboot.thymeleaf;
+
+import java.util.List;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
+
+@Controller
+public class MainController {
+
+	@RequestMapping("/welcome")
+	public ModelAndView welcomePage() {
+		ModelAndView mav=new ModelAndView();
+		mav.setViewName("welcome");
+		mav.addObject("name","Harsh");
+		mav.addObject("listvalues",List.of("Item1","Item2","Item3"));
+		return mav;
+	}
+	
+	@GetMapping("/conditions")
+	public ModelAndView conditionsPage() {
+		ModelAndView mav=new ModelAndView();
+		mav.setViewName("conditions");
+		mav.addObject("userActive",false);
+		mav.addObject("listsize",List.of(10,20,30));
+		return mav;
+	}
+}
+```
+
+- Conditions page
+
+```
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+
+<h1>Inline Conditional Expressions or Ternator Operator</h1>
+<h2> User is <span th:style="${ userActive } ? 'color:green' : 'color:red'" th:text=" ${ userActive } ? 'ACTIVE' : 'INACTIVE' "></span></h2>
+
+<h1> Switch Case </h1>
+<div th:switch="${ #lists.size(listsize) }">
+	<h2 th:case="'0'"> List size is 0</h2>
+	<h2 th:case="'3'"> List size is 3</h2>
+	<h2 th:case="'*'"> List size is <span th:text="${ #lists.size(listsize) }"></span></h2>
+</div>
+
+</body>
+</html>
+```
+
+![alt text](image-8.png) 
+
+3. **Using If**
+
+- Main Controller
+
+```
+package com.springboot.thymeleaf;
+
+import java.util.List;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
+
+@Controller
+public class MainController {
+
+	@RequestMapping("/welcome")
+	public ModelAndView welcomePage() {
+		ModelAndView mav=new ModelAndView();
+		mav.setViewName("welcome");
+		mav.addObject("name","Harsh");
+		mav.addObject("listvalues",List.of("Item1","Item2","Item3"));
+		return mav;
+	}
+	
+	@GetMapping("/conditions")
+	public ModelAndView conditionsPage() {
+		ModelAndView mav=new ModelAndView();
+		mav.setViewName("conditions");
+		mav.addObject("userActive",false);
+		mav.addObject("listsize",List.of(10,20,30));
+		mav.addObject("gender", "F");
+		return mav;
+	}
+}
+```
+    
+- Condition page
+
+```
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+
+<h1>Inline Conditional Expressions or Ternator Operator</h1>
+<h2> User is <span th:style="${ userActive } ? 'color:green' : 'color:red'" th:text=" ${ userActive } ? 'ACTIVE' : 'INACTIVE' "></span></h2>
+
+<h1> Switch Case </h1>
+<div th:switch="${ #lists.size(listsize) }">
+	<h2 th:case="'0'"> List size is 0</h2>
+	<h2 th:case="'3'"> List size is 3</h2>
+	<h2 th:case="'*'"> List size is <span th:text="${ #lists.size(listsize) }"></span></h2>
+</div>
+
+<h1> Using If</h1>
+<h2 th:if="${gender} =='M'"> User is Male</h2>
+<h2 th:if="${gender} !='M'"> User is Female</h2>
+
+</body>
+</html>
+```
+
+![alt text](image-9.png)
+
+4. **Using If and Useless**
+
+- The `th:unless` attribute is the opposite of th:if. It renders the element only if the expression evaluates to false. 
+- In the below html it is specified that `<h2 th:usless="${age} <=20 "> Age is above 20 </h2>` stating that 100 is not less than 20 which evaluates to false.
+- Main Controller
+
+```
+package com.springboot.thymeleaf;
+
+import java.util.List;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
+
+@Controller
+public class MainController {
+
+	@RequestMapping("/welcome")
+	public ModelAndView welcomePage() {
+		ModelAndView mav=new ModelAndView();
+		mav.setViewName("welcome");
+		mav.addObject("name","Harsh");
+		mav.addObject("listvalues",List.of("Item1","Item2","Item3"));
+		return mav;
+	}
+	
+	@GetMapping("/conditions")
+	public ModelAndView conditionsPage() {
+		ModelAndView mav=new ModelAndView();
+		mav.setViewName("conditions");
+		mav.addObject("userActive",false);
+		mav.addObject("listsize",List.of(10,20,30));
+		mav.addObject("gender", "F");
+		mav.addObject("age", 100);
+		return mav;
+	}
+}
+```
+
+- Condition page
 
 
+```
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
 
+<h1>Inline Conditional Expressions or Ternator Operator</h1>
+<h2> User is <span th:style="${ userActive } ? 'color:green' : 'color:red'" th:text=" ${ userActive } ? 'ACTIVE' : 'INACTIVE' "></span></h2>
 
+<h1> Switch Case </h1>
+<div th:switch="${ #lists.size(listsize) }">
+	<h2 th:case="'0'"> List size is 0</h2>
+	<h2 th:case="'3'"> List size is 3</h2>
+	<h2 th:case="'*'"> List size is <span th:text="${ #lists.size(listsize) }"></span></h2>
+</div>
+
+<h1> Using If</h1>
+<h2 th:if="${gender} =='M'"> User is Male</h2>
+<h2 th:if="${gender} !='M'"> User is Female</h2>
+
+<h1> Using If and Useless</h1>
+<h2 th:if="${age} <= 10 "> Age is less than 10</h2>
+<h2 th:if="${age} > 10 and ${age} <=20 "> Age is less than 20 but greater than 10</h2>
+<h2 th:usless="${age} <=20 "> Age is above 20 </h2>
+
+</body>
+</html>
+```
+
+![alt text](image-10.png)
 
 

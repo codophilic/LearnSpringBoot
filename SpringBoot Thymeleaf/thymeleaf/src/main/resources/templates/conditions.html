@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+
+<h1>Inline Conditional Expressions or Ternator Operator</h1>
+<h2> User is <span th:style="${ userActive } ? 'color:green' : 'color:red'" th:text=" ${ userActive } ? 'ACTIVE' : 'INACTIVE' "></span></h2>
+
+<h1> Switch Case </h1>
+<div th:switch="${ #lists.size(listsize) }">
+	<h2 th:case="'0'"> List size is 0</h2>
+	<h2 th:case="'3'"> List size is 3</h2>
+	<h2 th:case="'*'"> List size is <span th:text="${ #lists.size(listsize) }"></span></h2>
+</div>
+
+<h1> Using If</h1>
+<h2 th:if="${gender} =='M'"> User is Male</h2>
+<h2 th:if="${gender} !='M'"> User is Female</h2>
+
+<h1> Using If and Useless</h1>
+<h2 th:if="${age} <= 10 "> Age is less than 10</h2>
+<h2 th:if="${age} > 10 and ${age} <=20 "> Age is less than 20 but greater than 10</h2>
+<h2 th:usless="${age} <=20 "> Age is above 20 </h2>
+
+</body>
+</html>
