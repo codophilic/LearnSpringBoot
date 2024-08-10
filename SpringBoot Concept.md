@@ -561,7 +561,7 @@ Coding...
 ```
 - Above learnings are implemented [here](https://github.com/codophilic/LearnSpringBoot/tree/main/simpleproject/simpleproject/src/main/java/com/spring/boot/project).
 - All the basic concepts of [spring](https://github.com/codophilic/LearnSpring/blob/main/Spring%20Concepts.md#about-spring) is applicable for springboot.
-- Lets learn how to use MVC and SpringBoot
+- Lets learn how to [JPA and SpringBoot](https://github.com/codophilic/LearnSpringBoot/blob/main/SpringBoot%20JPA.md#about-springboot-jpa)
 - In the above learnings we will be using STS (Spring Tool Suit). STS (Spring Tool Suite) is essentially a preconfigured version of Eclipse specifically tailored for Spring development. STS comes with all the necessary plugins and configurations for Spring development out-of-the-box, saving you time and effort. STS provides advanced features like Spring Boot support, Spring Data JPA support, Spring MVC support, and more, offering a seamless development experience. STS includes templates and wizards to quickly create Spring projects, accelerating development. STS often provides integration with cloud platforms like Cloud Foundry, simplifying deployment.
 - This [version of STS is used](https://cdn.spring.io/spring-tools/release/STS4/4.24.0.RELEASE/dist/e4.32/spring-tool-suite-4-4.24.0.RELEASE-e4.32.0-win32.win32.x86_64.self-extracting.jar)
 
