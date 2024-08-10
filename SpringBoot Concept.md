@@ -559,6 +559,69 @@ Coding...
 404 Bugs found
 404 Errors found
 ```
+## About SpringBoot Devtools
+
+- Whenever you do changes in your springboot application, you need to stop your stop/start your server and reload your browser to see the changes.
+- What if there is an automatically restart option available in spring boot which also has LiveReload server option which automatically refresh your browser when files are changed.
+- We can use **DevTools** . To use it we need to add dependencies
+
+```
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-devtools</artifactId>
+    <optional>true</optional>
+</dependency>
+```
+
+- Lets see an example of how devtools automatically restarts the server and reloads the browser, so we create a simple controller method just for demonstration
+
+```
+package com.spring.boot.project;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+@Controller
+public class SampleController {
+
+	@RequestMapping(path="/testpage", method=RequestMethod.GET)
+	@ResponseBody
+	public String requestMethodName() {
+		
+		return "this is static content";
+	}
+	
+}
+```
+
+- Now in VSCode we use to add plugin of LiveServer, so here in springboot to automatically refresh our browser we need to add a [chrome browser extension](https://chromewebstore.google.com/).
+
+![alt text](Images/springbootConcepts/image-2.png)
+
+- Post running as spring boot app, we can see output
+
+<video controls src="Images/springbootConcepts/20240810-0942-58.3397778.mp4" title="Title"></video>
+
+- If you see , first we need to enable liveReload chrome extension, post that any change the browser automatically gets reloaded.
+
+### What Does DevTools Do?
+- **Automatic Restart**: DevTools automatically restarts your Spring Boot application whenever it detects changes in your classpath files. This reduces the need to manually restart your application every time you make a change.
+- **LiveReload Integration**: It integrates with LiveReload to automatically refresh your browser when files are changed. This is useful for front-end development.
+- **Custom Property Defaults**: DevTools also allows you to override certain properties specifically for development. For example, you might want to use an in-memory database during development but switch to a production database in a live environment.
+
+```
+spring.profiles.active=dev
+spring.datasource.url=jdbc:h2:mem:testdb
+spring.jpa.show-sql=true
+```
+
+- **Automatic Disabling of Caching**: During development, you often need to see changes in templates, static resources, or queries immediately. DevTools automatically disables caching for these resources, so you don’t have to clear caches manually.
+- **Remote Debugging**: DevTools allows you to enable remote debugging, which lets you restart the application in a remote environment (like a testing server) and have the same development experience as on your local machine.
+
+- Spring Boot DevTools provides several other features. 
+
 - Above learnings are implemented [here](https://github.com/codophilic/LearnSpringBoot/tree/main/simpleproject/simpleproject/src/main/java/com/spring/boot/project).
 - All the basic concepts of [spring](https://github.com/codophilic/LearnSpring/blob/main/Spring%20Concepts.md#about-spring) is applicable for springboot.
 - Lets learn how to [JPA and SpringBoot](https://github.com/codophilic/LearnSpringBoot/blob/main/SpringBoot%20JPA.md#about-springboot-jpa)
