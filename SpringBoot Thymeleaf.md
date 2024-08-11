@@ -842,6 +842,8 @@ public class MainController {
 
 ![alt text](Images/springthymeleaf/image-18.png)
 
+- Above learnings are implemented [here](https://github.com/codophilic/LearnSpringBoot/tree/main/SpringBoot%20Thymeleaf/thymeleaf/src/main/java/com/springboot/thymeleaf)
+- Lets learn about [SpringBoot MVC](https://github.com/codophilic/LearnSpringBoot/blob/main/SpringBoot%20MVC.md#about-springboot-mvc)
 
 
 
