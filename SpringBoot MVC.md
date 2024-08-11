@@ -186,12 +186,12 @@ function confirmSubmission() {
 ```
 - For example, if you have a file style.css located in `src/main/resources/static/css/style.css`, Spring Boot will automatically serve it at the URL `http://localhost:8080/css/style.css`.
 
-![alt text](image-11.png) 
+![alt text](Images/springbootmvc/image-11.png) 
 
 
-![alt text](image-12.png)
+![alt text](Images/springbootmvc/image-12.png)
 
-![alt text](image-13.png) 
+![alt text](Images/springbootmvc/image-13.png) 
 
 - To reference these Css, Js and images we need to use thymeleaf
 
@@ -459,7 +459,7 @@ UserForm.java
 - For example if the name length is greater than 10, then the validation gets fails and the result of these validations are stored in **BindingResult**.
 - **BindingResult** are accessible in the model and to display these validation failure result in form, we use the same property name for which the validation got failed. In Thymeleaf, the #fields.errors function is used to retrieve and display validation error messages that are stored in the BindingResult. This expression checks if there are any validation errors associated with the specified form field (`name`). It returns a list of error messages related to that field.`<p th:each="e : ${#fields.errors('name')}" th:text="${e}"  style="color:red;"></p>`.
 
-<video controls src="20240811-1612-00.4425844.mp4" title="Title"></video>
+<video controls src="Images/springbootmvc/20240811-1612-00.4425844.mp4" title="Title"></video>
 
 - Post successful validation it is redirected to result.html
 
@@ -482,3 +482,5 @@ UserForm.java
 ```
 
 - **Here we are not using service and dao layer, this is a simple form example**.
+- Same can be done without using **SpringBoot** and only using **Spring**.
+- Concepts of Spring MVC are applied to SpringBoot as well.
