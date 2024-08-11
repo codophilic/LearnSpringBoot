@@ -42,7 +42,7 @@
 
 - Lets create a thymeleaf springboot project. First lets install the dependencies.
 
-![alt text](image.png)
+![alt text](Images/springthymeleaf/image.png)
 
 - Go to Help > Install New Software > Work with , in this section add this link and install the new software by accepting the terms and conditions.
 
@@ -92,7 +92,7 @@ public class MainController {
 </html>
 ```
 
-![alt text](image-1.png)
+![alt text](Images/springthymeleaf/image-1.png)
 
 - Lets say you wanna make the string in upper/lower case, you could handle this in java, but thymeleaf provides expression to make it easier.
 
@@ -110,7 +110,7 @@ public class MainController {
 </html>
 ```
 
-![alt text](image-3.png)
+![alt text](Images/springthymeleaf/image-3.png)
 
 - Lets say you wanna create variables within the HTML and do some computations
 
@@ -139,7 +139,7 @@ public class MainController {
 </html>
 ```
 
-![alt text](image-4.png)
+![alt text](Images/springthymeleaf/image-4.png)
 
 - `#strings.toUpperCase(name)`: This is a Thymeleaf utility object for string operations. It calls the toUpperCase method on the name variable, converting it to uppercase. This is a Thymeleaf utility object that provides various methods for string manipulation. It wraps Java's String class methods. Likewise strings there are arrays and various types of operations like #arrays,#collections,#dates,#objects etc..
 - `th:with`: This attribute is used to declare local variables (a, b, and n) within the scope of the <div>. These variables are only available within this block.
@@ -203,7 +203,7 @@ public class MainController {
 </html>
 ```
 
-![alt text](image-5.png)
+![alt text](Images/springthymeleaf/image-5.png)
 
 - The `th:each` attribute in Thymeleaf is used for iterating over collections (like lists, sets, Maps and arrays) within your templates. It allows you to render elements multiple times based on the contents of the collection.
 - When using `th:each`, you can also access additional variables related to the iteration.
@@ -255,7 +255,7 @@ public class MainController {
 </html>
 ```
 
-![alt text](image-6.png)
+![alt text](Images/springthymeleaf/image-6.png)
 
 - What if you wanna add some conditional statements? is it possible in thymeleaf? , yes there are 3 approach to do with it. Lets create a page with name as conditions.html.
 
@@ -297,7 +297,7 @@ public class MainController {
 
 - Conditions page
 
-![alt text](image-7.png)
+![alt text](Images/springthymeleaf/image-7.png)
 
 2. **Switch Case**
 
@@ -361,7 +361,7 @@ public class MainController {
 </html>
 ```
 
-![alt text](image-8.png) 
+![alt text](Images/springthymeleaf/image-8.png) 
 
 3. **Using If**
 
@@ -430,7 +430,7 @@ public class MainController {
 </html>
 ```
 
-![alt text](image-9.png)
+![alt text](Images/springthymeleaf/image-9.png)
 
 4. **Using If and Useless**
 
@@ -508,7 +508,7 @@ public class MainController {
 </html>
 ```
 
-![alt text](image-10.png)
+![alt text](Images/springthymeleaf/image-10.png)
 
 ## Fragments
 
@@ -578,11 +578,11 @@ public class MainController {
 
 - Here we took fragment tag with name **fragmentHeaderTag**. To insert the fragment into the fragment.html we need to give `th:insert` two things, path of the file (without .html extension) and fragment tag name.
 
-![alt text](image-11.png)
+![alt text](Images/springthymeleaf/image-11.png)
 
 - Lets view page content, left click -> View page source 
 
-![alt text](image-12.png)
+![alt text](Images/springthymeleaf/image-12.png)
 
 - If you see, **fragmentHeaderTag** is inserted below **headerHostTag** like a new piece of block.
 
@@ -617,12 +617,12 @@ public class MainController {
 </html>
 ```
 
-![alt text](image-14.png)
+![alt text](Images/springthymeleaf/image-14.png)
 
 
 - Lets view page source
 
-![alt text](image-13.png)
+![alt text](Images/springthymeleaf/image-13.png)
 
 - If you see,**headerHostTag** is replaced by **fragmentHeaderTag** . The whole piece of `<div>` block is being replaced
 
@@ -635,7 +635,7 @@ public class MainController {
 > <!-- th:replace="path/filename :: fragment name" -->
 > <header id="headerHostTag2" th:include="commons/template :: template-header-fragment"></header>
 > ```
-> ![alt text](image-15.png)
+> ![alt text](Images/springthymeleaf/image-15.png)
 
 
 - Lets use `th:insert` tag and add div contents into the fragments.html file
@@ -650,7 +650,7 @@ public class MainController {
 </div>
 ```
 
-![alt text](image-16.png) 
+![alt text](Images/springthymeleaf/image-16.png) 
 
 - Lets say we have list of users which needs to be display on multiple pages and lets say we need to give a common style for those list of users content into all the pages its being used.
 - Now since it will be a repeatable code, we could create a fragment of it.
@@ -765,7 +765,82 @@ public class MainController {
 </html>
 ```
 
-![alt text](image-17.png)
+![alt text](Images/springthymeleaf/image-17.png)
+
+- `th:fragment="userInfo(user)"`: This defines the fragment with the name userInfo. The user parameter or argument that is passed to the fragment whenever it is called.
+- The user details are accessed based on the variable names defined in the user class.
+- If a page has multiple fragments and suppose you wanted to include all the fragments of that page into your host file , you can just specify `th:insert="pagename" or th:replace="pagename"`. This will include all the fragments into your host file.
+- Uptil now we have inherited or added particular fragments from another html , what if we need to add the whole html into another html?, yes it is possible using fragments. You can use the `th:insert` or `th:replace` attributes directly within the `<html>` tag to pass an entire HTML structure from one template to another.
+- Lets see an example, we have a **about.html** under **/commons/inheritwholehtml** folder. The about.html is a fragment which accepts a argument called content and passes that to the `<div>`.
+
+```
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(content)">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+
+<h1> Website headers</h1>
+
+<div th:insert="${content}"></div>
+
+<h1> Website footers</h1>
+
+</body>
+</html>
+```
+
+- Below is the **mywebsite.html** which consist of only content related to the website , i.e not headers or footers
+
+```
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:insert="commons/inheritwholehtml/about :: layout(~{:: div})">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+
+<div >
+
+	<p> This is my website </p>
+	
+	<p> mywebsite.html content </p>
+
+</div>
+
+</body>
+</html>
+```
+
+- `~{::div}`: The `~{::div}` syntax is used to reference the div in the layout where the content should be placed. The div content is passed to the **about.html**.
+- Below is the main controller.
+
+```
+package com.springboot.thymeleaf;
+
+import java.util.List;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
+
+@Controller
+public class MainController {
+
+	@GetMapping("/inherit")
+	public ModelAndView inheritPage() {
+		ModelAndView mav=new ModelAndView();
+		mav.setViewName("commons/inheritwholehtml/mywebsite");
+		return mav;
+	}
+}
+```
+
+![alt text](Images/springthymeleaf/image-18.png)
 
 
 

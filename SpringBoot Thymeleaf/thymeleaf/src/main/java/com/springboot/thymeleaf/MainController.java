@@ -44,4 +44,11 @@ public class MainController {
 		mav.addObject("users",List.of(new User("Harsh Pandya", "Mumbai"),new User("Meet Pandya", "Mumbai")));
 		return mav;
 	}
+
+	@GetMapping("/inherit")
+	public ModelAndView inheritPage() {
+		ModelAndView mav=new ModelAndView();
+		mav.setViewName("commons/inheritwholehtml/mywebsite");
+		return mav;
+	}
 }
