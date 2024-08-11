@@ -19,15 +19,8 @@
 </header>
 
 <!-- Define a div tag -->
-<div id="fragmentDivTag" th:fragment="template=-div-fragment">
+<div id="fragmentDivTag" th:fragment="template-div-fragment">
 	<p>This is a block coming from template.html</p>
-</div>
-
-
-<!-- Display user name and country , this piece of code could be repetitive so we created a fragment of it -->
-<div id="fragmentIterativeTag" th:fragment="userInfo(user)"> 
-    <div th:text="${user.name}"></div> 
-    <div th:text="${user.country}"></div> 
 </div>
 
 </body>

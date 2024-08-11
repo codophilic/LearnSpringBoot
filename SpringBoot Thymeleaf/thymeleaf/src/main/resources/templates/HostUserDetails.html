@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+
+<header th:insert="commons/template :: template-header-fragment"></header>
+
+<!-- Repeating content of users fetch from controller -->
+<div>
+<h3>Users list</h3>
+<ul>
+    <li th:each="user : ${users}" th:insert="commons/userslist/userDetailsFragment :: userInfo(${user})">
+    </li>
+</ul>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+
+<!-- Display user name and country , this piece of code could be repetitive so we created a fragment of it -->
+<div id="fragmentIterativeTag" th:fragment="userInfo(user)"> 
+    <div style="color:red;font-weight:bold" th:text="${user.name}"></div> 
+    <div style="color:blue;font-weight:bold" th:text="${user.country}"></div> 
+</div>
+
+</body>
+</html>

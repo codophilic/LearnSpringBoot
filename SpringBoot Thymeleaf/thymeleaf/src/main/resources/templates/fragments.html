@@ -20,5 +20,20 @@
 
 
 
+<h1> Include Fragment Tag </h1>
+<!-- Replacing the host tag by the fragment tag -->
+<!-- th:replace="path/filename :: fragment name" -->
+<header id="headerHostTag2" th:include="commons/template :: template-header-fragment"></header>
+
+
+<div>
+	<div>
+		<p> This is Fragment.html content</p>
+	</div>
+	<p> Inserting Template.html div contents </p>
+	<div th:insert="commons/template :: template-div-fragment"></div>
+</div>
+
+
 </body>
 </html>

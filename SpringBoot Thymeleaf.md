@@ -546,13 +546,6 @@ public class MainController {
 	<p>This is a block coming from template.html</p>
 </div>
 
-
-<!-- Display user name and country , this piece of code could be repetitive so we created a fragment of it -->
-<div id="fragmentIterativeTag" th:fragment="userInfo(user)"> 
-    <div th:text="${user.name}"></div> 
-    <div th:text="${user.country}"></div> 
-</div>
-
 </body>
 </html>
 ```
@@ -635,6 +628,144 @@ public class MainController {
 
 >[!NOTE]
 > - `th:include` attribute is no longer recommended in Thymeleaf versions 3.0 and above. It used to behave similarly to insert, but with potential performance and nesting issues. It's best to avoid include and use insert instead for consistency and future-proofing your code.
+> - In include, the **headerHostTag** remains but the content of **fragmentHeaderTag** is included under **headerHostTag**.
+> ```
+> <h1> Include Fragment Tag </h1>
+> <!-- Replacing the host tag by the fragment tag -->
+> <!-- th:replace="path/filename :: fragment name" -->
+> <header id="headerHostTag2" th:include="commons/template :: template-header-fragment"></header>
+> ```
+> ![alt text](image-15.png)
+
+
+- Lets use `th:insert` tag and add div contents into the fragments.html file
+
+```
+<div>
+	<div>
+		<p> This is Fragment.html content</p>
+	</div>
+	<p> Inserting Template.html div contents </p>
+	<div th:insert="commons/template :: template-div-fragment"></div>
+</div>
+```
+
+![alt text](image-16.png) 
+
+- Lets say we have list of users which needs to be display on multiple pages and lets say we need to give a common style for those list of users content into all the pages its being used.
+- Now since it will be a repeatable code, we could create a fragment of it.
+- Lets create a user class
+
+```
+package com.springboot.thymeleaf;
+
+public class User {
+
+	private String name;
+	
+	private String country;
+
+
+
+	public User(String name, String country) {
+		super();
+		this.name = name;
+		this.country = country;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getCountry() {
+		return country;
+	}
+
+	public void setCountry(String country) {
+		this.country = country;
+	}
+	
+	
+}
+```
+
+- Lets create a mapping url of it in main controller
+
+```
+package com.springboot.thymeleaf;
+
+import java.util.List;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
+
+@Controller
+public class MainController {
+
+	@GetMapping("/get-users-details")
+	public ModelAndView userDetailsPage() {
+		ModelAndView mav=new ModelAndView();
+		mav.setViewName("HostUserDetails");
+		mav.addObject("users",List.of(new User("Harsh Pandya", "Mumbai"),new User("Meet Pandya", "Mumbai")));
+		return mav;
+	}
+}
+```
+
+- Lets create a fragment , userDetailsFragment.html
+
+```
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+
+<!-- Display user name and country , this piece of code could be repetitive so we created a fragment of it -->
+<div id="fragmentIterativeTag" th:fragment="userInfo(user)"> 
+    <div style="color:red;font-weight:bold" th:text="${user.name}"></div> 
+    <div style="color:blue;font-weight:bold" th:text="${user.country}"></div> 
+</div>
+
+</body>
+</html>
+```
+
+- Lets create Host file with name HostUserDetails.html, here will be inserting headers from template.html and repeatitive component of div from userDetailsFragment.html
+
+```
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+
+<header th:insert="commons/template :: template-header-fragment"></header>
+
+<!-- Repeating content of users fetch from controller -->
+<div>
+<h3>Users list</h3>
+<ul>
+    <li th:each="user : ${users}" th:insert="commons/userslist/userDetailsFragment :: userInfo(${user})">
+    </li>
+</ul>
+</div>
+
+</body>
+</html>
+```
+
+![alt text](image-17.png)
 
 
 

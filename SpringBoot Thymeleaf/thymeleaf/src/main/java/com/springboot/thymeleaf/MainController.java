@@ -36,4 +36,12 @@ public class MainController {
 		mav.setViewName("fragments");
 		return mav;
 	}
+	
+	@GetMapping("/get-users-details")
+	public ModelAndView userDetailsPage() {
+		ModelAndView mav=new ModelAndView();
+		mav.setViewName("HostUserDetails");
+		mav.addObject("users",List.of(new User("Harsh Pandya", "Mumbai"),new User("Meet Pandya", "Mumbai")));
+		return mav;
+	}
 }
