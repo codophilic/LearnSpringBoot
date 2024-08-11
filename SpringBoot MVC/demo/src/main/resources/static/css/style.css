@@ -1,0 +1,13 @@
+body {
+    font-family: Arial, sans-serif;
+    background: silver;
+}
+
+label {
+    font-weight: bold;
+}
+
+input, button {
+    margin: 10px 0;
+}
+
