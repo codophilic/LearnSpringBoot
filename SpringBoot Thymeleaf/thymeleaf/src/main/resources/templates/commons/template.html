@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+
+<!-- Define a header which will be common for all the pages -->
+<header id="fragmentHeaderTag" th:fragment="template-header-fragment">
+    <h1>My Website</h1>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="/contact">Contact</a></li>
+        </ul>
+    </nav>
+</header>
+
+<!-- Define a div tag -->
+<div id="fragmentDivTag" th:fragment="template=-div-fragment">
+	<p>This is a block coming from template.html</p>
+</div>
+
+
+<!-- Display user name and country , this piece of code could be repetitive so we created a fragment of it -->
+<div id="fragmentIterativeTag" th:fragment="userInfo(user)"> 
+    <div th:text="${user.name}"></div> 
+    <div th:text="${user.country}"></div> 
+</div>
+
+</body>
+</html>

@@ -29,4 +29,11 @@ public class MainController {
 		mav.addObject("age", 100);
 		return mav;
 	}
+	
+	@GetMapping("/fragments")
+	public ModelAndView fragmentsPage() {
+		ModelAndView mav=new ModelAndView();
+		mav.setViewName("fragments");
+		return mav;
+	}
 }

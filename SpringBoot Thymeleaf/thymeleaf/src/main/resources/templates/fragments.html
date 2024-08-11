@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+
+<h1> Insert Fragment Tag </h1>
+<!-- Insert the fragment tag below the host tag-->
+<!-- th:insert="path/filename :: fragment name" -->
+<header id="headerHostTag" th:insert="commons/template :: template-header-fragment"></header>
+
+
+
+<h1> Replace Host Tag by Fragment Tag </h1>
+<!-- Replacing the host tag by the fragment tag -->
+<!-- th:replace="path/filename :: fragment name" -->
+<header id="headerHostTag1" th:replace="commons/template :: template-header-fragment"></header>
+
+
+
+</body>
+</html>

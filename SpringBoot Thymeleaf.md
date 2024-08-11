@@ -510,4 +510,137 @@ public class MainController {
 
 ![alt text](image-10.png)
 
+## Fragments
+
+- In Thymeleaf, fragments are reusable pieces of templates that can be included in other templates. They help you avoid code duplication and make your templates more modular and maintainable.
+- A fragment is a section of an HTML file that you can define and then reuse in other places. You can think of it as a "partial" or a "template snippet" that can be included in other pages.
+- Fragments help you break down complex templates into smaller, more manageable pieces.
+- **Fragment Tag** : Defines what content can be reused (e.g., a header, footer, or any UI component). The element that contains the reusable content, defined by `th:fragment`.
+- **Host Tag**: Specifies where and how the fragment's content should be used in another template. The element in your main template where the fragment's content will be placed, using attributes like `th:insert` or `th:replace`. 
+
+- Lets declare a fragment tag under `templates\commons` folder with name as template.html
+
+```
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+
+<!-- Define a header which will be common for all the pages -->
+<header id="fragmentHeaderTag" th:fragment="template-header-fragment">
+    <h1>My Website</h1>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="/contact">Contact</a></li>
+        </ul>
+    </nav>
+</header>
+
+<!-- Define a div tag -->
+<div id="fragmentDivTag" th:fragment="template=-div-fragment">
+	<p>This is a block coming from template.html</p>
+</div>
+
+
+<!-- Display user name and country , this piece of code could be repetitive so we created a fragment of it -->
+<div id="fragmentIterativeTag" th:fragment="userInfo(user)"> 
+    <div th:text="${user.name}"></div> 
+    <div th:text="${user.country}"></div> 
+</div>
+
+</body>
+</html>
+```
+
+- Here we have define 3 fragments under template.html
+- There are 2 main ways to use these fragments `th:insert` or `th:replace`.
+
+#### 1. Include
+
+- Lets create a host tag in fragments.html.
+
+```
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+
+<h1> Insert Fragment Tag </h1>
+<!-- Insert the fragment tag below the host tag-->
+<!-- th:insert="path/filename :: fragment name" -->
+<header id="headerHostTag" th:insert="commons/template :: template-header-fragment"></header>
+
+
+</body>
+</html>
+```
+
+- Here we took fragment tag with name **fragmentHeaderTag**. To insert the fragment into the fragment.html we need to give `th:insert` two things, path of the file (without .html extension) and fragment tag name.
+
+![alt text](image-11.png)
+
+- Lets view page content, left click -> View page source 
+
+![alt text](image-12.png)
+
+- If you see, **fragmentHeaderTag** is inserted below **headerHostTag** like a new piece of block.
+
+#### 2. Replace
+
+- Lets perform host tag replacement
+
+```
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+
+<h1> Insert Fragment Tag </h1>
+<!-- Insert the fragment tag below the host tag-->
+<!-- th:insert="path/filename :: fragment name" -->
+<header id="headerHostTag" th:insert="commons/template :: template-header-fragment"></header>
+
+
+
+<h1> Replace Host Tag by Fragment Tag </h1>
+<!-- Replacing the host tag by the fragment tag -->
+<!-- th:replace="path/filename :: fragment name" -->
+<header id="headerHostTag1" th:replace="commons/template :: template-header-fragment"></header>
+
+
+
+</body>
+</html>
+```
+
+![alt text](image-14.png)
+
+
+- Lets view page source
+
+![alt text](image-13.png)
+
+- If you see,**headerHostTag** is replaced by **fragmentHeaderTag** . The whole piece of `<div>` block is being replaced
+
+>[!NOTE]
+> - `th:include` attribute is no longer recommended in Thymeleaf versions 3.0 and above. It used to behave similarly to insert, but with potential performance and nesting issues. It's best to avoid include and use insert instead for consistency and future-proofing your code.
+
+
+
+
+
+
+
+
 
