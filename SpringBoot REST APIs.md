@@ -142,7 +142,7 @@ public class Employee {
 	@Column(name = "unique_id")
 	private int id;
 	
-	@Column(name = "employee_id")
+	@Column(name = "employee_id", unqiue=true)
 	private int emp_id;
 	
 	@Column(name = "employee_name")
@@ -192,21 +192,449 @@ public class Employee {
 }
 ```
 
-- Lets create a DAO layer interface which will extends JpaRepository and a service layer class. Autowire service and dao.
+- Lets configure details in **application.properties**.
+
+```
+spring.application.name=restapi
+spring.datasource.url=jdbc:mysql://localhost:3306/springbootmvcrestapi
+spring.datasource.username=root
+spring.datasource.password=Meetpandya40@
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.database-platform = org.hibernate.dialect.MySQL8Dialect
+spring.jpa.generate-ddl=true
+spring.jpa.hibernate.ddl-auto = create
+spring.jpa.show-sql=true
+```
+
+- Lets create a DAO layer interface which will extends JpaRepository and a service layer class. Autowire service and dao. Lets build up a **GET** and **POST** service.
 
 ```
 DAO Interface JpaRepository
 package com.springboot.rest.dao;
 
+
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import com.springboot.rest.entities.Employee;
 
+@Repository
 public interface EmployeeDao extends JpaRepository<Employee, Integer> {
 
+	
+	Employee findByEmpid(int empid);
 }
 
-Service Layer Class
+
+Service Layer
+package com.springboot.rest.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.springboot.rest.dao.EmployeeDao;
+import com.springboot.rest.entities.Employee;
+
+@Service
+@Transactional
+public class EmployeeService {
+	
+	@Autowired
+	private EmployeeDao employeeDao;
+
+	public EmployeeDao getEmployeeDao() {
+		return employeeDao;
+	}
+
+	public void setEmployeeDao(EmployeeDao employeeDao) {
+		this.employeeDao = employeeDao;
+	}
+	
+	/**
+	 * Fetch All Employees
+	 */
+	public List<Employee> fetchAllEmployees(){
+		return employeeDao.findAll();
+	}
+	
+	/**
+	 * Fetch Employee using emp_id
+	 */
+	public Employee fetchEmployeeUsingEmpid(int empid) {
+		return employeeDao.findByEmpid(empid);
+	}
+	
+	/**
+	 * Creating a new Employee
+	 */
+	public Employee createEmployeeDetails(Employee emp) {
+		return employeeDao.save(emp);
+	}
+
+}
+```
+
+- Lets create an ApiController class
+
+```
+package com.springboot.rest.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.springboot.rest.entities.Employee;
+import com.springboot.rest.service.EmployeeService;
+
+//@Controller
+@RestController
+@RequestMapping("/apicontroller")
+public class ApiController {
+
+	
+	@Autowired
+	private EmployeeService employeeService;
+	
+	/**
+	 * Fetch All Employees
+	 */
+	@GetMapping("/allEmployees")
+	public List<Employee> fetchAllEmployees(){
+		return employeeService.fetchAllEmployees();
+	}
+	
+	/**
+	 * Fetch Employee using emp_id
+	 */
+	@GetMapping("/employee/{empid}")
+	public Employee fetchEmployeeUsingEmpid(@PathVariable("empid") int empid) {
+		return employeeService.fetchEmployeeUsingEmpid(empid);
+	}
+	
+	/**
+	 * Creating a new Employee
+	 */
+	@PostMapping("/employee")
+	public Employee createEmployeeDetails(@RequestBody Employee emp) {
+		return employeeService.createEmployeeDetails(emp);
+	}
+
+}
+```
+
+- Lets hit the url using postman. First lets create an employee using **POST** request.
+
+![alt text](image-5.png)
+
+- On console
+
+```
+Hibernate: select next_val as id_val from employee_seq for update
+Hibernate: update employee_seq set next_val= ? where next_val=?
+Hibernate: insert into employee (employee_department,employee_id,employee_name,unique_id) values (?,?,?,?)
+```
+
+- Lets check database.
+
+![alt text](image-6.png)
+
+- Lets create another employee
+
+![alt text](image-7.png)
+
+![alt text](image-8.png)
+
+- Lets fetch all the employees
+
+![alt text](image-9.png)
+
+- Lets fetch particular employee
+
+![alt text](image-10.png)
+
+- Hold on, when we hit url **/sample** we receieved **text/plain** as response, now we are getting json format response? is that we are just passing class?
+- In Spring Boot, when a method in a REST controller returns a class object like Employee, Spring Boot automatically converts this object into a JSON response by default. Spring Boot uses the Accept header in the HTTP request to decide the format. If the client does not specify the Accept header, JSON is chosen by default.
+
+![alt text](image-11.png)
+
+- Spring Boot uses **HttpMessageConverters** to automatically convert Java objects to a specific media type (like JSON or XML) and vice versa.
+For JSON, Spring Boot uses the Jackson library by default. Jackson is a powerful JSON parser and generator library that Spring Boot configures out of the box.
+- If your method returns an object, Spring looks for an appropriate HttpMessageConverter to serialize that object. Since JSON is the default, it uses **MappingJackson2HttpMessageConverter** to convert the object to JSON format.
+- What if users sends JSON as well XML format request? how to handle it? - yes we can specify multiple media types
+- For XML based media type we need to add the dependencies in pom file
+
+```
+<dependency>
+  <groupId>com.fasterxml.jackson.dataformat</groupId>
+  <artifactId>jackson-dataformat-xml</artifactId>
+</dependency>
+```
+
+```
+	/**
+	 * Creating a new Employee
+	 */
+	@PostMapping( path="/employee", produces = { MediaType.APPLICATION_JSON_VALUE,MediaType.APPLICATION_XML_VALUE })
+	public Employee createEmployeeDetails(@RequestBody Employee emp) {
+		return employeeService.createEmployeeDetails(emp);
+	}
+```
+
+![alt text](image-12.png)
+
+- Hey wait, the response is still in Json format, why so? it is because SpringBoot is still providing response in json format. Check the **response headers**
+
+
+![alt text](image-13.png)
+
+
+- We are accepting response in json format, how to change it ?, so in postman you need to change the accept parameter media type to xml.
+
+<video controls src="20240812-0735-39.4253322.mp4" title="Title"></video>
+
+
+- When multiple media types are specified in the produces attribute, Spring Boot will choose the first one as the default if the Accept header is not explicitly set by the client.
+- The **Accept** header should explicitly specify the desired response format. If it is missing or set to a value that Spring Boot interprets as compatible with XML (or if it's a general wildcard `*/*`), the first format in the produces list (application/json) will be used by springboot.
+- Since you have `MediaType.APPLICATION_JSON_VALUE` first in the produces list, Spring Boot is defaulting to XML if it cannot determine the preferred format from the request headers.
+- By default, Spring Boot will pick the first media type in the produces list if the Accept header is not specific or is missing.
+- Ensure that your client request explicitly includes the correct Accept header if you want a particular response format.
+- You can reorder the produces list to prioritize XML over JSON if desired.
+
+- Lemme enter some proper data into the employee table and fetch all those data.
+
+![alt text](image-14.png)
+
+- Lets say you wanna create multiple employees at once, we have `saveAll` dao method, lets create method for it in service layer and in the controller.
+
+```
+Service Layer
+	/**
+	 * Save Multiple Employees
+	 */
+	public List<Employee> createMultipleEmployeeDetails(List<Employee> emp) {
+		return employeeDao.saveAll(emp);
+	}
+
+Controller
+	/**
+	 * Creating a Multiple Employee
+	 */
+	@PostMapping( path="/multipleEmployee", consumes = { MediaType.APPLICATION_JSON_VALUE,MediaType.APPLICATION_XML_VALUE },  produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+	public List<Employee> createMultipleEmployeeDetails(@RequestBody List<Employee> emp) {
+
+		return employeeService.createMultipleEmployeeDetails(emp);
+	}
+
+Output:
+Hibernate: insert into employee (employee_department,employee_id,employee_name,unique_id) values (?,?,?,?)
+Hibernate: insert into employee (employee_department,employee_id,employee_name,unique_id) values (?,?,?,?)
+Hibernate: insert into employee (employee_department,employee_id,employee_name,unique_id) values (?,?,?,?)
+```
+
+- We need to have a nested json structure to send request of multiple employee creation
+
+```
+[
+    {
+        "empid": 104,
+        "name": "Jeet",
+        "dept": "IT"
+    },
+    {
+        "empid": 105,
+        "name": "Jimit",
+        "dept": "IT"
+    },
+    {
+        "empid": 106,
+        "name": "Gogri",
+        "dept": "AI"
+    }
+]
+```
+
+![alt text](image-15.png)
+
+- Uptil now we have fetch and create values into the database, lets perform update and delete. So to update or delete any record we required an unique identifier or id ( In our case, employee id)
+- Below is **PUT** method example
+
+```
+Service Layer
+	/**
+	 * Updating existing employee using emp_id
+	 */
+	public Employee updateEmployeeDetails(int id, Employee updatedEmp) {
+		System.out.println(id);
+		Employee fetchEmpDetails=employeeDao.findByEmpid(id);
+		System.out.println(fetchEmpDetails);
+		fetchEmpDetails.setName(updatedEmp.getName());
+		fetchEmpDetails.setDept(updatedEmp.getDept());
+		return employeeDao.save(fetchEmpDetails);
+	}
+
+ApiController
+	/**
+	 * Updating existing employee using emp_id
+	 */
+	@PutMapping("/update/{empid}")
+	public Employee updateEmployeeDetails(@PathVariable int empid, @RequestBody Employee updateEmp) {
+		return employeeService.updateEmployeeDetails(empid,updateEmp);
+	}
+
+Output:
+101
+Hibernate: select e1_0.unique_id,e1_0.employee_department,e1_0.employee_id,e1_0.employee_name from employee e1_0 where e1_0.employee_id=?
+Employee [id=1, empid=101, name=Harsh, dept=IT]
+Hibernate: update employee set employee_department=?,employee_id=?,employee_name=? where unique_id=?
+```
+
+![alt text](image-16.png)
+
+![alt text](image-17.png)
+
+- Below is **DELETE** method example. To delete an employee using employee id we require a derived query method in the dao interface
+
+```
+DAO Jpa Interface
+package com.springboot.rest.dao;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.springboot.rest.entities.Employee;
+
+@Repository
+public interface EmployeeDao extends JpaRepository<Employee, Integer> {
+
+	Employee findByEmpid(int empid);
+	
+	void deleteByEmpid(int empid);
+}
+
+
+Service Layer
+	/**
+	 * Delete single employee using emp_id
+	 */
+	public void deleteEmployeeDetails(int empid) {
+		employeeDao.deleteByEmpid(empid);
+	}
+
+ApiController
+	/**
+	 * Delete single employee using emp_id
+	 */
+	@DeleteMapping("/delete/{empid}")
+	public void deleteExistingEmployee(@PathVariable int empid) {
+		employeeService.deleteEmployeeDetails(empid);
+	}
+
+Output:
+Hibernate: delete from employee where unique_id=?
+```
+
+![alt text](image-18.png)
+
+![alt text](image-19.png)
+
+- What if you are updating an employee details and employee id of that is some how not available?
+
+![alt text](image-20.png)
+
+```
+Output:
+
+java.lang.NullPointerException: Cannot invoke "com.springboot.rest.entities.Employee.setName(String)" because "fetchEmpDetails" is null
+	at com.springboot.rest.service.EmployeeService.updateEmployeeDetails(EmployeeService.java:62) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354) ~[spring-aop-6.1.11.jar:6.1.11]
+```
+
+- We are getting NullPointerException and that exception is passed in the request which is not a good coding practice , we need to handle such exceptions in our api. How to do it? we can use **ResponseEntity**.
+- Lets update the **PUT** method code in Service Layer as well as in ApiController
+
+```
+Service layer
+	/**
+	 * Updating existing employee using emp_id
+	 */
+	public Employee updateEmployeeDetails(int id, Employee updatedEmp) {
+		System.out.println(id);
+		Employee fetchEmpDetails=employeeDao.findByEmpid(id);
+		if(fetchEmpDetails==null) {
+			return null;
+		}
+		System.out.println(fetchEmpDetails);
+		fetchEmpDetails.setName(updatedEmp.getName());
+		fetchEmpDetails.setDept(updatedEmp.getDept());
+		return employeeDao.save(fetchEmpDetails);
+	}
+
+ApiController
+	/**
+	 * Updating existing employee using emp_id
+	 */
+	@PutMapping("/update/{empid}")
+	public ResponseEntity<Employee> updateEmployeeDetails(@PathVariable int empid, @RequestBody Employee updateEmp) {
+		Employee updatedEmp=employeeService.updateEmployeeDetails(empid,updateEmp);
+		if(updatedEmp==null) {
+			ResponseEntity.notFound().build();
+		}
+		return ResponseEntity.ok().body(updatedEmp);
+		
+	}
+```
+
+![alt text](image-21.png)
+
+- Hey the content is blank, can we display atleast the null content? 
+
+```
+ApiController
+	/**
+	 * Updating existing employee using emp_id
+	 */
+	@PutMapping("/update/{empid}")
+	public ResponseEntity<Employee> updateEmployeeDetails(@PathVariable int empid, @RequestBody Employee updateEmp) {
+		Employee updatedEmp=employeeService.updateEmployeeDetails(empid,updateEmp);
+		if(updatedEmp==null) {
+			/**
+			 * Setting the Status and passing the null value
+			 */
+			updatedEmp= new Employee();
+			updatedEmp.setName("Not Found");
+			updatedEmp.setDept("Not Found");
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(updatedEmp);
+		}
+		return ResponseEntity.ok().body(updatedEmp);
+	}
+```
+
+![alt text](image-22.png)
+
+- **ResponseEntity** that allows you to have more control over the HTTP response that your REST API sends to the client. It represents the entire HTTP response, including status code, headers, and body.
+- **ResponseEntity** allows you to specify the HTTP status code that should be returned to the client. This is useful for sending appropriate status codes like `201 Created`, `400 Bad Request`, `404 Not Found`, etc., depending on the outcome of the request.
+- You can include additional HTTP headers in the response, such as Location for a newly created resource, Cache-Control for caching directives, or any other custom header.
+- You can control the response body by passing any object or even no body at all.
+- **ResponseEntity** is useful in handling errors and returning proper HTTP responses with error details.
+
+
+
+
+
+
 
 
 

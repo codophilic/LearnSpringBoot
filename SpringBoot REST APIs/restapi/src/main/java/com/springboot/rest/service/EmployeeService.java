@@ -44,11 +44,33 @@ public class EmployeeService {
 	public Employee createEmployeeDetails(Employee emp) {
 		return employeeDao.save(emp);
 	}
+
+	/**
+	 * Save Multiple Employees
+	 */
+	public List<Employee> createMultipleEmployeeDetails(List<Employee> emp) {
+		return employeeDao.saveAll(emp);
+	}
 	
 	/**
 	 * Updating existing employee using emp_id
 	 */
-	public Employee updateEmployeeDetails(Employee emp) {
-		return employeeDao.save(emp);
+	public Employee updateEmployeeDetails(int id, Employee updatedEmp) {
+		System.out.println(id);
+		Employee fetchEmpDetails=employeeDao.findByEmpid(id);
+		if(fetchEmpDetails==null) {
+			return null;
+		}
+		System.out.println(fetchEmpDetails);
+		fetchEmpDetails.setName(updatedEmp.getName());
+		fetchEmpDetails.setDept(updatedEmp.getDept());
+		return employeeDao.save(fetchEmpDetails);
+	}
+	
+	/**
+	 * Delete single employee using emp_id
+	 */
+	public void deleteEmployeeDetails(int empid) {
+		employeeDao.deleteByEmpid(empid);
 	}
 }
