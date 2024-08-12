@@ -15,7 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
+import com.springboot.rest.entities.Book;
 import com.springboot.rest.entities.Employee;
+import com.springboot.rest.service.BookService;
 import com.springboot.rest.service.EmployeeService;
 
 //@Controller
@@ -37,6 +39,9 @@ public class ApiController {
 	
 	@Autowired
 	private EmployeeService employeeService;
+	
+	@Autowired
+	private BookService bookservice;
 	
 	/**
 	 * Fetch All Employees
@@ -96,5 +101,22 @@ public class ApiController {
 	public void deleteExistingEmployee(@PathVariable int empid) {
 		employeeService.deleteEmployeeDetails(empid);
 	}
+	
+	/**
+	 * Create a new book details
+	 */
+	@PostMapping("/create/book")
+	public Book createNewBook(@RequestBody Book book) {
+		return bookservice.saveBookDetails(book);
+	}
+	
+	/**
+	 * Get particular book details
+	 */
+	@GetMapping("/get/book/{bookid}")
+	public Book getBookDetails(@PathVariable int bookid) {
+		return bookservice.getBookDetails(bookid);
+	}
+	
 }
 

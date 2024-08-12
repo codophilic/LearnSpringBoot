@@ -1,7 +1,7 @@
 # About REST APIS
 - A RESTful (REpresentational State Transfer) (REST) API is an architectural style for an application programming interface that uses HTTP requests to access and use data. That data can be used to GET , PUT , POST and DELETE data types, which refers to reading, updating, creating and deleting operations related to resources.
 
-![alt text](image.png)
+![alt text](Images/springbootrestapis/image.png)
 
 - APIs can be considered a type of web application, but their role is different. They are more focused on data exchange and enabling interactions between different software systems rather than directly providing a user interface.
 - Traditional web applications are designed to deliver web pages (HTML, CSS, JavaScript) that users can interact with via a web browser. They typically involve a frontend (the user interface) and a backend (the server-side logic). When a user interacts with a traditional web application (e.g., by clicking a button), the server processes the request and returns a complete web page or updates a portion of the page.
@@ -12,7 +12,7 @@
 
 - Lets create a simple API and understand about it. To start with the process install the dependencies.
 
-![alt text](image-1.png)
+![alt text](Images/springbootrestapis/image-1.png)
 
 - Post dependencies installation we can see our SpringBoot Application
 
@@ -34,11 +34,11 @@ public class RestapiApplication {
 
 - On browser 
 
-![alt text](image-2.png) 
+![alt text](Images/springbootrestapis/image-2.png) 
 
 - On Postman tool
 
-![alt text](image-3.png)
+![alt text](Images/springbootrestapis/image-3.png)
 
 
 
@@ -75,7 +75,7 @@ public class ApiController {
 - **@ResponseBody**: When the method is annotated with `@ResponseBody`, the return value is automatically serialized (converted) into a format like JSON or XML and written directly to the HTTP response body. There’s no need for a view resolver because no view is being rendered; instead, raw data (like JSON) is returned. Default plain text is return if nothing specified
 - **Response**: The serialized data is sent back to the client as the response. This data can be consumed by any client capable of handling JSON or XML.
 
-![alt text](image-4.png)
+![alt text](Images/springbootrestapis/image-4.png)
 
 - So whenever you are creating a new method along with the `@RequestMapping` you need to write `@ResponseBody` multiple times. 
 - What if `@Controller` and `@ResponseBody` are combined and you don't need to write it repetitively the `@ResponseBody`? , we have an annotation `@RestController`.
@@ -335,7 +335,7 @@ public class ApiController {
 
 - Lets hit the url using postman. First lets create an employee using **POST** request.
 
-![alt text](image-5.png)
+![alt text](Images/springbootrestapis/image-5.png)
 
 - On console
 
@@ -347,26 +347,26 @@ Hibernate: insert into employee (employee_department,employee_id,employee_name,u
 
 - Lets check database.
 
-![alt text](image-6.png)
+![alt text](Images/springbootrestapis/image-6.png)
 
 - Lets create another employee
 
-![alt text](image-7.png)
+![alt text](Images/springbootrestapis/image-7.png)
 
-![alt text](image-8.png)
+![alt text](Images/springbootrestapis/image-8.png)
 
 - Lets fetch all the employees
 
-![alt text](image-9.png)
+![alt text](Images/springbootrestapis/image-9.png)
 
 - Lets fetch particular employee
 
-![alt text](image-10.png)
+![alt text](Images/springbootrestapis/image-10.png)
 
 - Hold on, when we hit url **/sample** we receieved **text/plain** as response, now we are getting json format response? is that we are just passing class?
 - In Spring Boot, when a method in a REST controller returns a class object like Employee, Spring Boot automatically converts this object into a JSON response by default. Spring Boot uses the Accept header in the HTTP request to decide the format. If the client does not specify the Accept header, JSON is chosen by default.
 
-![alt text](image-11.png)
+![alt text](Images/springbootrestapis/image-11.png)
 
 - Spring Boot uses **HttpMessageConverters** to automatically convert Java objects to a specific media type (like JSON or XML) and vice versa.
 For JSON, Spring Boot uses the Jackson library by default. Jackson is a powerful JSON parser and generator library that Spring Boot configures out of the box.
@@ -391,17 +391,17 @@ For JSON, Spring Boot uses the Jackson library by default. Jackson is a powerful
 	}
 ```
 
-![alt text](image-12.png)
+![alt text](Images/springbootrestapis/image-12.png)
 
 - Hey wait, the response is still in Json format, why so? it is because SpringBoot is still providing response in json format. Check the **response headers**
 
 
-![alt text](image-13.png)
+![alt text](Images/springbootrestapis/image-13.png)
 
 
 - We are accepting response in json format, how to change it ?, so in postman you need to change the accept parameter media type to xml.
 
-<video controls src="20240812-0735-39.4253322.mp4" title="Title"></video>
+<video controls src="Images/springbootrestapis/20240812-0735-39.4253322.mp4" title="Title"></video>
 
 
 - When multiple media types are specified in the produces attribute, Spring Boot will choose the first one as the default if the Accept header is not explicitly set by the client.
@@ -413,7 +413,7 @@ For JSON, Spring Boot uses the Jackson library by default. Jackson is a powerful
 
 - Lemme enter some proper data into the employee table and fetch all those data.
 
-![alt text](image-14.png)
+![alt text](Images/springbootrestapis/image-14.png)
 
 - Lets say you wanna create multiple employees at once, we have `saveAll` dao method, lets create method for it in service layer and in the controller.
 
@@ -464,7 +464,7 @@ Hibernate: insert into employee (employee_department,employee_id,employee_name,u
 ]
 ```
 
-![alt text](image-15.png)
+![alt text](Images/springbootrestapis/image-15.png)
 
 - Uptil now we have fetch and create values into the database, lets perform update and delete. So to update or delete any record we required an unique identifier or id ( In our case, employee id)
 - Below is **PUT** method example
@@ -499,9 +499,9 @@ Employee [id=1, empid=101, name=Harsh, dept=IT]
 Hibernate: update employee set employee_department=?,employee_id=?,employee_name=? where unique_id=?
 ```
 
-![alt text](image-16.png)
+![alt text](Images/springbootrestapis/image-16.png)
 
-![alt text](image-17.png)
+![alt text](Images/springbootrestapis/image-17.png)
 
 - Below is **DELETE** method example. To delete an employee using employee id we require a derived query method in the dao interface
 
@@ -544,13 +544,13 @@ Output:
 Hibernate: delete from employee where unique_id=?
 ```
 
-![alt text](image-18.png)
+![alt text](Images/springbootrestapis/image-18.png)
 
-![alt text](image-19.png)
+![alt text](Images/springbootrestapis/image-19.png)
 
 - What if you are updating an employee details and employee id of that is some how not available?
 
-![alt text](image-20.png)
+![alt text](Images/springbootrestapis/image-20.png)
 
 ```
 Output:
@@ -597,7 +597,7 @@ ApiController
 	}
 ```
 
-![alt text](image-21.png)
+![alt text](Images/springbootrestapis/image-21.png)
 
 - Hey the content is blank, can we display atleast the null content? 
 
@@ -622,7 +622,7 @@ ApiController
 	}
 ```
 
-![alt text](image-22.png)
+![alt text](Images/springbootrestapis/image-22.png)
 
 - **ResponseEntity** that allows you to have more control over the HTTP response that your REST API sends to the client. It represents the entire HTTP response, including status code, headers, and body.
 - **ResponseEntity** allows you to specify the HTTP status code that should be returned to the client. This is useful for sending appropriate status codes like `201 Created`, `400 Bad Request`, `404 Not Found`, etc., depending on the outcome of the request.
@@ -630,6 +630,243 @@ ApiController
 - You can control the response body by passing any object or even no body at all.
 - **ResponseEntity** is useful in handling errors and returning proper HTTP responses with error details.
 
+- In Hibernate we have relational-mapping, lets create a book and author entity which will have `@OneToOne` mapping.
+
+```
+Book Class
+package com.springboot.rest.entities;
+
+import jakarta.persistence.Entity;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "Book_table")
+public class Book{
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	@Column(name = "book_id")
+	private int bookid;
+
+	@Column(name = "book_name")
+	private String bookName;
+	
+	@Column(name = "book_type")
+	private String booktype;
+	
+	@OneToOne(cascade=CascadeType.ALL)
+	private Author author;
+
+	public int getBookid() {
+		return bookid;
+	}
+
+	public void setBookid(int bookid) {
+		this.bookid = bookid;
+	}
+
+	public String getBookName() {
+		return bookName;
+	}
+
+	public void setBookName(String bookName) {
+		this.bookName = bookName;
+	}
+
+	public String getBooktype() {
+		return booktype;
+	}
+
+	public void setBooktype(String booktype) {
+		this.booktype = booktype;
+	}
+
+	public Author getAuthor() {
+		return author;
+	}
+
+	public void setAuthor(Author author) {
+		this.author = author;
+	}
+
+}
+
+
+Author Class
+package com.springboot.rest.entities;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "author_table")
+public class Author {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	@Column(name = "author_id")
+	private int authid;
+	
+	@Column(name = "author_name")
+	private String authName;
+
+
+	public int getAuthid() {
+		return authid;
+	}
+
+	public void setAuthid(int authid) {
+		this.authid = authid;
+	}
+
+	public String getAuthName() {
+		return authName;
+	}
+
+	public void setAuthName(String authName) {
+		this.authName = authName;
+	}
+	
+	
+}
+```
+
+- Lets create a dao interface using JpaRepository and service layer
+
+```
+Dao Interface
+package com.springboot.rest.dao;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.springboot.rest.entities.Book;
+import java.util.List;
+
+
+@Repository
+public interface BookDao extends JpaRepository<Book, Integer> {
+
+	Book findByBookid(int bookid);
+}
+
+Service layer
+package com.springboot.rest.service;
+
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.springboot.rest.dao.BookDao;
+import com.springboot.rest.entities.Book;
+
+@Service
+@Transactional
+public class BookService {
+
+	@Autowired
+	private BookDao bookdao;
+
+	public BookDao getBookdao() {
+		return bookdao;
+	}
+
+	public void setBookdao(BookDao bookdao) {
+		this.bookdao = bookdao;
+	}
+	
+	public Book saveBookDetails(Book book) {
+		return bookdao.save(book);
+	}
+
+	public Book getBookDetails(int bookid) {
+		return bookdao.findByBookid(bookid);
+	}
+}
+```
+
+- Below is the ApiController for creating and fetching book details.
+
+```
+package com.springboot.rest.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+
+import com.springboot.rest.entities.Book;
+import com.springboot.rest.entities.Employee;
+import com.springboot.rest.service.BookService;
+import com.springboot.rest.service.EmployeeService;
+
+//@Controller
+@RestController
+@RequestMapping("/apicontroller")
+public class ApiController {
+	
+	@Autowired
+	private BookService bookservice;
+
+	/**
+	 * Create a new book details
+	 */
+	@PostMapping("/create/book")
+	public Book createNewBook(@RequestBody Book book) {
+		return bookservice.saveBookDetails(book);
+	}
+	
+	/**
+	 * Get particular book details
+	 */
+	@GetMapping("/get/book/{bookid}")
+	public Book getBookDetails(@PathVariable int bookid) {
+		return bookservice.getBookDetails(bookid);
+	}
+	
+}
+
+Output:
+Hibernate: create table author_table (author_id integer not null, author_name varchar(255), primary key (author_id)) engine=InnoDB
+Hibernate: create table author_table_seq (next_val bigint) engine=InnoDB
+Hibernate: insert into author_table_seq values ( 1 )
+Hibernate: create table book_table (author_author_id integer, book_id integer not null, book_name varchar(255), book_type varchar(255), primary key (book_id)) engine=InnoDB
+Hibernate: create table book_table_seq (next_val bigint) engine=InnoDB
+Hibernate: insert into book_table_seq values ( 1 )
+Hibernate: alter table book_table add constraint UKc8jjhmirjm1eece8s0sr2i2cf unique (author_author_id)
+Hibernate: alter table employee add constraint UKmc5x07dj0uft9opsxchp0uwji unique (employee_id)
+Hibernate: alter table book_table add constraint FKsjw4gp278w3h7t6pr4pb755hl foreign key (author_author_id) references author_table (author_id)
+```
+
+![alt text](Images/springbootrestapis/image-23.png)
+
+
+- Here `author_author_id` becomes the foreign key for table `book_table`.
+
+![alt text](Images/springbootrestapis/image-26.png)
+
+![alt text](Images/springbootrestapis/image-24.png)
+
+![alt text](Images/springbootrestapis/image-25.png)
+
+- Lets fetch values 
+
+
+![alt text](Images/springbootrestapis/image-27.png)
 
 
 
