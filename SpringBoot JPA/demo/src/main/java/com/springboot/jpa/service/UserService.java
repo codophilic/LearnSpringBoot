@@ -12,7 +12,7 @@ import com.springboot.jpa.dao.UserDaoInterface;
 import com.springboot.jpa.entities.User;
 
 import jakarta.persistence.*;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional

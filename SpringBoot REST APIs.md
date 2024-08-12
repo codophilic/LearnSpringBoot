@@ -112,7 +112,103 @@ public class ApiController {
 - `@RestController` is a specialized version of @Controller. It combines `@Controller` and `@ResponseBody` into one annotation. When you use `@RestController`, every method in the controller automatically behaves as if it were annotated with `@ResponseBody`.
 - `@GetMapping` is a shorthand for `@RequestMapping(method = RequestMethod.GET)`. It is more concise and often preferred when defining GET endpoints.
 
+- Lets create a SpringBoot MVC structure using JPA hibernate. First lets install JPA dependencies. Here we will be using MySQL database.
+
+```
+<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+```
+
 - Lets create a simple Employee Class which has employee ID, name, department.
+
+```
+package com.springboot.rest.entities;
+
+import jakarta.persistence.*;
+
+@Entity
+public class Employee {
+
+	@Id
+	@GeneratedValue( strategy = GenerationType.AUTO)
+	@Column(name = "unique_id")
+	private int id;
+	
+	@Column(name = "employee_id")
+	private int emp_id;
+	
+	@Column(name = "employee_name")
+	private String name;
+	
+	@Column(name="employee_department")
+	private String dept;
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public int getEmp_id() {
+		return emp_id;
+	}
+
+	public void setEmp_id(int emp_id) {
+		this.emp_id = emp_id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getDept() {
+		return dept;
+	}
+
+	public void setDept(String dept) {
+		this.dept = dept;
+	}
+
+	@Override
+	public String toString() {
+		return "Employee [id=" + id + ", emp_id=" + emp_id + ", name=" + name + ", dept=" + dept + "]";
+	}
+	
+	
+}
+```
+
+- Lets create a DAO layer interface which will extends JpaRepository and a service layer class. Autowire service and dao.
+
+```
+DAO Interface JpaRepository
+package com.springboot.rest.dao;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.springboot.rest.entities.Employee;
+
+public interface EmployeeDao extends JpaRepository<Employee, Integer> {
+
+}
+
+Service Layer Class
+
+
 
 
 

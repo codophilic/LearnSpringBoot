@@ -850,7 +850,7 @@ import com.springboot.jpa.dao.UserDaoInterface;
 import com.springboot.jpa.entities.User;
 
 import jakarta.persistence.*;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService {
@@ -898,6 +898,12 @@ public class UserService {
 }
 ```
 
+
+>[!NOTE]
+> - There are two imports available for **`@Transactional`** annotation.
+> - In a Java EE 7 application, you'll use the Java EE annotation (jakarta.transaction.Transactional).
+> - In a Spring application, you'll use the Spring annotation (org.springframework.transaction.annotation.Transactional).
+
 - Post execution of Main Method , we can see when we `save()` and then query the data directly from database, we cannot get it because save stores the data to persistance context of EntityManager.
 
 ```
@@ -935,7 +941,7 @@ import com.springboot.jpa.dao.UserDaoInterface;
 import com.springboot.jpa.entities.User;
 
 import jakarta.persistence.*;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService {
