@@ -10,8 +10,8 @@ public class Employee {
 	@Column(name = "unique_id")
 	private int id;
 	
-	@Column(name = "employee_id")
-	private int emp_id;
+	@Column(name = "employee_id",unique = true)
+	private int empid;
 	
 	@Column(name = "employee_name")
 	private String name;
@@ -27,13 +27,6 @@ public class Employee {
 		this.id = id;
 	}
 
-	public int getEmp_id() {
-		return emp_id;
-	}
-
-	public void setEmp_id(int emp_id) {
-		this.emp_id = emp_id;
-	}
 
 	public String getName() {
 		return name;
@@ -41,6 +34,14 @@ public class Employee {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public int getEmpid() {
+		return empid;
+	}
+
+	public void setEmpid(int empid) {
+		this.empid = empid;
 	}
 
 	public String getDept() {
@@ -53,7 +54,7 @@ public class Employee {
 
 	@Override
 	public String toString() {
-		return "Employee [id=" + id + ", emp_id=" + emp_id + ", name=" + name + ", dept=" + dept + "]";
+		return "Employee [id=" + id + ", empid=" + empid + ", name=" + name + ", dept=" + dept + "]";
 	}
 	
 	
