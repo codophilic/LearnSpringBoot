@@ -1,0 +1,25 @@
+{
+    "PDFRequest": {
+        "headers": {
+            "unique_id": 123456,
+            "secure": {
+                "securityKey": "Abcu1203E20"
+            }
+        },
+        "body":{
+          "name": "name",
+          "fills":{
+            "value_text":{
+                "place1" : "Harsh",
+                "place2" : "Pandya",
+                "place3" : "N",
+                "place4" : "1-Nov-1999"
+            },
+            "value_radio":{
+                "M" : 1,
+                "F" : 0
+            }
+          }  
+        }
+    }
+}
