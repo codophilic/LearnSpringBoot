@@ -9,11 +9,6 @@
 	<classpathentry kind="src" path="src/main/resources"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
-	<classpathentry kind="lib" path="C:/Users/Harsh/Desktop/LearnSpringBoot/SpringBoot Without Maven/api/springboot dependencies/accessors-smart-2.5.1.jar">
-		<attributes>
-			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry kind="lib" path="C:/Users/Harsh/Desktop/LearnSpringBoot/SpringBoot Without Maven/api/springboot dependencies/android-json-0.0.20131108.vaadin1.jar">
 		<attributes>
 			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
@@ -30,21 +25,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="C:/Users/Harsh/Desktop/LearnSpringBoot/SpringBoot Without Maven/api/springboot dependencies/assertj-core-3.25.3.jar">
-		<attributes>
-			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/Harsh/Desktop/LearnSpringBoot/SpringBoot Without Maven/api/springboot dependencies/awaitility-4.2.1.jar">
-		<attributes>
-			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/Harsh/Desktop/LearnSpringBoot/SpringBoot Without Maven/api/springboot dependencies/byte-buddy-1.14.18.jar">
-		<attributes>
-			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/Harsh/Desktop/LearnSpringBoot/SpringBoot Without Maven/api/springboot dependencies/byte-buddy-agent-1.14.18.jar">
 		<attributes>
 			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
 		</attributes>
