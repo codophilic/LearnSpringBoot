@@ -3,27 +3,36 @@ package entities.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.validation.constraints.Pattern;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
 public class Headers {
+	@Valid
+    @NotNull(message = "RequestID cannot be null")
+    @Pattern(regexp = "^[a-zA-Z0-9]*$", message = "RequestID must be alphanumeric")
+    @JsonProperty("RequestID")
+    private String requestID;
+    
+	@Valid
+    @NotNull(message = "RequestInfo cannot be null")
+    @Pattern(regexp = "^User Details$", message = "RequestInfo must be 'User Details'")
+    @JsonProperty("RequestInfo")
+    private String requestInfo;
 
-	@JsonProperty
-    @NotNull(message = "Unique ID cannot be null")
-    private Long unique_id;
+    // Getters and Setters
+    public String getRequestID() {
+        return requestID;
+    }
 
-	@JsonProperty
-    @NotNull(message = "Secure cannot be null")
-    private Secure secure;
+    public void setRequestID(String requestID) {
+        this.requestID = requestID;
+    }
 
+    public String getRequestInfo() {
+        return requestInfo;
+    }
+
+    public void setRequestInfo(String requestInfo) {
+        this.requestInfo = requestInfo;
+    }
 }

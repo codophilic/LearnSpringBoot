@@ -1,0 +1,14 @@
+{
+    "ApiRequest":{
+        "Headers": {
+            "RequestID" : "123ABC", 
+            "RequestInfo" : "User Details"
+        },
+        "Body":{
+            "username" : "Harsh Pandya",
+            "id" : 123456,
+            "email" : "abc@gmai.com",
+            "address" : "abcdefghijklmnop"
+        }
+    }
+}

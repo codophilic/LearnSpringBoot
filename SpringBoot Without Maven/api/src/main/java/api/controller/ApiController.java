@@ -1,5 +1,8 @@
 package api.controller;
 
+import java.util.Random;
+import java.util.stream.Collectors;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -8,8 +11,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import entities.request.PDFRequest;
-import entities.response.PDFResponse;
+import entities.request.ApiRequestWrapper;
+import entities.response.ApiResponse;
+import entities.response.ApiResponseWrapper;
+import entities.response.Status;
 import jakarta.validation.Valid;
 
 @RestController
@@ -20,31 +25,54 @@ public class ApiController {
 		return "This is a sample method";
 	}
 	
-	@PostMapping("/pdfapi")
-	public ResponseEntity<PDFResponse> apiRequest(@Valid @RequestBody PDFRequest pdfRequest) {
-//		// Check if there are validation errors
-//		System.out.println(bindingResult.hasErrors());
-//        if (bindingResult.hasErrors()) {
-//            // Extract the first validation error
-//            String failureMessage = bindingResult.getFieldError().getDefaultMessage();
-//            String customCode = "400"; // Custom code
-//
-//            // Construct the response
-//            PDFResponse pdfResponse = new PDFResponse();
-//            pdfResponse.setHeaders(pdfRequest.getHeaders());
-//            pdfResponse.setBody(new PDFResponse.Body(null, failureMessage, customCode));
-//            System.out.println("ERRORS........");
-//            return new ResponseEntity<>(pdfResponse, HttpStatus.BAD_REQUEST);
-//        }
+	@PostMapping("/random")
+	public ResponseEntity<ApiResponseWrapper> apiRequest(@Valid @RequestBody ApiRequestWrapper request, BindingResult bindingResult) {
+		ApiResponseWrapper response = new ApiResponseWrapper();
+        ApiResponse apiResponse= new ApiResponse();
+        apiResponse.setHeaders(request.getApiRequest().getHeaders());
+        apiResponse.setBody(request.getApiRequest().getBody());
+    	Status st= new Status();
+    	System.out.println(bindingResult);
+    	
+    	/**
+    	 * If any validation fails
+    	 */
+        if (bindingResult.hasErrors()) {
+        	st.setCode("111");
+            st.setMessage(bindingResult.getAllErrors().stream()
+                    .map(error -> error.getDefaultMessage())
+                    .collect(Collectors.joining(", "))); 
+            st.setStatus("Validation Failed");
+            st.setResponseCode(HttpStatus.PRECONDITION_FAILED.value());
+            apiResponse.setStatus(st);
+        	response.setApiResponse(apiResponse);
+            return ResponseEntity.badRequest().body(response);
+        }
+        
+        /**
+         * Validations are success
+         */
+        /**
+         * Generating random message
+         */
+        String[] messages = {
+                "Hello, world!",
+                "Have a great day!",
+                "Keep smiling!",
+                "You got this!",
+                "Stay positive!"
+            };
 
-        // If no errors, proceed with the normal logic
-        // Example: Assuming some process generates an "encode" string
-        String encode = "263he93ne9...";
+        Random random = new Random();
+        int index = random.nextInt(messages.length);
+        String randomMessage = messages[index];
 
-        PDFResponse pdfResponse = new PDFResponse();
-        pdfResponse.setHeaders(null);
-        pdfResponse.setBody(new PDFResponse.Body(encode, null, "200"));
-
-        return new ResponseEntity<>(pdfResponse, HttpStatus.OK);
-	}
+        st.setMessage(randomMessage);
+        st.setResponseCode(HttpStatus.OK.value());
+        st.setCode("000");
+        st.setStatus("Validation Passed");
+    	apiResponse.setStatus(st);
+    	response.setApiResponse(apiResponse);
+        return ResponseEntity.ok(response);
+    }
 }

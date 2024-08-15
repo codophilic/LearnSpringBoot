@@ -1,0 +1,20 @@
+{
+    "ApiResponse": {
+        "Headers": {
+            "RequestID": "123ABC",
+            "RequestInfo": "User Details"
+        },
+        "Body": {
+            "username": "Harsh Pandya",
+            "id": 12345,
+            "email": "abc@gmai.com",
+            "address": "abcdefghijklmnop"
+        },
+        "Status": {
+            "responseCode": 0,
+            "status": null,
+            "message": "Hello, Greetings",
+            "code": "000"
+        }
+    }
+}

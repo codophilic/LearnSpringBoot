@@ -1,26 +1,10 @@
 # SpringBoot Without Maven
 - Lets create a project in SpringBoot without using Maven build automation tool and deploy it on the external tomcat server.
-- In this project we will replace PDF placeholders by text values or images using REST Apis
-- We will be create a Rest Api, which will take input parameters from the request and replace the placeholders by values using request key's value.
-- Lets create a simple application form PDF.
-
-![alt text](image.png)
-
-- Using , create placeholders in PDF
-
-![alt text](image-1.png)
-
-- This is how Update PDF with placeholders looks like.
-
-![alt text](image-2.png)
-
-- So basically `First Name Placeholder` field placeholder will be replace via a value which is given in the api request.
-
 - Lets create a new dynamic web project in eclipse. During new project creation we won't generate **web.xml** file , as SpringBoot will perform all the autoconfigurations.
 
-![alt text](image-3.png)
+![alt text](Images/springbootwithoutmaven/image-3.png)
 
-![alt text](image-4.png)
+![alt text](Images/springbootwithoutmaven/image-4.png)
 
 - Since we are not using maven we need to download the dependencies manually, so lets first create a folder with name **SpringBoot Dependencies**, okay what all dependencies needs to be added? well , you can follow the below steps to get your dependencies.
 
@@ -29,7 +13,7 @@
 3. Run and test your temporary project
 4. Export the dependencies but using maven command `dependency:copy-dependencies`. The dependencies will get copied under a folder `/target`
 
-<video controls src="20240813-1638-24.9055760.mp4" title="Title"></video>
+<video controls src="Images/springbootwithoutmaven/20240813-1638-24.9055760.mp4" title="Title"></video>
 
 - Now you can copy these dependencies into your main workspace and delete the temporary workspace.
 
@@ -44,7 +28,7 @@
 
 - Add this **springboot dependencies** in classpath as well as in the deployment assembly.
 
-<video controls src="20240813-1700-07.5911933.mp4" title="Title"></video>
+<video controls src="Images/springbootwithoutmaven/20240813-1700-07.5911933.mp4" title="Title"></video>
 
 - Now under `src/main/java` folder create a main method and annotate it with `@SpringBootApplication`.
 
@@ -103,15 +87,15 @@ public class ApiController {
 
 - Lets run this project with **Spring Boot App**, Run As -> Spring Boot App
 
-![alt text](image-5.png)
+![alt text](Images/springbootwithoutmaven/image-5.png)
 
 - Wait where is **application.properties**? , you need to add that manually, lets create a folder with name **resources** under `src/main` Create manually **application.properties**. Post creation , lets configure our server port to 8085. When we create any property , we need to add that in the classpath.
 
-<video controls src="20240813-1733-09.0005941.mp4" title="Title"></video>
+<video controls src="Images/springbootwithoutmaven/20240813-1733-09.0005941.mp4" title="Title"></video>
 
 - Now lets run again our application
 
-![alt text](image-6.png)
+![alt text](Images/springbootwithoutmaven/image-6.png)
 
 >[!IMPORTANT]
 > - Here we are still using embedded tomcat over here. When we are working on our dev , we can use embedded tomcat, suppose we wanted to deploy it on any external web server, we can export the war file of it and deploy that on the external web server.
@@ -119,7 +103,7 @@ public class ApiController {
 - Lets export the war file and deploy that on tomcat server.
 - In eclipse , right click on your project -> export -> WAR file.
 
-![alt text](image-7.png)
+![alt text](Images/springbootwithoutmaven/image-7.png)
 
 - There are two ways to deploy a war file on tomcat.
 
@@ -128,7 +112,7 @@ public class ApiController {
 - Copy war file to `apache-tomcat-version/webapps`.
 - Start **start.bat** file under folder `/bin`.
 
-<video controls src="20240813-1800-59.5465388.mp4" title="Title"></video>
+<video controls src="Images/springbootwithoutmaven/20240813-1800-59.5465388.mp4" title="Title"></video>
 
 #### Using Frontend
 
@@ -140,20 +124,597 @@ public class ApiController {
 
 - When you want to manage Tomcat, including deploying applications through the Tomcat Manager web interface (the frontend screen), you need to configure users with the appropriate roles in the **tomcat-users.xml** file. This role allows you to access the Tomcat Manager web interface through the browser, where you can deploy, undeploy, start, stop, and manage applications.
 
-<video controls src="20240813-1806-34.9063792.mp4" title="Title"></video>
+<video controls src="Images/springbootwithoutmaven/20240813-1806-34.9063792.mp4" title="Title"></video>
 
 - If you see in our **application.properties** the port number used was 8085, but when we deploy on tomcat the port number is 8080 because when you deploy your Spring Boot application as a WAR file on an external Tomcat server, the port number is determined by the Tomcat server itself, not by your Spring Boot application’s configuration.
 - Spring-specific configurations will still apply when deploying on an external Tomcat server. However, server-specific configurations, like the port, will be managed by the Tomcat server itself.
 - When we deploy war file on external server, the war file gets extracted. We can see the contents like classes, libraries, properties etc.. 
 
-<video controls src="20240813-1813-23.9669885.mp4" title="Title"></video>
+<video controls src="Images/springbootwithoutmaven/20240813-1813-23.9669885.mp4" title="Title"></video>
 
 
-- Uptil now we have successfully create a simple springboot rest api project and deployed that into external web server. Lets do code for replacing placeholders values of PDF.
-- For that we need to download **iText** dependency jar and configure that in the classpath and deployment assembly.
-- Post that 
+- Uptil now we have successfully create a simple springboot rest api project and deployed that into external web server. Lets create a simple REST Api which will perform validation on the request and provide response. The api will accept user details request, it will validate the request and will return random greetings as its response.
+- Lets create Request structure
+
+```
+{
+    "ApiRequest":{
+        "Headers":{
+            "RequestID" : "123ABC", 
+            "RequestInfo" : "User Details"
+        },
+        "Body":{
+            "username" : "Harsh Pandya",
+            "id" : 123456,
+            "email" : "abc@gmai.com",
+            "address" : "abcdefghijklmnop"
+        }
+    }
+}
+```
+
+-Below is sample response
+
+```
+{
+    "ApiResponse":{
+        "Headers": {
+            "RequestID" : "123ABC",
+            "RequestInfo" : "User Details"
+        },
+        "Body":{
+            "username" : "Harsh Pandya",
+            "id" : 123456,
+            "email" : "abc@gmai.com",
+            "address" : "abcdefghijklmnop"
+        },
+        "Status" : {
+            "msg" : "Request is valid",
+            "code" : "000"
+        }
+    }
+}
+```
+
+- Lets construct these request and response as entities, also lets us add validations constraint on each of these instance variables
+- Each nest Json request represents a new class.
+
+```
+Json Request:
+{
+	ApiRequest:{...}
+}
+
+Java class Representation:
+package entities.request;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+
+public class ApiRequestWrapper {
+
+	/**
+	 * If instance variable name is not exactly same as request key name, jackson library won't bind it
+	 * So jackson library provides @JsonProperty which binds the Request Key name with the instance variables name
+	 * even if both are not exactly same
+	 */
+	@Valid
+    @NotNull(message = "ApiRequest cannot be null")
+    @JsonProperty("ApiRequest")
+    private ApiRequest apiRequest;
+
+    // Getters and Setters
+    public ApiRequest getApiRequest() {
+        return apiRequest;
+    }
+
+    public void setApiRequest(ApiRequest apiRequest) {
+        this.apiRequest = apiRequest;
+    }
+}
 
 
+Json Request:
+{
+	ApiRequest:{
+		Headers:{..},
+		Body:{..}
+	}
+}
+
+Java Class representation:
+package entities.request;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+
+public class ApiRequest {
+	/**
+	 * If instance variable name is not exactly same as request key name, jackson library won't bind it
+	 * So jackson library provides @JsonProperty which binds the Request Key name with the instance variables name
+	 * even if both are not exactly same
+	 */
+	@Valid
+    @NotNull(message = "Headers cannot be null")
+    @JsonProperty("Headers")
+    private Headers headers;
+
+	@Valid
+    @NotNull(message = "Body cannot be null")
+    @JsonProperty("Body")
+    private Body body;
+
+    // Getters and Setters
+    public Headers getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(Headers headers) {
+        this.headers = headers;
+    }
+
+    public Body getBody() {
+        return body;
+    }
+
+    public void setBody(Body body) {
+        this.body = body;
+    }
+}
 
 
+Json Request:
+{
+	ApiRequest:{
+		Headers:{
+			RequestID : "123ABC",
+            RequestInfo : "User Details"
+		}
+		..
+	}
+}
 
+Java Class Representation:
+package entities.request;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+
+public class Headers {
+	@Valid
+    @NotNull(message = "RequestID cannot be null")
+    @Pattern(regexp = "^[a-zA-Z0-9]*$", message = "RequestID must be alphanumeric")
+    @JsonProperty("RequestID")
+    private String requestID;
+    
+	@Valid
+    @NotNull(message = "RequestInfo cannot be null")
+    @Pattern(regexp = "^User Details$", message = "RequestInfo must be 'User Details'")
+    @JsonProperty("RequestInfo")
+    private String requestInfo;
+
+    // Getters and Setters
+    public String getRequestID() {
+        return requestID;
+    }
+
+    public void setRequestID(String requestID) {
+        this.requestID = requestID;
+    }
+
+    public String getRequestInfo() {
+        return requestInfo;
+    }
+
+    public void setRequestInfo(String requestInfo) {
+        this.requestInfo = requestInfo;
+    }
+}
+
+
+Json Request:
+{
+	ApiRequest:{
+		...
+		Body:{
+			username : "Harsh Pandya",
+            id : 1234
+			..
+		}
+	}
+}
+
+Java class representation:
+package entities.request;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+public class Body {
+
+	/**
+	 * Here we have not used @JsonProperty because variable name is same as json keys 
+	 */
+	@Valid
+    @NotNull(message = "Username cannot be null")
+    @Size(min = 3, message = "Username must be at least 3 characters long")
+    private String username;
+
+	@Valid
+    @NotNull(message = "ID cannot be null")
+    @Max(value = 99999, message = "ID must be less than or equal to 5 digits")
+    private Integer id;
+	
+	@Valid
+    @NotNull(message = "Email cannot be null")
+    @Email(message = "Email should be valid")
+    private String email;
+
+	@Valid
+    @NotNull(message = "Address cannot be null")
+    @Size(min = 10, message = "Address must be at least 10 characters long")
+    private String address;
+
+    // Getters and Setters
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+}
+```
+
+- Using `jakarta.validation` library we can define validation on each property of json.
+- Using `jackson` library `@JsonProperty` we can bind the json request key name with instance variables if the variables name and request json key names aren't same.
+- Lets create Response structure
+
+```
+Json Request:
+{
+    "ApiResponse": {..}
+}
+
+Java class representation:
+package entities.response;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class ApiResponseWrapper {
+
+	@JsonProperty("ApiResponse")
+	private ApiResponse apiResponse;
+
+	public ApiResponse getApiResponse() {
+		return apiResponse;
+	}
+
+	public void setApiResponse(ApiResponse apiResponse) {
+		this.apiResponse = apiResponse;
+	}
+	
+	
+}
+
+Json Request:
+{
+	ApiResponse:{
+		Headers:{...},
+		Body:{...},
+		Status:{...}
+	}
+}
+
+Java Class representation:
+package entities.response;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import entities.request.Body;
+import entities.request.Headers;
+
+public class ApiResponse {
+
+	@JsonProperty("Headers")
+	private Headers headers;
+	
+	@JsonProperty("Body")
+	private Body body;
+	
+	@JsonProperty("Status")
+	private Status status;
+
+	public Headers getHeaders() {
+		return headers;
+	}
+
+	public void setHeaders(Headers headers) {
+		this.headers = headers;
+	}
+
+	public Body getBody() {
+		return body;
+	}
+
+	public void setBody(Body body) {
+		this.body = body;
+	}
+
+	public Status getStatus() {
+		return status;
+	}
+
+	public void setStatus(Status status) {
+		this.status = status;
+	}
+	
+	
+}
+
+--- Header and body are same of Request ---
+
+Json Request:
+{
+	ApiResponse:{
+		Status:{
+			responseCode:..
+			status:..
+			..
+		}
+	}
+}
+package entities.response;
+
+public class Status {
+	
+	private int responseCode;
+	
+	private String status;
+	
+	private String message;
+	
+	private String code;
+
+	public int getResponseCode() {
+		return responseCode;
+	}
+
+	public void setResponseCode(int responseCode) {
+		this.responseCode = responseCode;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	
+	
+	
+}
+```
+
+- Lets define **POST** mapping in ApiController
+
+```
+package api.controller;
+
+import java.util.Random;
+import java.util.stream.Collectors;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import entities.request.ApiRequestWrapper;
+import entities.response.ApiResponse;
+import entities.response.ApiResponseWrapper;
+import entities.response.Status;
+import jakarta.validation.Valid;
+
+@RestController
+public class ApiController {
+
+	@GetMapping("/sample")
+	public String sampleMethod() {
+		return "This is a sample method";
+	}
+	
+	@PostMapping("/random")
+	public ResponseEntity<ApiResponseWrapper> apiRequest(@Valid @RequestBody ApiRequestWrapper request, BindingResult bindingResult) {
+		ApiResponseWrapper response = new ApiResponseWrapper();
+        ApiResponse apiResponse= new ApiResponse();
+        apiResponse.setHeaders(request.getApiRequest().getHeaders());
+        apiResponse.setBody(request.getApiRequest().getBody());
+    	Status st= new Status();
+    	System.out.println(bindingResult);
+    	
+    	/**
+    	 * If any validation fails
+    	 */
+        if (bindingResult.hasErrors()) {
+        	st.setCode("111");
+            st.setMessage(bindingResult.getAllErrors().stream()
+                    .map(error -> error.getDefaultMessage())
+                    .collect(Collectors.joining(", "))); 
+            st.setStatus("Validation Failed");
+            st.setResponseCode(HttpStatus.PRECONDITION_FAILED.value());
+            apiResponse.setStatus(st);
+        	response.setApiResponse(apiResponse);
+            return ResponseEntity.badRequest().body(response);
+        }
+        
+        /**
+         * Validations are success
+         */
+        /**
+         * Generating random message
+         */
+        String[] messages = {
+                "Hello, world!",
+                "Have a great day!",
+                "Keep smiling!",
+                "You got this!",
+                "Stay positive!"
+            };
+
+        Random random = new Random();
+        int index = random.nextInt(messages.length);
+        String randomMessage = messages[index];
+
+        st.setMessage(randomMessage);
+        st.setResponseCode(HttpStatus.OK.value());
+        st.setCode("000");
+        st.setStatus("Validation Passed");
+    	apiResponse.setStatus(st);
+    	response.setApiResponse(apiResponse);
+        return ResponseEntity.ok(response);
+    }
+}
+```
+
+- Lets test our api
+
+<video controls src="Images/springbootwithoutmaven/20240815-1027-21.2124274.mp4" title="Title"></video>
+
+- The `@Valid` annotation is used to trigger validation on the request body. When you use `@Valid` on a parameter (e.g., `@RequestBody` ApiRequestWrapper request), Spring Boot performs validation based on the constraints defined in your classes (like `@NotNull`, `@Size`, etc.).
+- `@BindingResult` is used to capture validation errors and provides detailed information about them. It works in conjunction with `@Valid` or `@Validated` annotations to handle validation of request bodies. It holds errors found during validation. This allows you to check for validation issues and respond accordingly. It provides methods to access error details, such as the type of error and the field that caused it.
+
+- What if json is invalid?
+
+![alt text](Images/springbootwithoutmaven/image.png)
+
+
+- It does not seems as per our format. To so do we need to define `@ExceptionHandler`
+
+```
+package exceptionhandler;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.WebRequest;
+
+
+import entities.response.Status;
+
+import org.springframework.http.converter.HttpMessageNotReadableException;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+	
+	/**
+	 * @ControllerAdvice or @RestControllerAdvice
+	 *  - This allows you to handle exceptions globally across all your controllers.
+		- When an exception is thrown from a controller, Spring Boot looks for a method annotated with @ExceptionHandler inside classes annotated with @ControllerAdvice.
+		- @ExceptionHandler(HttpMessageNotReadableException.class) catches errors related to invalid JSON.
+	 */
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Object> handleInvalidJsonException(HttpMessageNotReadableException ex) {
+        Status st= new Status();
+        st.setResponseCode(HttpStatus.BAD_REQUEST.value());
+        st.setMessage("Invalid Json");
+        st.setCode("999");
+        st.setStatus("Failure");
+        return new ResponseEntity<>(st, HttpStatus.BAD_REQUEST);
+    }
+
+    // Add more handlers if needed
+}
+```
+
+- `@ControllerAdvice` or `@RestControllerAdvice` allows you to handle exceptions globally across all your controllers.
+- When an exception is thrown from a controller, Spring Boot looks for a method annotated with @ExceptionHandler inside classes annotated with `@ControllerAdvice`.
+- `@ExceptionHandler(HttpMessageNotReadableException.class)` catches errors related to invalid JSON.
+
+>[!IMPORTANT]
+> - Where the class for `@ControllerAdvice` or `@RestControllerAdvice` is declare, it should be in same package of SpringBootApplication or the Main method.
+> - If it is mentioned out of Main method package, then it should be added as`@ComponentScan` of main method
+
+```
+package api;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.context.annotation.ComponentScan;
+
+@SpringBootApplication
+@ComponentScan(basePackages = {"exceptionhandler","api.controller"})
+public class SpringBootMainApplication extends SpringBootServletInitializer {
+
+	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+		return builder.sources(SpringBootMainApplication.class);
+		
+	}
+	
+	public static void main(String[] args) {
+		SpringApplication.run(SpringBootMainApplication.class, args);
+
+	}
+
+}
+```
+
+![alt text](Images/springbootwithoutmaven/image-1.png)
