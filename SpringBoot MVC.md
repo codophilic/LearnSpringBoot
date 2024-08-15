@@ -485,3 +485,4 @@ UserForm.java
 - Above learnings are implemented [here](https://github.com/codophilic/LearnSpringBoot/tree/main/SpringBoot%20MVC/demo/src/main/java/com/spring/mvc)
 - Same can be done without using **SpringBoot** and only using **Spring**.
 - Concepts of Spring MVC are applied to SpringBoot as well.
+- Lets learn about [SpringBoot REST Apis](https://github.com/codophilic/LearnSpringBoot/blob/main/SpringBoot%20REST%20APIs.md)
