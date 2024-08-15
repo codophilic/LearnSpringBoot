@@ -199,11 +199,6 @@
 			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/Harsh/Desktop/LearnSpringBoot/SpringBoot Without Maven/api/springboot dependencies/spring-boot-starter-test-3.3.2.jar">
-		<attributes>
-			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry kind="lib" path="C:/Users/Harsh/Desktop/LearnSpringBoot/SpringBoot Without Maven/api/springboot dependencies/spring-boot-starter-tomcat-3.3.2.jar">
 		<attributes>
 			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
@@ -215,16 +210,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="C:/Users/Harsh/Desktop/LearnSpringBoot/SpringBoot Without Maven/api/springboot dependencies/spring-boot-starter-web-3.3.2.jar">
-		<attributes>
-			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/Harsh/Desktop/LearnSpringBoot/SpringBoot Without Maven/api/springboot dependencies/spring-boot-test-3.3.2.jar">
-		<attributes>
-			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/Harsh/Desktop/LearnSpringBoot/SpringBoot Without Maven/api/springboot dependencies/spring-boot-test-autoconfigure-3.3.2.jar">
 		<attributes>
 			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
 		</attributes>
@@ -245,11 +230,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="C:/Users/Harsh/Desktop/LearnSpringBoot/SpringBoot Without Maven/api/springboot dependencies/spring-jcl-6.1.11.jar">
-		<attributes>
-			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/Harsh/Desktop/LearnSpringBoot/SpringBoot Without Maven/api/springboot dependencies/spring-test-6.1.11.jar">
 		<attributes>
 			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
 		</attributes>
