@@ -3,6 +3,7 @@ package entities.request;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -14,6 +15,7 @@ public class Body {
 	@Valid
     @NotNull(message = "Username cannot be null")
     @Size(min = 3, message = "Username must be at least 3 characters long")
+	@NotEmpty(message = "{emptyMsg}")
     private String username;
 
 	@Valid
@@ -24,11 +26,13 @@ public class Body {
 	@Valid
     @NotNull(message = "Email cannot be null")
     @Email(message = "Email should be valid")
+	@NotEmpty(message = "{emptyMsg}")
     private String email;
 
 	@Valid
     @NotNull(message = "Address cannot be null")
     @Size(min = 10, message = "Address must be at least 10 characters long")
+	@NotEmpty(message = "{emptyMsg}")
     private String address;
 
     // Getters and Setters

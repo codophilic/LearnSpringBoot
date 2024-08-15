@@ -3,6 +3,7 @@ package api.controller;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -19,6 +20,17 @@ import jakarta.validation.Valid;
 
 @RestController
 public class ApiController {
+	
+	@Value("${greetings}")
+	private String customMsg;
+	
+	public String getCustomMsg() {
+		return customMsg;
+	}
+
+	public void setCustomMsg(String customMsg) {
+		this.customMsg = customMsg;
+	}
 
 	@GetMapping("/sample")
 	public String sampleMethod() {
@@ -67,7 +79,7 @@ public class ApiController {
         int index = random.nextInt(messages.length);
         String randomMessage = messages[index];
 
-        st.setMessage(randomMessage);
+        st.setMessage(getCustomMsg()+" "+randomMessage);
         st.setResponseCode(HttpStatus.OK.value());
         st.setCode("000");
         st.setStatus("Validation Passed");

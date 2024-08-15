@@ -718,3 +718,227 @@ public class SpringBootMainApplication extends SpringBootServletInitializer {
 ```
 
 ![alt text](Images/springbootwithoutmaven/image-1.png)
+
+- Lets say , if your message starting phrase would be generic like for example 'Greetings !!!, have a good day' or 'Greetings !!!, Hi' , you could append the prefix `Greetings !!!` to all your phrases. What if you could have a generic key and this `Greeting !!!` as its value in your **application.properties** and using it you could have just contenated in your string?
+- This can be done using `@Value` annotation.
+
+```
+application.properties
+server.port=8085
+greetings=Greetings !!!
+```
+
+- Below is update ApiController
+
+```
+package api.controller;
+
+import java.util.Random;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import entities.request.ApiRequestWrapper;
+import entities.response.ApiResponse;
+import entities.response.ApiResponseWrapper;
+import entities.response.Status;
+import jakarta.validation.Valid;
+
+@RestController
+public class ApiController {
+	
+	@Value("${greetings}")
+	private String customMsg;
+	
+	public String getCustomMsg() {
+		return customMsg;
+	}
+
+	public void setCustomMsg(String customMsg) {
+		this.customMsg = customMsg;
+	}
+
+	@GetMapping("/sample")
+	public String sampleMethod() {
+		return "This is a sample method";
+	}
+	
+	@PostMapping("/random")
+	public ResponseEntity<ApiResponseWrapper> apiRequest(@Valid @RequestBody ApiRequestWrapper request, BindingResult bindingResult) {
+		ApiResponseWrapper response = new ApiResponseWrapper();
+        ApiResponse apiResponse= new ApiResponse();
+        apiResponse.setHeaders(request.getApiRequest().getHeaders());
+        apiResponse.setBody(request.getApiRequest().getBody());
+    	Status st= new Status();
+    	System.out.println(bindingResult);
+    	
+    	/**
+    	 * If any validation fails
+    	 */
+        if (bindingResult.hasErrors()) {
+        	st.setCode("111");
+            st.setMessage(bindingResult.getAllErrors().stream()
+                    .map(error -> error.getDefaultMessage())
+                    .collect(Collectors.joining(", "))); 
+            st.setStatus("Validation Failed");
+            st.setResponseCode(HttpStatus.PRECONDITION_FAILED.value());
+            apiResponse.setStatus(st);
+        	response.setApiResponse(apiResponse);
+            return ResponseEntity.badRequest().body(response);
+        }
+        
+        /**
+         * Validations are success
+         */
+        /**
+         * Generating random message
+         */
+        String[] messages = {
+                "Hello, world!",
+                "Have a great day!",
+                "Keep smiling!",
+                "You got this!",
+                "Stay positive!"
+            };
+
+        Random random = new Random();
+        int index = random.nextInt(messages.length);
+        String randomMessage = messages[index];
+
+        st.setMessage(getCustomMsg()+" "+randomMessage);
+        st.setResponseCode(HttpStatus.OK.value());
+        st.setCode("000");
+        st.setStatus("Validation Passed");
+    	apiResponse.setStatus(st);
+    	response.setApiResponse(apiResponse);
+        return ResponseEntity.ok(response);
+    }
+}
+```
+
+- Spring `@Value` annotation is used to assign or inject default values to variables and method arguments. We can read spring environment variables as well as system variables using @Value annotation. Spring `@Value` annotation also supports SpEL.
+- Some more examples of it `@Value` annotation
+
+```
+Assiging Data type values
+@Value("true")
+private boolean defaultBoolean;
+
+@Value("10")
+private int defaultInt;
+
+Assiging System Enviroment variables
+@Value("true")
+private boolean defaultBoolean;
+
+@Value("10")
+private int defaultInt;
+
+Assiging on methods
+@Value("Test")
+public void printValues(String s, String v){} //both 's' and 'v' values will be 'Test' 
+
+@Value("Test")
+public void printValues(String s, @Value("Data") String v){}
+// s=Test, v=Data
+```
+
+- Lets say you wanna create a generic message for a validations for an example, for empty values of a particular key in request you wanna display `Values cannot be empty` , to do so you need to create **message.properties** file which will store all your messages and that can be access by Spring during execution.
+
+```
+emptyMsg=Values cannot be empty
+```
+
+- But how will Spring knows? for that you need to do some configurations using **MessageSource** and **LocalValidatorFactoryBean**.
+
+```
+package api;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+
+@SpringBootApplication
+@ComponentScan(basePackages = {"exceptionhandler","api.controller"})
+public class SpringBootMainApplication extends SpringBootServletInitializer {
+
+	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+		return builder.sources(SpringBootMainApplication.class);
+		
+	}
+	
+	public static void main(String[] args) {
+		SpringApplication.run(SpringBootMainApplication.class, args);
+
+	}
+	
+	@Bean
+	public MessageSource messageSource() {
+	    ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
+	    messageSource.setBasename("classpath:message");
+	    messageSource.setDefaultEncoding("UTF-8");
+	    return messageSource;
+	}
+	
+	@Bean
+	public LocalValidatorFactoryBean getValidator() {
+	    LocalValidatorFactoryBean bean = new LocalValidatorFactoryBean();
+	    bean.setValidationMessageSource(messageSource());
+	    return bean;
+	}
+}
+```
+
+- A locale represents the combination of language and region settings for a user. It includes information like the language (e.g., English, French) and sometimes the region or country (e.g., US, France). Example: en_US is the locale for English as spoken in the United States, while fr_FR is for French as spoken in France.
+- **Language Internationalization (i18n)** is the process of designing your application so that it can be adapted to different languages and regions without requiring changes to the code. It’s about making your app flexible enough to support multiple languages and formats.
+Example: If your app is in English and you want to support French, you need to provide French translations for all user-facing text.
+- Your application might display various messages to users, such as error messages, instructions, or alerts. For example, an error message might say "Username must not be empty." When users submit forms with invalid data, your application will show validation messages like "Email is required" or "Password must be at least 8 characters."
+- To support different languages, you need to provide translations for all these messages. This is where the MessageSource comes in.
+- You create separate properties files for each language you want to support. For example, you might have `messages_en.properties` for English `messages_fr.properties` for French.
+
+```
+messages_en.properties:
+error.username.empty=Username must not be empty
+error.email.invalid=Email format is invalid
+
+messages_fr.properties:
+error.username.empty=Le nom d'utilisateur ne doit pas être vide
+error.email.invalid=Le format de l'email est invalide
+```
+
+- MessageSource helps manage and retrieve these messages based on the user’s locale, so they see text in their language.
+- When a validation error occurs, the LocalValidatorFactoryBean uses the MessageSource to fetch the appropriate error message from properties files. This allows error messages to be localized based on the user’s locale. It uses ReloadableResourceBundleMessageSource that accesses resource bundles using specified base names `messageSource.setBasename("classpath:message")`.
+- By configuring LocalValidatorFactoryBean, you ensure that Spring’s validation framework works smoothly with your message sources, providing a consistent and localized user experience.
+- By default, Spring Boot uses the system’s default locale. If your system or application isn’t configured with a specific locale, it typically defaults to English (US) or the locale set in the system properties.
+
+- Ensure that `/resources` folder is added in your classpath so that spring can access **message.properties**  and run the application.
+
+![alt text](Images/springbootwithoutmaven/imageMsg.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
