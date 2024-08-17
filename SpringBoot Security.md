@@ -104,6 +104,20 @@ spring.security.user.password=${SPRINGBOOT_PASSWORD:password@1234}
 
 - Behind the scenes Spring boot security also manages sessions automatically.
 
+- Inpsect your page and go to application , you will a JSESSION ID
+
+![alt text](image-10.png)
+
+- Open a new tab, and go application you will get the same JSESSION ID
+
+![alt text](image-11.png)
+
+- If we edit the JESSION ID, it will tell us to login again.
+- The login page has a JSESSIONID value. Behind the scenes, the Spring Security framework, it is going to remember this JSESSIONID value belongs to an unauthenticated user. That's why as a next step, when we try to log in into the application and once the authentication is successful, we are going to get a new JSESSIONID value. For the same, I'm going to enter the username as HarshPandya followed by password@1234 as a password.
+- As soon as I click sign in, you'll be able to see this value is going to be changed. So let me click on the sign in button and you can see, we got a new JSESSIONID value.
+- Spring Security will map to a successful authenticated session where the authentication details, they're going to be stored and they'll be reloaded and reused every time when I try to access a protected API.
+- Spring Security framework, also doing a smart job of not invoking the actual authentication every time. If you try to invoke the actual authentication for each and every request, then definitely it is going to have some performance impact. But by using this JSESSIONID cookie, the Spring Security framework is doing a smart job here.
+
 ## Spring Security Internal flow
 
 ![alt text](image-7.png)
@@ -182,3 +196,174 @@ IsAuthenticated=false
 ### Step 10
 
 - At last, in the step 10, we are going to send a response to the client application.
+
+## Spring Security Internal Flow Implementatinon
+
+![alt text](image-8.png)
+
+![alt text](image-9.png)
+
+- Lets create a bank based web application, where there would be tab urls for **Accounts, Balance, Cards, Contact, Loans and Notice**.
+- Lets create different controller for these.
+
+![alt text](image-12.png)
+
+- By default all the MVC paths are secured by spring boot, it is not always necessary to secure all the paths e.g for contact & notice pages you don't require any security. How to do this? - first let us understand how all MVC path are secured? so under **SpringBootWebSecurityConfiguration** there is a static block which has a method **defaultSecurityFilterChain**
+
+![alt text](image-13.png)
+
+- `@Configuration` annotation indicates that the class defines beans, which are methods annotated with @Bean. These beans will be managed by Spring's application context.
+- `proxyBeanMethods = false` attribute is used to optimize performance by not creating proxy beans for method calls within the same class.
+	- When set to **true** Spring creates proxies for bean methods. This ensures that calling a `@Bean` method multiple times returns the same bean instance, enabling singleton behavior and dependency injection between beans within the configuration class.
+	- When set to **false**, Spring does not create proxies. This means that calling a `@Bean` method multiple times may create multiple instances of the bean.
+
+>[!NOTE]
+> - Prototype scope of bean is not same as **`proxyBeanMethods = false`**.
+> - When proxyBeanMethods is set to false, calling a method within the configuration class does not reuse the bean managed by Spring. Instead, it acts like a normal method call in Java, creating a new instance each time (like new ClassName()), not managed by Spring.
+> - Whereas in prototype the scope of the bean is still managed by Spring
+
+- `@ConditionalOnDefaultWebSecurity` annotation means that this configuration will only be applied if the default Spring Security configuration is in effect (i.e., no custom security configurations have been provided).
+- `@Bean` method is marked as a bean, meaning its return value will be registered as a bean in the Spring application context.
+- `@Order(SecurityProperties.BASIC_AUTH_ORDER)` specifies the order in which this security filter chain will be applied. The order is defined by **SecurityProperties.BASIC_AUTH_ORDER**, which is a predefined constant in Spring Security.
+- `SecurityFilterChain` bean defines the security filter chain, which is a series of filters applied to incoming requests.
+- `http.authorizeHttpRequests((requests) -> requests.anyRequest().authenticated());` accepts all the http request and provides authentication.
+- `http.authorizeHttpRequests` configures authorization for HTTP requests. The code specifies that any request must be authenticated (i.e., users must log in).
+- `http.formLogin(withDefaults())` enables form-based login with default settings. When users try to access a protected resource, they will be redirected to a login page.
+- `http.httpBasic(withDefaults())` enables HTTP Basic authentication with default settings. This is a mechanism that allows a user to authenticate using a username and password sent in the HTTP headers.
+- `http.build()` finalizes the configuration and builds the SecurityFilterChain object that will be used to secure the application.
+- Now if we want to customize the authentication on MVC paths, we need to customize the **defaultSecurityFilterChain** method.
+- So lets create a **ProjectSecurityClass** and add this method.
+
+```
+package com.springboot.security.configuration;
+
+import static org.springframework.security.config.Customizer.withDefaults;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+public class ProjectSecurityConfiguration {
+
+	@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http.authorizeHttpRequests((requests) -> requests.anyRequest().authenticated());
+		http.formLogin(withDefaults());
+		http.httpBasic(withDefaults());
+		return http.build();
+	}
+}
+```
+
+- Instead of `authenticated()` method lets add `permitAll()` and check what happens
+
+```
+	@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http.authorizeHttpRequests((requests) -> requests.anyRequest().permitAll());
+		http.formLogin(withDefaults());
+		http.httpBasic(withDefaults());
+		return http.build();
+	}
+```
+
+![alt text](image-14.png)
+
+- `permitAll()` allows end user to access all the pages without asking any logging credentials.
+
+- What happens when we use `denyAll()` ?
+
+```
+	@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http.authorizeHttpRequests((requests) -> requests.anyRequest().denyAll());
+		http.formLogin(withDefaults());
+		http.httpBasic(withDefaults());
+		return http.build();
+	}
+```
+
+![alt text](image-15.png)
+
+- `denyAll()` allows end user to perfom login but denies end user to access the page even though the user is authorized to access it.
+- So now lets secure pages only of `/accounts`, `/balance`, `/cards` & `/loans` and provide permit all to `/contact` & `/notice`
+
+```
+	@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice").permitAll()
+				);
+		http.formLogin(withDefaults());
+		http.httpBasic(withDefaults());
+		return http.build();
+	}
+```
+
+<video controls src="20240817-1845-41.6415042.mp4" title="Title"></video>
+
+- Our require MVC path got secured , but if you see when we try to login on `/welcome` path, we got 403 error which unauthorized. So basically if we don't specify any path under `authenticated` or `permitAll` it will go under `denyAll`.
+- If you see the code `http.formLogin(withDefaults());` due to this the `/login` page is invoked, what if we disable it?
+
+```
+	@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice").permitAll()
+				);
+		http.formLogin(i->i.disable());
+		http.httpBasic(withDefaults());
+		return http.build();
+	}
+```
+
+![alt text](image-16.png)
+
+- If you disable form login, you will need to provide another mechanism for authentication, such as HTTP Basic authentication, OAuth2, JWT, etc., or your custom login process. Currently if you see `httpBasic` authentication is available , due to which we got this page. This is a simple authentication scheme built into the HTTP protocol. When you enable it in Spring Security, the browser will show a basic authentication dialog box whenever you try to access a protected resource.
+
+>[!NOTE]
+> - When we disable form login, **UsernamePasswordAuthenticationFilter** filter class is not invoked instead **BasicAuthenticationFilter** filter class is invoked. Add a debug point in **doFilterInternal()** method of **BasicAuthenticationFilter** class.
+
+- If we disable `httpBasic` (`) authentication filter then the Spring security will give 403 error.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
