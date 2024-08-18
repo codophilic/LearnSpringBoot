@@ -784,6 +784,88 @@ public class ProjectSecurityConfiguration {
 
 ![alt text](image-38.png)
 
+- In several applications, it is not necessary that the end user must have user name, they must also have an option to register or login in using email id.
+- Lets create a customer table which will have email id, password and role. Here we will use **Hibernate and JPA**.
+- First lets a entity of Customer.
+
+```
+package com.springboot.security.entities;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "customer_table")
+@Getter
+@Setter
+public class Customer {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private int id;
+	
+	@Column(name = "customer_emailid", unique = true)
+	private String emailid;
+	
+	@Column(name = "customer_password")
+	private String pwd;
+	
+	@Column(name = "customer_active")
+	private String isActive;
+
+	@Column(name = "customer_role")
+	private String role;
+}
+```
+
+- What are this `@Getters` and `@Setters` ? how here we have downloaded a lombok dependencies.
+
+```
+	<dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+```
+
+- Lombok is a Java library that helps reduce boilerplate code in Java applications by providing annotations that automatically generate common methods like getters, setters, constructors, and more. Instead of writing repetitive code manually, you can use Lombok annotations to have these methods generated at compile time.
+- Lombok can generate constructors using annotations like `@NoArgsConstructor`, `@AllArgsConstructor`, and `@RequiredArgsConstructor`.
+- When using Lombok's @Getter and @Setter annotations in your Customer class, the getters and setters are generated at compile time. However, some IDEs, like IntelliJ IDEA or Eclipse, might not always fully recognize the Lombok-generated methods, which can lead to issues.
+- When we use derived query for the customer variables, since we have used `@Getters` and `@Setters` , the suggestion does not appears to generate derived query as the IDE does not recognizes the lombok annotations.
+
+<details>
+
+<summary> Steps to resolve </summary>
+
+- Download the jar from [lombok website](https://projectlombok.org/download). A lombok jar will be downloaded.
+- Open the terminal and run `java -jar lombok.jar`
+- An application will be appear asking for exe path of all your IDEs. 
+- Click on **Specify Location** (if your IDE is not automatically detected) and provided the complete exe path
+
+![alt text](image-40.png)
+
+- Click on **Install/Update**. 
+- Restart your IDE and it will work. The getters setters method will be shown along with derived query method for JpaRepository will also appear.
+- Ensure your **Annotation Processor** is enabled , Go to Project -> Properties -> Java Compiler -> Annotation Processing and ensure it is enabled.
+
+</details>
+
+
+- Now lets create a DAO interface which implements JpaRepository.
+
+
+```
+package com.springboot.security.dao;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.springboot.security.entities.Customer;
+
+public interface CustomerDao extends JpaRepository<Customer, Integer>{
+	
+}
+```
 
 
 
