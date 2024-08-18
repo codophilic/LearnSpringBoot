@@ -5,7 +5,7 @@
 
 ![alt text](image-5.png)
 
-![alt text](image-6.png)
+
 
 ## SpringBoot Security vs Spring Security
 
@@ -219,7 +219,7 @@ FilterChainProxy - Invoking HeaderWriterFilter (4/16)
 FilterChainProxy - Invoking CorsFilter (5/16)
 ```
 
-- If you see there are over here 16 filters applied when we hit **/welcome** page. Lets focus in **AuthorizationFilter** class. Under that there is a method **doFilter()** which checks if the request is authorize or not, if not then it throws an exception as 'Access Denied' . This results to generate a login page using **DefaultLogoutPageGeneratingFilter**.
+- If you see there are over 16 filters applied when we hit **/welcome** page. Lets focus in **AuthorizationFilter** class. Under that there is a method **doFilter()** which checks if the request is authorize or not, if not then it throws an exception as 'Access Denied' . This results to generate a login page using **DefaultLogoutPageGeneratingFilter**.
 - Here **UsernamePasswordAuthenticationFilter** filter is invoked for authentication which extends an abstract class **AbstractAuthenticationProcessingFilter** in the below flow. 
 
 ![alt text](image-8.png)
@@ -612,9 +612,23 @@ It provides an API that developers can use to check whether a specific password 
 - By separating the retrieval (UserDetailsService) and management (UserDetailsManager) concerns, Spring Security allows for more modular and flexible designs. You can implement just UserDetailsService if you only need to read user data, or UserDetailsManager if you need full management capabilities.
 - There are many applications like third-party applications that integrate with Google Workspace for authentication use OAuth or OpenID Connect to retrieve user details. These applications rely on Google’s identity service to authenticate users but do not manage user accounts directly.
 
+
 ![alt text](image-32.png)
 
+>![NOTE]
+> - You won't see directly LDAP implementation for UserDetailsManager , you need to include additional dependencies for it.
 
+- The UserDetails interface is implemented by User along with additional methods.
+
+![alt text](image-6.png)
+
+
+- Uptil now we have seen 
+	1. User Details in getting logged in the console when we added the spring security dependencies
+	2. User Details in property file
+	3. User Details in spring memory
+
+- Now lets use database to store user details
 
 
 
