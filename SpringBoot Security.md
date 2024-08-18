@@ -197,7 +197,30 @@ IsAuthenticated=false
 
 - At last, in the step 10, we are going to send a response to the client application.
 
-## Spring Security Internal Flow Implementatinon
+## Spring Security Internal Flow Implementation
+
+- Before going into the implementation of Spring Security, enabled the logging at trace level by adding below line in **application.properties**
+
+```
+logging.level.org.springframework.security=TRACE
+```
+
+- This will only trace security related part in spring and log that into the console.
+- Lets run the application and see the console.
+
+```
+highlighting only selective trace levels..
+FilterChainProxy - Trying to match request against DefaultSecurityFilterChain [RequestMatcher=any request, Filters=[org.springframework.security.web.session.DisableEncodeUrlFilter@14832ea7, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@250bef5f, org.springframework.security.web.context.SecurityContextHolderFilter@434c346d, org.springframework.security.web.header.HeaderWriterFilter@22f05888, org.springframework.web.filter.CorsFilter@3fb5a66a, org.springframework.security.web.csrf.CsrfFilter@2e096e85, org.springframework.security.web.authentication.logout.LogoutFilter@36a979ea, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter@76e563da, org.springframework.security.web.authentication.ui.DefaultLoginPageGeneratingFilter@62ebfbe8, org.springframework.security.web.authentication.ui.DefaultLogoutPageGeneratingFilter@38af0f76, org.springframework.security.web.authentication.www.BasicAuthenticationFilter@1e4b5b3c, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@44f6d66b, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@21c48b33, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@35d4f8d2, org.springframework.security.web.access.ExceptionTranslationFilter@f16cf1, org.springframework.security.web.access.intercept.AuthorizationFilter@5eae6b99]] (1/1)
+FilterChainProxy - Securing GET /login
+FilterChainProxy - Invoking DisableEncodeUrlFilter (1/16)
+FilterChainProxy - Invoking WebAsyncManagerIntegrationFilter (2/16)
+FilterChainProxy - Invoking SecurityContextHolderFilter (3/16)
+FilterChainProxy - Invoking HeaderWriterFilter (4/16)
+FilterChainProxy - Invoking CorsFilter (5/16)
+```
+
+- If you see there are over here 16 filters applied when we hit **/welcome** page. Lets focus in **AuthorizationFilter** class. Under that there is a method **doFilter()** which checks if the request is authorize or not, if not then it throws an exception as 'Access Denied' . This results to generate a login page using **DefaultLogoutPageGeneratingFilter**.
+- Here **UsernamePasswordAuthenticationFilter** filter is invoked for authentication which extends an abstract class **AbstractAuthenticationProcessingFilter** in the below flow. 
 
 ![alt text](image-8.png)
 
@@ -328,16 +351,268 @@ public class ProjectSecurityConfiguration {
 >[!NOTE]
 > - When we disable form login, **UsernamePasswordAuthenticationFilter** filter class is not invoked instead **BasicAuthenticationFilter** filter class is invoked. Add a debug point in **doFilterInternal()** method of **BasicAuthenticationFilter** class.
 
-- If we disable `httpBasic` (`) authentication filter then the Spring security will give 403 error.
+- If we disable `httpBasic()` authentication filter then the Spring security will give 403 error.
+- Lets try to hit the bank application urls using postman.
+
+![alt text](image-17.png)
+
+- To access and protected page, we need to provide credentials while sending the request via postman. So in the **Auth** you need to select basic authentication and entered user name and password.
 
 
+<video controls src="20240818-0609-37.0874476.mp4" title="Title"></video>
+
+-  If you see in the headers value are in base64 encoded format. Below when we decode it we get **user_name:password**. You can also see JSESSION ID present in the headers.
+
+![alt text](image-18.png)
+
+- Currently we are authenticate using a single user details? what if there are multiple users ? so there are two ways, either you have a database where you could store all the user details or if spring has some memory which can keep this user details or **InMemoryUserDetailsManager**
+
+>[!WARNING]
+> - Incase of development phase it is recommended to use **InMemoryUserDetailsManager** and not in production.
+
+- In the spring security internal flow , we have saw the there is an **UserDetailsService** .
+
+![alt text](image-19.png)
+
+- **UserDetailsService** is an interface which is extended by **UserDetailsManager**. The **UserDetailsManager** is implemented by **InMemoryUserDetailsManager** as well as by **JdbcUserDetailsManager**.
+
+![alt text](image-20.png)
+
+- So to add multiple user we need to create a bean of **UserDetailsService** under our ProjectSecurityConfiguration config class.
+
+```
+	@Bean
+	public UserDetailsService userDetailsService() {
+		
+	}
+```
+
+- Okay but how do we create users? if we open the UserDetailsService interface we will be able to see **UserDetails** return type.
+
+![alt text](image-21.png)
+
+- So **UserDetails** is an interface which is implemented by **User** class , the **User** class provide some instance variables like username and password.
+
+![alt text](image-22.png)
+
+- So lets create users using User class.
+
+```
+	@Bean
+	public UserDetailsService userDetailsService() {
+		UserDetails u1=User.withUsername("user1").password("password1").authorities("read").build();
+		UserDetails u2=User.withUsername("user2").password("password2").authorities("admin").build();
+		return new InMemoryUserDetailsManager(u1,u2);
+	}
+```
+
+- **InMemoryUserDetailsManager** is an implementation of **UserDetailsManager** which extends **UserDetailsService**, so inside **InMemoryUserDetailsManager** there is a parameterized constructor which accepts any number of arguments. This will create user and uses map collections to put those new users.
+- **InMemoryUserDetailsManager** in Spring Security is a simple implementation of the **UserDetailsService** interface that stores user details in memory. It’s often used for creating a basic set of users for authentication purposes during development.
+
+```
+In InMemoryUserDetailsManager class,
+
+	private final Map<String, MutableUserDetails> users = new HashMap<>();
+
+	@Override
+	public void createUser(UserDetails user) {
+		Assert.isTrue(!userExists(user.getUsername()), "user should not exist");
+		this.users.put(user.getUsername().toLowerCase(), new MutableUser(user));
+	}
+
+	public InMemoryUserDetailsManager(UserDetails... users) {
+		for (UserDetails user : users) {
+			createUser(user);
+		}
+	}
+```
+
+- Lets run the application and try to access the page with new users created. Before running comment out the user name which we created in application.properties
+
+```
+#spring.security.user.name=${SPRINGBOOT_USERNAME:defaultUserName}
+#spring.security.user.password=${SPRINGBOOT_PASSWORD:password@1234}
+```
+
+- When we try to login , on the console we can observer it is showing **Access Denied**
+
+![alt text](image-24.png)
+
+- I am entering a wrong password? nope, even after entering write password we get an access denied error , this is because the password we entered are converted into encoded format and during the build time of new user the password is still is in plain text format. So due to mismatch between encoded password from the frontend and plain text password during the build of new user, we get access denied error. Below is the image when the user1 is build and the password is in plain text format.
+
+![alt text](image-25.png)
+
+- When you enter a password on a login page, Spring Security automatically encodes the entered password using the configured `PasswordEncoder`. If you're storing passwords in plain text within InMemoryUserDetailsManager, you need to tell Spring Security not to encode or check the encoding of these passwords. This is where `{noop}` comes into play. `{noop}` is a prefix used to indicate that the password is stored in plain text and should not be encoded.
+
+- So to tell spring that our password should be compare in plain text format we need to use `{noop}`. Update code
+
+```
+	@Bean
+	public UserDetailsService userDetailsService() {
+		UserDetails u1=User.withUsername("user1").password("{noop}password1").authorities("read").build();
+		UserDetails u2=User.withUsername("user2").password("{noop}password2").authorities("admin").build();
+		return new InMemoryUserDetailsManager(u1,u2);
+	}
+```
+
+- Using new user details we were able to login
+
+![alt text](image-23.png)
+
+- Using `{noop}` is not a good choice . It should be always in hashed or encrypted format. So spring security provides some default hashing and encrypted method under interface **PasswordEncoder**
+
+![alt text](image-26.png)
+
+- The interface **PasswordEncoder** is implemented by multiple class , lets checkout **PasswordEncoderFactories**
+
+![alt text](image-27.png)
+
+- There are multiple encoding format which you can prefer but most of them are deprecated. If you see the , the default password encryption provided by Spring security is **Bcrypty**.
+- Lets implement this in our ProjectSecurityConfiguration class.
+
+```
+package com.springboot.security.configuration;
+
+import static org.springframework.security.config.Customizer.withDefaults;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+public class ProjectSecurityConfiguration {
+
+	/**
+	 * Customize Spring Securities
+	 * - permitAll() -> Allows end user to access all the pages without asking any logging credentials
+	 * - denyAll() -> Allows end user to perfom login but denies end user to access the page even though the user is authorized to access it.
+	 */
+	@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice").permitAll()
+				);
+		http.formLogin(withDefaults());
+		//http.formLogin(i->i.disable());
+		http.httpBasic(withDefaults());
+		//http.httpBasic(i->i.disable());
+		return http.build();
+	}
+	
+	@Bean
+	public UserDetailsService userDetailsService() {
+		UserDetails u1=User.withUsername("user1").password("password1").authorities("read").build();
+		UserDetails u2=User.withUsername("user2").password("password2").authorities("admin").build();
+		return new InMemoryUserDetailsManager(u1,u2);
+	}
+	
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+	}
+}
+```
+
+- If you see we have removed the prefix `{noop}` the default PasswordEncoder will be used here is **Bcrypt**. Once the password is hashed it cannot be converted into original password again and the comparision of the password entered from the login screen and in memory will be based on hash comparision.
+
+>[!IMPORTANT]
+> - Another way to write return Bcrypt password encoder is **`return new BCryptPasswordEncoder()`**.
+> - It is always recommended that to use **`PasswordEncoderFactories.createDelegatingPasswordEncoder()`** because todays Bcrypt encoding is suggested by spring security, but in future if any more powerful encoding algorithm is created it might be the default encoding recommendation by spring security.
 
 
+- Now since we are using Bcrypt as our password encoder, we need to convert our `password1` and `password2` into Bcrypt format and store it in the **UserDetailsService** method. You can convert the pass refering [this](https://bcrypt-generator.com/) website.
+- Updating the UserDetailsService code.
 
+```
+	@Bean
+	public UserDetailsService userDetailsService() {
+		UserDetails u1=User.withUsername("user1").password("{bcrypt}$2a$12$y/1h97NMjduYYwnbddNy0eyT0wXax.x9QTsfzor5HA4xzrIVM9Ss.").authorities("read").build();
+		UserDetails u2=User.withUsername("user2").password("{bcrypt}$2a$12$u6EKvxZR6kcLeZh4pIS9ue2FrKEsqyz7v1FQaakCuU4PLiA3KaIXG").authorities("admin").build();
+		return new InMemoryUserDetailsManager(u1,u2);
+	}
+```
 
+- Here we mentioned prefix `{bcrypt}` saying spring to treat out password in bcrypt format. Post running we will be able to logged in into our application.
 
+![alt text](image-28.png)
 
+- We can have encoding format vary based on different user like below.
 
+```
+	@Bean
+	public UserDetailsService userDetailsService() {
+		UserDetails u1=User.withUsername("user1").password("{noop}password1").authorities("read").build();
+		UserDetails u2=User.withUsername("user2").password("{bcrypt}$2a$12$u6EKvxZR6kcLeZh4pIS9ue2FrKEsqyz7v1FQaakCuU4PLiA3KaIXG").authorities("admin").build();
+		return new InMemoryUserDetailsManager(u1,u2);
+	}
+```
+
+- What if your password gets compromised? using simple password can lead hackers to break it easily even after using strong password encoders. Spring security prevents users to login in using simple password. Lets check now.
+- Under ProjectSecurityConfiguration we need to add a new bean 
+
+```
+	@Bean
+	public CompromisedPasswordChecker compromisedPasswordChecker() {
+		return new HaveIBeenPwnedRestApiPasswordChecker();
+	}
+```
+
+- Lets dive into **CompromisedPasswordChecker**, so **CompromisedPasswordChecker** is an interface which is implemented by **HaveIBeenPwnedRestApiPasswordChecker()**. Below is the code for **HaveIBeenPwnedRestApiPasswordChecker()**
+
+![alt text](image-29.png)
+
+- If you see it uses an api url `https://api.pwnedpasswords.com/range/` .  [This](https://haveibeenpwned.com/API/v3) is an open source api which helps to check if a password could be compromise or not. So using this api, to check whether a password could be compromise or not , spring security provides **HaveIBeenPwnedRestApiPasswordChecker** class.
+
+- Lets run the application and try to use our existing user1 password which is `password1`.
+
+![alt text](image-30.png)
+
+- So lets change the password for user1 to `thisCouldBe@1234` and user2 to `thisCoundNotBe@1234` (use the bcrypt generated password for it) and re run the application.
+
+```
+	@Bean
+	public UserDetailsService userDetailsService() {
+		UserDetails u1=User.withUsername("user1").password("{noop}thisCouldBe@1234").authorities("read").build();
+		UserDetails u2=User.withUsername("user2").password("{bcrypt}$2a$12$ThHcCo7ZvUJ4QjCsaoy87e74mwzP5fhzWA4MxDwaNOU0bxqoOv.Aa").authorities("admin").build();
+		return new InMemoryUserDetailsManager(u1,u2);
+	}
+```
+
+![alt text](image-31.png)
+
+- The HaveIBeenPwnedRestApiPasswordChecker is a component that integrates with the "Have I Been Pwned" (HIBP) API to check if a password has been exposed in known data breaches.
+
+<details>
+<summary> What is "Have I Been Pwned"? </summary>
+
+```
+HIBP is a service created by security expert Troy Hunt that allows users to check if their personal information (like email addresses or passwords) has been compromised in data breaches.
+It provides an API that developers can use to check whether a specific password has appeared in any known breaches.
+```
+</details>
+
+>[!NOTE]
+> - This security measure is been introduce for spring security 6.3+
+
+### Why UserDetailsService is required when we have UserDetailsManager?
+
+- **UserDetailsService** is an interface which is implemented by **UserDetailsManager**. 
+- The UserDetailsService interface is designed specifically for retrieving user-related data. It has a single method, loadUserByUsername(String username), which is responsible for loading user details (like username, password, roles) by the username. The return type is **UserDetails**.
+- UserDetailsService isolates the responsibility of loading user details, making it easier to customize or implement different retrieval mechanisms (e.g., from a database, LDAP, or in-memory).
+- UserDetailsManager extends UserDetailsService and adds methods for managing user details, such as creating, updating, or deleting users. It includes methods like createUser(UserDetails user), updateUser(UserDetails user), deleteUser(String username), and others.
+- While UserDetailsService is focused on retrieval, UserDetailsManager adds the ability to manage users, which is a broader responsibility. This includes CRUD (Create, Read, Update, Delete) operations on user data.
+- By separating the retrieval (UserDetailsService) and management (UserDetailsManager) concerns, Spring Security allows for more modular and flexible designs. You can implement just UserDetailsService if you only need to read user data, or UserDetailsManager if you need full management capabilities.
+- There are many applications like third-party applications that integrate with Google Workspace for authentication use OAuth or OpenID Connect to retrieve user details. These applications rely on Google’s identity service to authenticate users but do not manage user accounts directly.
+
+![alt text](image-32.png)
 
 
 
