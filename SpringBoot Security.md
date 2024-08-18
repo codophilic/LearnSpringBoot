@@ -365,6 +365,10 @@ public class ProjectSecurityConfiguration {
 
 ![alt text](image-18.png)
 
+- Lets say we hit the url contact with **POST** http method, what will happen? `/contact` has `permitAll()` so it may pass the security right? NO, here spring security will still try to perform authentication because of CSRF protection. In CSRF attack, attackers inject malicious scripts which in terms of API they **POST** ( create a new resource ) these scripts. So in spring by default for except for **GET** all the http method will be authenticated.
+
+![alt text](image-39.png)
+
 - Currently we are authenticate using a single user details? what if there are multiple users ? so there are two ways, either you have a database where you could store all the user details or if spring has some memory which can keep this user details or **InMemoryUserDetailsManager**
 
 >[!WARNING]
@@ -628,7 +632,158 @@ It provides an API that developers can use to check whether a specific password 
 	2. User Details in property file
 	3. User Details in spring memory
 
-- Now lets use database to store user details
+- Now lets use database to store user details. In order to store the **UserDetailsManager** in database we have **JdbcUserDetailsManager**.
+- So now first lets create a schema **springbootsecurityjdbc** in our MySQL database.
+
+![alt text](image-33.png)
+
+- If we see **JdbcUserDetailsManager** it implements **JdbcDaoImpl** and inside the **JdbcDaoImpl** we can see variable *DEFAULT_USER_SCHEMA_DDL_LOCATION* which has path where the DDL for creation of tables related to UserDetailsManager scripts are present
+
+![alt text](image-34.png)
+
+![alt text](image-35.png)
+
+![alt text](image-36.png)
+
+- Lets run the script in our MySQL database and create the tables for it.
+
+```
+MySQL scripts -> replace varchar_ignorecase to varchar
+create table users(username varchar(50) not null primary key,password varchar(500) not null,enabled boolean not null);
+create table authorities (username varchar(50) not null,authority varchar(50) not null,constraint fk_authorities_users foreign key(username) references users(username));
+create unique index ix_auth_username on authorities (username,authority);
+```
+
+![alt text](image-37.png)
+
+- Lets create users two additional users, user3 and user4
+
+```
+INSERT INTO `users` VALUES ('user3', '{noop}u$er3P@ss123', '1');
+INSERT INTO `authorities` VALUES ('user3', 'read');
+
+INSERT INTO `users` VALUES ('user4', '{bcrypt}$2a$12$u9OWWnVS0oAil3235w60eejI93UKXoz7vRm4Rpj30KIdOZKRkICxi', '1');
+INSERT INTO `authorities` VALUES ('user4', 'admin');
+```
+
+<video controls src="20240818-1609-07.1099655.mp4" title="Title"></video>
+
+- If you see **username** of username table is a foreign key of authorities table.
+
+- Lets add the require dependencies
+
+```
+<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+```
+
+- Lets add the database configuration in the application.properties
+
+```
+spring.datasource.url=jdbc:mysql://localhost:3306/springbootsecurityjdbc
+spring.datasource.username=root
+spring.datasource.password=Meetpandya40@
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.database-platform = org.hibernate.dialect.MySQL8Dialect
+spring.jpa.generate-ddl=true
+spring.jpa.hibernate.ddl-auto = create
+spring.jpa.show-sql=true
+```
+
+- Now we need to create a bean of **UserDetailsService** because this interface is implemented by **UserDetailsManager** which is implemented by **JdbcUserDetailsManager**.
+
+```
+package com.springboot.security.configuration;
+
+import static org.springframework.security.config.Customizer.withDefaults;
+
+import javax.sql.DataSource;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.password.CompromisedPasswordChecker;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
+
+@Configuration
+public class ProjectSecurityConfiguration {
+
+	/**
+	 * Customize Spring Securities
+	 * - permitAll() -> Allows end user to access all the pages without asking any logging credentials
+	 * - denyAll() -> Allows end user to perfom login but denies end user to access the page even though the user is authorized to access it.
+	 */
+	@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice").permitAll()
+				);
+		http.formLogin(withDefaults());
+		//http.formLogin(i->i.disable());
+		http.httpBasic(withDefaults());
+		//http.httpBasic(i->i.disable());
+		return http.build();
+	}
+	
+//	@Bean
+//	public UserDetailsService userDetailsService() {
+//		UserDetails u1=User.withUsername("user1").password("{noop}thisCouldBe@1234").authorities("read").build();
+//		UserDetails u2=User.withUsername("user2").password("{bcrypt}$2a$12$ThHcCo7ZvUJ4QjCsaoy87e74mwzP5fhzWA4MxDwaNOU0bxqoOv.Aa").authorities("admin").build();
+//		return new InMemoryUserDetailsManager(u1,u2);
+//	}
+	
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		
+		//return new BCryptPasswordEncoder();
+		return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+	}
+	
+	@Bean
+	public CompromisedPasswordChecker compromisedPasswordChecker() {
+		return new HaveIBeenPwnedRestApiPasswordChecker();
+	}
+	
+	@Bean
+	public UserDetailsService userDetailsService(DataSource dataSource) {
+		return new JdbcUserDetailsManager(dataSource);
+	}
+}
+```
+
+>[!NOTE]
+> - We need to comment out the previous **UserDetailsService** method which was used for demonstration of **InMemoryUserDetailsManager** because it would lead to configuration problems 
+> ``` 
+> org.springframework.beans.factory.parsing.BeanDefinitionParsingException: Configuration problem: @Configuration class 'ProjectSecurityConfiguration' contains overloaded @Bean methods with name 'userDetailsService'. Use unique method names for separate bean definitions (with individual conditions etc) or switch '@Configuration.enforceUniqueMethods' to 'false'.
+> ```
+> - By default spring configuration uses **`enforceUniqueMethods = true`**, so if we need to define multiple bean returning same type we need to do **`enforceUniqueMethods = false`**.
+> - If multiple **`UserDetailsService`** beans are present, Spring Security detects a **`DataSource`** and gives precedence to **JdbcUserDetailsManager**. This behavior is influenced by how Spring Security's auto-configuration mechanisms work when it detects a DataSource bean.
+> - If you want both InMemoryUserDetailsManager as well as JdbcUserDetailsManager you can create a customize service layer and add both of them or follow [this](https://stackoverflow.com/questions/57764078/how-to-configure-both-in-memory-authentication-and-jdbc-authentication-in-spring).
+
+- Post running the spring boot application, we were able to login with the user defined in the database.
+
+![alt text](image-38.png)
+
 
 
 
