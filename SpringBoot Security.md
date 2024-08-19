@@ -465,6 +465,8 @@ In InMemoryUserDetailsManager class,
 
 - Using `{noop}` is not a good choice . It should be always in hashed or encrypted format. So spring security provides some default hashing and encrypted method under interface **PasswordEncoder**
 
+![alt text](image-47.png)
+
 ![alt text](image-26.png)
 
 - The interface **PasswordEncoder** is implemented by multiple class , lets checkout **PasswordEncoderFactories**
@@ -1206,13 +1208,46 @@ Disabling csrf
 - So this is how you implement a customize **UserDetailsService** , here we typically used to fetch the customer based on their mail id.
 
 
+## Encoding VS Encryption VS Hashing
+
+![alt text](image-48.png)
+
+![alt text](image-49.png)
+
+| **Concept**  | **Purpose**                                           | **Reversible** | **Security**                             | **When to Use**                                                   |
+|--------------|-------------------------------------------------------|----------------|------------------------------------------|-------------------------------------------------------------------|
+| **Encoding** | Transform data into a different format for compatibility, transmission, or storage. | Yes            | Not secure; just changes format          | When data needs to be in a compatible format (e.g., Base64 for URLs). |
+| **Decoding** | Convert encoded data back to its original format.      | Yes            | Not secure; just part of the conversion process | When you need to interpret or process data that was encoded.         |
+| **Encryption** | Protect data by making it unreadable without a key.   | Yes (with key) | Designed for security                    | When you need to keep data confidential (e.g., encrypting sensitive information). |
+| **Hashing**  | Generate a unique, fixed-size string for data integrity or secure storage. | No             | Used for security, but not reversible    | When verifying data integrity or securely storing passwords.         |
 
 
+![alt text](image-50.png)
 
+![alt text](image-51.png)
 
+![alt text](image-52.png)
 
+![alt text](image-53.png)
 
+![alt text](image-54.png)
 
+![alt text](image-55.png)
+
+>[!TIP]
+> - For storing password in your database always recommended to do hashing. For login retrieval purpose hash the input and compare the input with the database for the particular user. 
+
+## PasswordEncoder and Hashing
+
+- When a user registers, their plain-text password is passed to the **BCryptPasswordEncoder**. The encoder adds a random salt to the password to protect against rainbow table attacks. The salted password is then hashed using the BCrypt algorithm, which involves multiple rounds of computation to make the hash computationally expensive to crack.
+- The resulting hash, along with the salt, is stored in the database instead of the plain-text password.
+- When a user logs in, they provide their plain-text password. The **BCryptPasswordEncoder** retrieves the stored hash and salt for that user.
+- It applies the same hashing algorithm to the provided password using the stored salt. The generated hash is compared to the stored hash. If they match, the authentication is successful.
+
+![alt text](image-56.png)
+
+>[!NOTE]
+> - As per Spring Security 6+ the recommended hash function is **BCrypt**. If in future if this BcryptPasswordEncoder has becomes weak, then obviously Spring Security team is going to move on to the more advanced password encoder and they're going to make that as a default one.
 
 
 
