@@ -794,11 +794,13 @@ package com.springboot.security.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Table(name = "customer_table")
 @Getter
 @Setter
+@ToString
 public class Customer {
 
 	@Id
@@ -813,13 +815,14 @@ public class Customer {
 	
 	@Column(name = "customer_active")
 	private String isActive;
-
+	
 	@Column(name = "customer_role")
 	private String role;
+	
 }
 ```
 
-- What are this `@Getters` and `@Setters` ? how here we have downloaded a lombok dependencies.
+- What are this `@Getters`, `@Setters` and `@ToString` ? how here we have downloaded a lombok dependencies.
 
 ```
 	<dependency>
@@ -829,9 +832,91 @@ public class Customer {
     </dependency>
 ```
 
-- Lombok is a Java library that helps reduce boilerplate code in Java applications by providing annotations that automatically generate common methods like getters, setters, constructors, and more. Instead of writing repetitive code manually, you can use Lombok annotations to have these methods generated at compile time.
+- Lombok is a Java library that helps reduce boilerplate code in Java applications by providing annotations that automatically generate common methods like getters, setters, constructors, and more **during compile time**. Instead of writing repetitive code manually, you can use Lombok annotations to have these methods generated at compile time.
 - Lombok can generate constructors using annotations like `@NoArgsConstructor`, `@AllArgsConstructor`, and `@RequiredArgsConstructor`.
-- When using Lombok's @Getter and @Setter annotations in your Customer class, the getters and setters are generated at compile time. However, some IDEs, like IntelliJ IDEA or Eclipse, might not always fully recognize the Lombok-generated methods, which can lead to issues.
+
+<details>
+<summary> Lombok Constructors </summary>
+
+- Three Lombok annotations for generating constructors : `@NoArgsConstructor`, `@RequiredArgsConstructor`, and `@AllArgsConstructor`
+
+1. **`@NoArgsConstructor`**
+	- Generates a no-argument constructor for the class. This means a constructor with no parameters will be created. Any variables in the class are not initialized through this constructor; they'll have their default values (null for objects, 0 for int, etc.).
+	- Example
+
+```
+Code
+
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
+public class Person {
+    private String name;
+    private int age;
+}
+
+Compilation
+public Person() {
+    // No arguments, does nothing special
+}
+
+```
+
+2. **`@RequiredArgsConstructor`**
+	- Generates a constructor with parameters for all **final** fields and fields marked with **@NonNull**. This means it will generate a constructor that requires these fields to be provided when creating an instance.
+	- Example, name is required because it's marked with **@NonNull**, age is required because it's final, address is not included in the constructor, so it remains uninitialized or must be set separately.
+
+```
+Code 
+import lombok.RequiredArgsConstructor;
+import lombok.NonNull;
+
+@RequiredArgsConstructor
+public class Person {
+    @NonNull
+    private String name;
+    private final int age;
+    private String address;
+}
+
+Compilation
+public Person(String name, int age) {
+    this.name = name;
+    this.age = age;
+}
+```
+
+3. **`@AllArgsConstructor`**
+	- Generates a constructor with parameters for all fields in the class, regardless of whether they are **final**, **@NonNull**, or regular fields.
+	- Example, All variables (name, age, address) are included in the constructor.
+
+```
+Code
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
+public class Person {
+    private String name;
+    private int age;
+    private String address;
+}
+
+Compilation
+public Person(String name, int age, String address) {
+    this.name = name;
+    this.age = age;
+    this.address = address;
+}
+
+```
+
+- `@NoArgsConstructor` : Generates a constructor with no arguments. Useful for frameworks that need a no-arg constructor.
+- `@RequiredArgsConstructor` : Generates a constructor for final and @NonNull fields only. Ensures critical fields are initialized.
+- `@AllArgsConstructor` : Generates a constructor for all fields in the class, allowing full initialization of the object.
+
+</details>
+
+- When using Lombok's `@Getter` and `@Setter` annotations in your Customer class, the getters and setters are generated at compile time. However, some IDEs, like IntelliJ IDEA or Eclipse, might not always fully recognize the Lombok-generated methods, which can lead to issues.
 - When we use derived query for the customer variables, since we have used `@Getters` and `@Setters` , the suggestion does not appears to generate derived query as the IDE does not recognizes the lombok annotations.
 
 <details>
@@ -852,23 +937,273 @@ public class Customer {
 </details>
 
 
-- Now lets create a DAO interface which implements JpaRepository.
+- Now lets create a DAO interface which implements JpaRepository and create a derived query method to find customer details using email id.
 
 
 ```
 package com.springboot.security.dao;
 
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import com.springboot.security.entities.Customer;
 
+@Repository
 public interface CustomerDao extends JpaRepository<Customer, Integer>{
+	
+	Customer findByEmailid(String emailid);
+
+}
+```
+
+- Lets create our service layer where we will fetch and create user based on email id. Here we will be implementing our **customize UserDetailsService** . So to implement the **UserDetailsService** we need to use **implement** keyword to implement interface **UserDetailsService**.
+
+```
+package com.springboot.security.service;
+
+import java.util.List;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import com.springboot.security.dao.CustomerDao;
+import com.springboot.security.entities.Customer;
+
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class CustomerService implements UserDetailsService{
+	
+	private final CustomerDao customerDao;
+	private final PasswordEncoder passwordEncoder;
+	/**
+	 * @RequiredArgsConstructor creates a constructor with all the final instance variables
+	 * - This is the constructor generated by @RequiredArgsConstructor
+    	public CustomerService(CustomerDao customerDao, PasswordEncoder passwordEncoder) {
+	        this.customerDao = customerDao;
+	        this.passwordEncoder = passwordEncoder;
+    	}
+	 */
+	
+	/**
+	 * This method will be invoke when the end user is trying to access any protected page.
+	 * This is a our own customize UserDetailsService , so instead of using Jdbc or Inmemory 
+	 * now we have created our customize UserDetailsService.
+	 */
+	@Override
+	public UserDetails loadUserByUsername(String userEmailId) throws UsernameNotFoundException {
+		 Customer exists=customerDao.findByEmailid(userEmailId);
+		 if(exists==null) { // If user now found then throw exception
+			 throw new UsernameNotFoundException("Customer Email Id - "+userEmailId+" does not exists");
+		 }
+		 
+		 /**
+		  * The UserDetails is an interface which is implemented by User class. So we need to return
+		  * instance of User class.
+		  * User Class instance requires below thing
+		  * - user name
+		  * - password
+		  * - list of granted authorities or roles.
+		  */
+		 List<GrantedAuthority> grantedRoles = List.of(new SimpleGrantedAuthority(exists.getRole()));
+		 return new User(exists.getEmailid(),exists.getPwd(),grantedRoles);
+	}
+
+	public Customer saveCustomerDetails(Customer customer) {
+		
+		/**
+		 * Before registration we need to encode the password
+		 * So it can be done using PasswordEncoder
+		 */
+		String hashpwd=passwordEncoder.encode(customer.getPwd());
+		customer.setPwd(hashpwd);
+		return customerDao.save(customer);
+	}
 	
 }
 ```
 
+- Lets see each explaination one at a time.
+- `@RequiredArgsConstructor` generates a constructor for final fields only which incase here are **customerDao** and **passwordEncoder**. Checkout below the generated constructor during compilation.
+
+```
+    	public CustomerService(CustomerDao customerDao, PasswordEncoder passwordEncoder) {
+	        this.customerDao = customerDao;
+	        this.passwordEncoder = passwordEncoder;
+    	}
+```
+
+- If your class has only one constructor, Spring will automatically use it for dependency injection without needing `@Autowired`. If your class has multiple constructors, use `@Autowired` to specify which constructor Spring should use for dependency injection.
+- So this how depedencies of **CustomerDao** and **PasswordEncoder** are injected.
+- Since our **CustomerService** class implements the interface **UserDetailsService**, the logic for unimplemented method **loadUserByUsername** needs to be address in the CustomerService class. So here since to identify our customer we will be having email id as user name for UserDetailsService, to get the details we use derived query of JpaRepository. If customer does not exists we need to throw `throw new UsernameNotFoundException("Customer Email Id - "+userEmailId+" does not exists");`.
+- If the customer exists we need to send the data but in **UserDetails** format. Again **UserDetails** is an interface which is implemented by **User** so we need to send the data into **User** type. User Class instance requires user name, password and list of granted authorities or roles.
+
+![alt text](image-41.png)
+
+- Method **saveCustomerDetails** is to register new customer, now the new customer password needs to be encoded for which we require **PasswordEncoder**. 
+
+- Lets create a **CustomerController**.
+
+```
+package com.springboot.security.controller;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.springboot.security.entities.Customer;
+import com.springboot.security.service.CustomerService;
+
+import lombok.RequiredArgsConstructor;
 
 
+@RestController
+@RequiredArgsConstructor
+public class CustomerController {
+	
+	private final CustomerService customerService;
+
+	@PostMapping("/customer-registration")
+	public ResponseEntity<String> createCustomer(@RequestBody Customer customer){
+		try {
+			System.out.println(customer.toString());
+			Customer cust=customerService.saveCustomerDetails(customer);
+			return ResponseEntity.ok().body("Customer details created");
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return ResponseEntity.internalServerError().body("Issue occured while creating customer details");
+	}
+	
+}
+```
+
+- Since we have added a new MVC path `/customer-registration`, we need to tell spring that to not to authenticate it.
+
+```
+package com.springboot.security.configuration;
+
+import static org.springframework.security.config.Customizer.withDefaults;
+
+import javax.sql.DataSource;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.password.CompromisedPasswordChecker;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
+
+@Configuration(enforceUniqueMethods = false)
+public class ProjectSecurityConfiguration {
+
+	/**
+	 * Customize Spring Securities
+	 * - permitAll() -> Allows end user to access all the pages without asking any logging credentials
+	 * - denyAll() -> Allows end user to perfom login but denies end user to access the page even though the user is authorized to access it.
+	 */
+	@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http.csrf(i->i.disable())
+		.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}").permitAll()
+				);
+		http.formLogin(withDefaults());
+		//http.formLogin(i->i.disable());
+		http.httpBasic(withDefaults());
+		//http.httpBasic(i->i.disable());
+		return http.build();
+	}
+	
+	/**
+	 * - To use InMemoryUserDetailsManager , comment out JdbcUserDetailsManager implementation
+	 */
+	@Bean
+	public UserDetailsService userDetailsService() {
+		UserDetails u1=User.withUsername("user1").password("{noop}thisCouldBe@1234").authorities("read").build();
+		UserDetails u2=User.withUsername("user2").password("{bcrypt}$2a$12$ThHcCo7ZvUJ4QjCsaoy87e74mwzP5fhzWA4MxDwaNOU0bxqoOv.Aa").authorities("admin").build();
+		return new InMemoryUserDetailsManager(u1,u2);
+	}
+	
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		
+		//return new BCryptPasswordEncoder();
+		return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+	}
+	
+	@Bean
+	public CompromisedPasswordChecker compromisedPasswordChecker() {
+		return new HaveIBeenPwnedRestApiPasswordChecker();
+	}
+	
+	@Bean
+	public UserDetailsService userDetailsService(DataSource dataSource) {
+		return new JdbcUserDetailsManager(dataSource);
+	}
+}
+```
+
+- Now lets try to create or register a user.
+
+![alt text](image-42.png)
+
+- Why we got this error? when we hit the url with **POST** http method spring security will try to perform authentication because of CSRF protection. In CSRF attack, attackers inject malicious scripts which in terms of API they **POST** ( create a new resource ) these scripts. So in spring by default for except for **GET** all the http method will be authenticated. So we need to temporarily disable the CSRF.
+
+```
+Disabling csrf
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http
+		.csrf(i->i.disable())
+		.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}").permitAll()
+				);
+		http.formLogin(withDefaults());
+		//http.formLogin(i->i.disable());
+		http.httpBasic(withDefaults());
+		//http.httpBasic(i->i.disable());
+		return http.build();
+	}
+```
+
+- Lets try to hit the registration api
+
+
+![alt text](image-43.png)
+
+- Hooray, we were able to register the customer.
+
+![alt text](image-44.png)
+
+- Now fetch the customer via login page of accounts or using api.
+
+![alt text](image-45.png)
+
+- Why we are getting 401 unauthorized error? because in the **ProjectSecurityConfiguration**, we have specified to **JdbcUserDetailsManager** . If you have multiple beans of type **UserDetailsService** (like **JdbcUserDetailsManager** or **InMemoryUserDetailsManager** and your custom **CustomerService**), Spring Security might not know which one to use, potentially leading to issues. To comment out other and keep only 1 configuration and re-run the application.
+
+- ![alt text](image-46.png)
+
+- So this is how you implement a customize **UserDetailsService** , here we typically used to fetch the customer based on their mail id.
 
 
 

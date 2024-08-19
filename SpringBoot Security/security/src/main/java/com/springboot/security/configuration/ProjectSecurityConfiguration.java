@@ -18,7 +18,7 @@ import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
 
-@Configuration(enforceUniqueMethods = false)
+@Configuration(enforceUniqueMethods = true)
 public class ProjectSecurityConfiguration {
 
 	/**
@@ -28,10 +28,11 @@ public class ProjectSecurityConfiguration {
 	 */
 	@Bean
 	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-		http.csrf(i->i.disable())
+		http
+		.csrf(i->i.disable())
 		.authorizeHttpRequests((requests) -> requests.
 				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
-				requestMatchers("/contact","/notice","/customer-registration").permitAll()
+				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}").permitAll()
 				);
 		http.formLogin(withDefaults());
 		//http.formLogin(i->i.disable());
@@ -43,12 +44,12 @@ public class ProjectSecurityConfiguration {
 	/**
 	 * - To use InMemoryUserDetailsManager , comment out JdbcUserDetailsManager implementation
 	 */
-	@Bean
-	public UserDetailsService userDetailsService() {
-		UserDetails u1=User.withUsername("user1").password("{noop}thisCouldBe@1234").authorities("read").build();
-		UserDetails u2=User.withUsername("user2").password("{bcrypt}$2a$12$ThHcCo7ZvUJ4QjCsaoy87e74mwzP5fhzWA4MxDwaNOU0bxqoOv.Aa").authorities("admin").build();
-		return new InMemoryUserDetailsManager(u1,u2);
-	}
+//	@Bean
+//	public UserDetailsService userDetailsService() {
+//		UserDetails u1=User.withUsername("user1").password("{noop}thisCouldBe@1234").authorities("read").build();
+//		UserDetails u2=User.withUsername("user2").password("{bcrypt}$2a$12$ThHcCo7ZvUJ4QjCsaoy87e74mwzP5fhzWA4MxDwaNOU0bxqoOv.Aa").authorities("admin").build();
+//		return new InMemoryUserDetailsManager(u1,u2);
+//	}
 	
 	@Bean
 	public PasswordEncoder passwordEncoder() {
@@ -62,8 +63,8 @@ public class ProjectSecurityConfiguration {
 		return new HaveIBeenPwnedRestApiPasswordChecker();
 	}
 	
-	@Bean
-	public UserDetailsService userDetailsService(DataSource dataSource) {
-		return new JdbcUserDetailsManager(dataSource);
-	}
+//	@Bean
+//	public UserDetailsService userDetailsService(DataSource dataSource) {
+//		return new JdbcUserDetailsManager(dataSource);
+//	}
 }

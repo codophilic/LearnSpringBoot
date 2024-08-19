@@ -1,6 +1,5 @@
 package com.springboot.security.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,4 +28,5 @@ public class CustomerController {
 		}
 		return ResponseEntity.internalServerError().body("Issue occured while creating customer details");
 	}
+	
 }

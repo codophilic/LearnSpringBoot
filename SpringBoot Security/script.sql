@@ -10,3 +10,4 @@ INSERT INTO `authorities` VALUES ('user4', 'admin');
 
 select * from users;
 select * from authorities;
+select * from customer_table;
