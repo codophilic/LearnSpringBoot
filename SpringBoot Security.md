@@ -1250,11 +1250,117 @@ Disabling csrf
 > - As per Spring Security 6+ the recommended hash function is **BCrypt**. If in future if this BcryptPasswordEncoder has becomes weak, then obviously Spring Security team is going to move on to the more advanced password encoder and they're going to make that as a default one.
 
 
+## Custom Authentication Provider
+
+- Uptil now we have used the in-build Authentication provider (**DaoAuthenticationProvider**) to authenticate user by loading the details from database. So with the help of **UserDetailsService** , **DaoAuthenticationProvider** authenticates the user is valid or or not.
+- The **DaoAuthenticationProvider** is an implementation of **AuthenticationProvider** that uses a **UserDetailsService** to retrieve user details from a data source (like a database). When a user tries to authenticate (e.g., by logging in), the **DaoAuthenticationProvider**:
+- Uses the **UserDetailsService** to load the user details (such as username, password, and roles) from the database.
+- Compares the provided credentials (e.g., the password entered by the user) with the stored credentials in the database.
+- If the credentials match, the user is authenticated successfully.
+- This process ensures that only valid users with correct credentials can access protected resources in your application.
+
+- What if you wanna have your own custom authentication provider? , lets say suppose you wanna authenticate based on country location? or based on age? , lets say you are building a website and you have alternative ways like user can register via Gmail, meta or any other third party . Lets say you wanna also implement OAuth ? so you need to customized your authentication provider.
+- In such case , you need to have multiple authentication providers, but how will you manage those authentication providers? for that we will have layer called **ProviderManager**, but how the **ProviderManager** knows which authentication provider to call when the user tries to access the protected pages? like when user is login via gmail call the gmail authentication provider, if user is tries to login via meta then call the meta authentication provider? , the **ProviderManager** will come to know about it based on the **Type of Authentication Object**.
 
 
+![alt text](image-57.png)
 
+- Before we try to implement our own **AuthenticationProvider** , first lets try to understand about how it works?
 
+![alt text](image-58.png)
 
+- The **AuthenticationProvider** consist of two methods `authenticate()` and `supports()`. Lets try to understand these methods.
+	- `authenticate(Authentication authentication)`: This method attempts to authenticate the user based on the provided Authentication object (e.g., containing the username and password). If successful, it returns a fully authenticated Authentication object. If authentication fails, it can throw an exception.
+	- `supports(Class<?> authentication)`: This method checks whether the **AuthenticationProvider** can handle the given type of Authentication object. For example, **DaoAuthenticationProvider** typically supports **UsernamePasswordAuthenticationToken**.
+
+- The **UsernamePasswordAuthenticationFilter** is a Spring Security filter that intercepts login requests (usually HTTP POST requests to /login) and attempts to authenticate the user using the provided username and password. This filter:
+- Creates an Authentication object (usually **UsernamePasswordAuthenticationToken**) using the provided username and password.
+Passes this Authentication object to the **AuthenticationManager** for authentication.
+- The **ProviderManager** is the default implementation of **AuthenticationManager** in Spring Security.
+
+![alt text](image-59.png)
+
+-  **ProviderManager** holds a list of **AuthenticationProviders**.
+- When its `authenticate()` method is called (e.g., by **UsernamePasswordAuthenticationFilter**), it iterates through its list of **AuthenticationProviders**.
+- For each **AuthenticationProvider**, it checks if it supports the **type of Authentication object (using the supports() method)**.
+- Once it finds a suitable **AuthenticationProvider**, it calls its authenticate() method.
+- If authentication is successful, it returns the authenticated Authentication object; otherwise, it tries the next provider or throws an exception if no provider can authenticate the user.
+
+- Lets create a custom authentication method. **Your custom authentication should be a bean thats why it is important to annotate it with `@Component`**.
+
+```
+package com.springboot.security.authenticationprovider;
+
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
+import com.springboot.security.service.*;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+@Component
+public class CustomAuthenticationProvider implements AuthenticationProvider{
+
+	private final CustomerService customerService;
+	private final PasswordEncoder passwordEncoder;
+	
+	@Override
+	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+		/**
+		 * Input from page or API
+		 */
+		String inputMailId=authentication.getName();
+		String inputPwd=authentication.getCredentials().toString();
+
+		/**
+		 * Custom logic like age > 10 here we are just specifying user must be abc@gmail.com only
+		 * PasswordEncoder is require to perform encoded match between the input entered password and the password 
+		 * in database
+		 */
+		if(!("abc@gmail.com").equals(inputMailId)) {
+			System.out.println("UnAuthorized Email ID, message from Custom Authentication");
+			throw new BadCredentialsException("UnAuthorized Email ID, message from Custom Authentication");
+		}
+		
+		
+		/**
+		 * Fetch Details from database
+		 */
+		UserDetails uc=customerService.loadUserByUsername(inputMailId);
+		
+		if(passwordEncoder.matches(inputPwd, uc.getPassword())) {
+			return new UsernamePasswordAuthenticationToken(uc.getUsername(),uc.getPassword(),uc.getAuthorities());
+		}
+		
+		/**
+		 * AuthenticationException is an abstract class which is implemented by multiple exceptions like
+		 * - BadCredentialsException
+		 * - UsernameNotFoundException ( this exception is thrown by loadByUserName of UserDetailsService )
+		 * .. and  many more
+		 */
+		throw new BadCredentialsException("Invalid Credentials");
+	}
+
+	@Override
+	public boolean supports(Class<?> authentication) {
+		// TODO Auto-generated method stub
+		return (UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication));
+	}
+
+}
+
+Output:
+mo.s.s.a.ProviderManager-  Authenticating request with CustomAuthenticationProvider (1/1)
+UnAuthorized Email ID, message from Custom Authentication
+```
+
+![alt text](image-60.png)
 
 
 
