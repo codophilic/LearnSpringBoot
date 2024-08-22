@@ -1363,6 +1363,288 @@ UnAuthorized Email ID, message from Custom Authentication
 ![alt text](image-60.png)
 
 
+- There are lower environments like DEV (development), SIT (System Integration Testing) and UAT (User Acceptance Testing) where you perform heavy testing and during testing you may need to bypass the security just to test the core functionality of your application.
+- When you add security into your code, it becomes applicable for all types of enviroments. What if you wanna bypass login credentials in the lower environments? what is if this is directly support by the code? - yes, springboot has a concept of **profiles**.
+- Using profiles , we can activate specific set of configurations properties or a specific set of beans.
+- When you run your springboot application you often see this in your console
+
+```
+mc.s.s.SecurityApplication - No active profile set, falling back to 1 default profile: "default"
+```
+
+- If no profile is explicitly activated, Spring Boot uses the **default** profile.
+- Lets create two properties file , one for production and one for UAT.
+
+```
+production.properties
+
+spring.config.activate.on-profile=security_production
+spring.application.name=security
+server.port=8000
+
+#spring.security.user.name=${SPRINGBOOT_USERNAME:defaultUserName}
+#spring.security.user.password=${SPRINGBOOT_PASSWORD:password@1234}
+logging.level.org.springframework.security=ERROR 
+# Logging level set to ERROR
+# logging.pattern.console = ${LOGPATTERN_CONSOLE:%yellow(%logger{15}) - %msg%n}
+spring.datasource.url=jdbc:mysql://localhost:3306/springbootsecurityjdbc
+spring.datasource.username=root
+spring.datasource.password=Meetpandya40@
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.database-platform = org.hibernate.dialect.MySQL8Dialect
+spring.jpa.generate-ddl=false
+spring.jpa.hibernate.ddl-auto = update
+spring.jpa.show-sql=false
+
+
+UAT.properties
+
+spring.config.activate.on-profile=security_UAT
+spring.application.name=security
+server.port=8081
+
+#spring.security.user.name=${SPRINGBOOT_USERNAME:defaultUserName}
+#spring.security.user.password=${SPRINGBOOT_PASSWORD:password@1234}
+logging.level.org.springframework.security=TRACE
+logging.pattern.console = ${LOGPATTERN_CONSOLE:%yellow(%logger{15}) - %msg%n}
+spring.datasource.url=jdbc:mysql://localhost:3306/springbootsecurityjdbc
+spring.datasource.username=root
+spring.datasource.password=Meetpandya40@
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.database-platform = org.hibernate.dialect.MySQL8Dialect
+spring.jpa.generate-ddl=true
+spring.jpa.hibernate.ddl-auto = update
+spring.jpa.show-sql=true
+```
+
+- So we need to include both of these properties file in **application.properties** using property `spring.config.import`.
+
+
+```
+application.properties
+
+spring.application.name=security
+#spring.security.user.name=${SPRINGBOOT_USERNAME:defaultUserName}
+#spring.security.user.password=${SPRINGBOOT_PASSWORD:password@1234}
+logging.level.org.springframework.security=TRACE
+logging.pattern.console = ${LOGPATTERN_CONSOLE:%yellow(%logger{15}) - %msg%n}
+spring.datasource.url=jdbc:mysql://localhost:3306/springbootsecurityjdbc
+spring.datasource.username=root
+spring.datasource.password=Meetpandya40@
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.database-platform = org.hibernate.dialect.MySQL8Dialect
+spring.jpa.generate-ddl=true
+spring.jpa.hibernate.ddl-auto = update
+spring.jpa.show-sql=true
+
+# Setting production property as default propery
+spring.profiles.active=security_UAT
+spring.config.import=production.properties,UAT.properties
+```
+
+- Both the property file consist of a property key `spring.config.activate.on-profile` which states that whenever the profile in **application.properties** is set to **security_production** (incase of production.properties) or **security_UAT** (incase of security.properties), then load those configuration details, but how will spring know when to load this profile? `spring.profiles.active` using this property.
+- Lets run the application and check whether the profiles are correctly getting load or not.
+
+
+<video controls src="20240822-0152-54.1744559.mp4" title="Title"></video>
+
+- It working, but if you see we need to change the `spring.profiles.active` again and again to load the specific property file, this there is possibility of human error, like you are running your test cases by making `spring.profiles.active` to uat but when you are moving to production if your forgot to change thr profiles active , then it will cause a major trouble.
+- So lets keep our active profile to **security_production**, but while running your application lets specify active profile configuration as `SPRING_PROFILES_ACTIVE=security_UAT` or `spring_profiles_active=security_UAT`.
+
+<video controls src="20240822-0209-38.7006712.mp4" title="Title"></video>
+
+- If you see the properties defined in the profile will be loaded by spring during deployment, but the underlying code is still active for all the profiles, it means even if you are testing then you need to provide valid login credentials, what if you can still seperate your code dependending on active profile? , yes using `Profile` annotation
+- So lets create a non production authentication provider
+
+```
+package com.springboot.security.authenticationprovider;
+
+import org.springframework.context.annotation.Profile;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
+import com.springboot.security.service.*;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+@Component
+@Profile("!security_production")
+public class CustomAuthenticationProviderNonProd implements AuthenticationProvider{
+
+	private final CustomerService customerService;
+	
+	@Override
+	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+
+		String inputMailId=authentication.getName();
+
+		UserDetails uc=customerService.loadUserByUsername(inputMailId);
+		
+		return new UsernamePasswordAuthenticationToken(uc.getUsername(),uc.getPassword(),uc.getAuthorities());
+
+	}
+
+	@Override
+	public boolean supports(Class<?> authentication) {
+		// TODO Auto-generated method stub
+		return (UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication));
+	}
+
+}
+```
+
+- Here `@Profile("!security_production")`, makes the class to be activated on all other profiles except for production. Below is the initial class which is marked by `@Profile("security_production")`.
+
+```
+package com.springboot.security.authenticationprovider;
+
+import org.springframework.context.annotation.Profile;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
+import com.springboot.security.service.*;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+@Component
+@Profile("security_production")
+public class CustomAuthenticationProvider implements AuthenticationProvider{
+
+	private final CustomerService customerService;
+	private final PasswordEncoder passwordEncoder;
+	
+	@Override
+	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+		/**
+		 * Input from page or API
+		 */
+		String inputMailId=authentication.getName();
+		String inputPwd=authentication.getCredentials().toString();
+
+		/**
+		 * Custom logic like age > 10 here we are just specifying user must be abc@gmail.com only
+		 * PasswordEncoder is require to perform encoded match between the input entered password and the password 
+		 * in database
+		 */
+		if(!("abc@gmail.com").equals(inputMailId)) {
+			System.out.println("UnAuthorized Email ID, message from Custom Authentication");
+			throw new BadCredentialsException("UnAuthorized Email ID, message from Custom Authentication");
+		}
+		
+		
+		/**
+		 * Fetch Details from database
+		 */
+		UserDetails uc=customerService.loadUserByUsername(inputMailId);
+		
+		if(passwordEncoder.matches(inputPwd, uc.getPassword())) {
+			return new UsernamePasswordAuthenticationToken(uc.getUsername(),uc.getPassword(),uc.getAuthorities());
+		}
+		
+		/**
+		 * AuthenticationException is an abstract class which is implemented by multiple exceptions like
+		 * - BadCredentialsException
+		 * - UsernameNotFoundException ( this exception is thrown by loadByUserName of UserDetailsService )
+		 * .. and  many more
+		 */
+		throw new BadCredentialsException("Invalid Credentials");
+	}
+
+	@Override
+	public boolean supports(Class<?> authentication) {
+		// TODO Auto-generated method stub
+		return (UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication));
+	}
+
+}
+```
+
+- Post running for UAT profile, we just specified only one character for password. This way developers & tester can test the core functionality of application.
+
+![alt text](image-61.png)
+
+![alt text](image-62.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

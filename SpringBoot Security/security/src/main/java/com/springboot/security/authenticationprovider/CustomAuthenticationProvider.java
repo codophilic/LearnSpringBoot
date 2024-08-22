@@ -1,5 +1,6 @@
 package com.springboot.security.authenticationprovider;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Component
+@Profile("security_production")
 public class CustomAuthenticationProvider implements AuthenticationProvider{
 
 	private final CustomerService customerService;
