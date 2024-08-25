@@ -1578,24 +1578,519 @@ public class CustomAuthenticationProvider implements AuthenticationProvider{
 ![alt text](image-62.png)
 
 
+- Lets say you have an application running on production, so all your request must have HTTPS protocol but when you are working on your development its not necessary to work with HTTPS , you can also work with HTTP.
+- By default in SpringBoot if we don't specify request method protocol , it considers both (HTTP as well as HTTPS).
+- So currently we have a user mail id with `abc@gmail.com` with password `beezz@123` and we have allowed any password since we are running the application under **security_UAT** profile.
+
+![alt text](image-63.png)
+
+![alt text](image-64.png)
+
+- Now to allow HTTP only in case of UAT profile and HTTPS in case of production profile. We need to create two seperate **ProjectSecurityConfiguration** configurations for each of these profile. Using `requiresChannel(rcc->rcc.anyRequest().requiresInsecure())` we can state for UAT profile allow only HTTP request and `requiresChannel(rcc->rcc.anyRequest().requiresSecure())` allow only HTTP for production.
+
+
+```
+NON-PRODUCTION
+
+package com.springboot.security.configuration;
+
+import static org.springframework.security.config.Customizer.withDefaults;
+
+import javax.sql.DataSource;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.security.authentication.password.CompromisedPasswordChecker;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
+
+@Configuration(enforceUniqueMethods = true)
+@Profile("!security_production")
+public class ProjectSecurityConfigurationNonProd {
+
+	/**
+	 * Customize Spring Securities
+	 * - permitAll() -> Allows end user to access all the pages without asking any logging credentials
+	 * - denyAll() -> Allows end user to perfom login but denies end user to access the page even though the user is authorized to access it.
+	 */
+	@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http.requiresChannel(rcc->rcc.anyRequest().requiresInsecure()) // ONLY HTTP ALLOWED
+		.csrf(i->i.disable())
+		.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}").permitAll()
+				);
+		http.formLogin(withDefaults());
+		//http.formLogin(i->i.disable());
+		http.httpBasic(withDefaults());
+		//http.httpBasic(i->i.disable());
+		return http.build();
+	}
+	
+	/**
+	 * - To use InMemoryUserDetailsManager , comment out JdbcUserDetailsManager implementation
+	 */
+//	@Bean
+//	public UserDetailsService userDetailsService() {
+//		UserDetails u1=User.withUsername("user1").password("{noop}thisCouldBe@1234").authorities("read").build();
+//		UserDetails u2=User.withUsername("user2").password("{bcrypt}$2a$12$ThHcCo7ZvUJ4QjCsaoy87e74mwzP5fhzWA4MxDwaNOU0bxqoOv.Aa").authorities("admin").build();
+//		return new InMemoryUserDetailsManager(u1,u2);
+//	}
+	
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		
+		//return new BCryptPasswordEncoder();
+		return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+	}
+	
+	@Bean
+	public CompromisedPasswordChecker compromisedPasswordChecker() {
+		return new HaveIBeenPwnedRestApiPasswordChecker();
+	}
+	
+//	@Bean
+//	public UserDetailsService userDetailsService(DataSource dataSource) {
+//		return new JdbcUserDetailsManager(dataSource);
+//	}
+}
+
+
+PRODUCTION
+package com.springboot.security.configuration;
+
+import static org.springframework.security.config.Customizer.withDefaults;
+
+import javax.sql.DataSource;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.security.authentication.password.CompromisedPasswordChecker;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
+
+@Configuration(enforceUniqueMethods = true)
+@Profile("security_production")
+public class ProjectSecurityConfiguration {
+
+	/**
+	 * Customize Spring Securities
+	 * - permitAll() -> Allows end user to access all the pages without asking any logging credentials
+	 * - denyAll() -> Allows end user to perfom login but denies end user to access the page even though the user is authorized to access it.
+	 */
+	@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http.requiresChannel(rcc->rcc.anyRequest().requiresSecure()) // ONLY HTTPS ALLOWED
+		.csrf(i->i.disable())
+		.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}").permitAll()
+				);
+		http.formLogin(withDefaults());
+		//http.formLogin(i->i.disable());
+		http.httpBasic(withDefaults());
+		//http.httpBasic(i->i.disable());
+		return http.build();
+	}
+	
+	/**
+	 * - To use InMemoryUserDetailsManager , comment out JdbcUserDetailsManager implementation
+	 */
+//	@Bean
+//	public UserDetailsService userDetailsService() {
+//		UserDetails u1=User.withUsername("user1").password("{noop}thisCouldBe@1234").authorities("read").build();
+//		UserDetails u2=User.withUsername("user2").password("{bcrypt}$2a$12$ThHcCo7ZvUJ4QjCsaoy87e74mwzP5fhzWA4MxDwaNOU0bxqoOv.Aa").authorities("admin").build();
+//		return new InMemoryUserDetailsManager(u1,u2);
+//	}
+	
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		
+		//return new BCryptPasswordEncoder();
+		return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+	}
+	
+	@Bean
+	public CompromisedPasswordChecker compromisedPasswordChecker() {
+		return new HaveIBeenPwnedRestApiPasswordChecker();
+	}
+	
+//	@Bean
+//	public UserDetailsService userDetailsService(DataSource dataSource) {
+//		return new JdbcUserDetailsManager(dataSource);
+//	}
+}
+```
+
+- Now lets run the application for **security_UAT** profile. It will allow only HTTP request but will throw error for HTTPS.
+
+
+<video controls src="20240825-0642-53.9066026.mp4" title="Title"></video>
+
+>[!NOTE]
+> - To send HTTPS request you need to configure SSL certificate. HTTPS (Hypertext Transfer Protocol Secure) requires a certificate to establish a secure connection between a web server and a user's browser. 
+> - The certificate is used to verify the identity of the website and to establish a secure encrypted connection between the browser and the server.
+
+## Exception Handling
+
+- Now when end user sends any unauthenticate request or any invalid credentails, currently we get this as a response
+
+![alt text](image-65.png)
+
+- This seems pretty unclear why the request got unauthorized? is the user invalid or password invalid? we don't know after looking the response. 
+- Behind the response springboot might throw any exception which ended up in such response, so can we customize this response by handling those exceptions? , we need to know about **ExceptionTranslationFilter**
+
+- Before trying to make your customize response when exception gets raised, first we need to understand how the exceptions are going to be handled inside the Spring Security framework. Once we understand how the Spring Security is handling the exceptions, later on, we can try to customize this response.
+
+>[!NOTE]
+> - The spring security framework won't handle your application code based exception , it will only handle security related exception.
 
 
 
+![alt text](image-66.png)
+
+- So inside that security framework, there are two types of exceptions that may happen.
+	- **AuthenticationException** which may result into the **401** status. **401** indicates **Unauthorized** which means that the person or the client application is not authenticated (basically invalid credentials). So all the exceptions like **BadCredentialsException**, **UsernameNotFoundException** etc. they all come under the category of **AuthenticationException**.
+	- **AccessDeniedException** results to **403** status which indicates **forbidden error**. That means the person or the client application is properly authenticated (has valid credentials) but they don't have enough privileges or roles to access a secured API.
+- Spring security handles these two types of exception using **ExceptionalTranslationFilter**.
+- The responsibility of this filter is first it is going to check what is the type of exception received? If it is related to the **AuthenticationException**, it is going to invoke the **AuthenticationEntryPoint** related implementations. So **AuthenticationEntryPoint** is an interface inside the Spring Security framework, which is responsible to handle all authentication related exceptions. By default, Spring Security provide lot many **AuthenticationEntryPoint** implementations. So based upon the scenario on the flow, this ExceptionTranslationFilter, it is going to invoke one of the AuthenticationEntryPoint implementation classes.
+
+![alt text](image-67.png)
+
+-  Similarly, in the scenarios where the exception type is **AccessDeniedException**, then the responsibility of the ExceptionTranslationFilter is to invoke one of the implementation of **AccessDeniedHandler** interface.
+
+![alt text](image-68.png)
+
+- We just have to override these two interfaces and write our own logic to send our own custom response.
+
+<details>
+<summary> How does ExceptionTranslationFilter works internally ? </summary>
+
+- Under **ExceptionTranslationFilter** there is a method **doFilter**.
+
+![alt text](image-69.png)
+
+- Inside these `doFilter()` methods, you'll be able to see inside the try block, which don't have much of the business logic. They're just trying to invoke the next filter inside the chain. So these are very happy part scenario where if there is no exception inside the flow, then this filter it is not going to do anything other than invoking the next filter inside the filter chain.
+- But in the scenario where if there is an exception happens, then this catch block is going to be executed. Inside this catch block, this method is `handleSpringSecurityException()`.
+
+![alt text](image-70.png)
 
 
+- Inside this method they're trying to check what is the instance of exception. Is this belong to the AuthenticationException or AccessDeniedException? If it is an authentication related exception, they're trying to invoke the `handleAuthenticationException`. Otherwise they're going to invoke the `handleAccessDeniedException`.
+- Inside `handleAccessDeniedException` method they're trying to invoke one more method, which is `sendStartAuthentication`.
+
+![alt text](image-71.png)
+
+- Inside this method you'll be able to see they are invoking one of the implementation of **AuthenticationEntryPoint** by invoking its `commence` method.
+- Whereas in the scenario of **AccessDeniedException**, the filter is going to call this method, which is `handleAccessDeniedException`, which calls `accessDeniedHandler` , `handle` method.
+
+</details>
 
 
+- Currently in our project configuration **ProjectSecurityConfiguration** and **ProjectSecurityConfigurationNonProd** we are using basic authentication filter. So via this the basic authentication happens.
+
+```
+	@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http.requiresChannel(rcc->rcc.anyRequest().requiresInsecure()) // ONLY HTTP ALLOWED
+		.csrf(i->i.disable())
+		.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}").permitAll()
+				);
+		http.formLogin(withDefaults());
+		//http.formLogin(i->i.disable());
+		http.httpBasic(withDefaults());
+		//http.httpBasic(i->i.disable());
+		return http.build();
+	}
+```
+
+- When using HTTP Basic Authentication with `http.basic(withDefaults())`, the **BasicAuthenticationFilter** is indeed responsible for processing HTTP Basic Authentication requests. The **BasicAuthenticationFilter** uses an **AuthenticationEntryPoint** to handle authentication failures or unauthenticated access attempts. This filter is automatically added when you configure HTTP Basic Authentication using `http.basic(withDefaults())`.
+- It intercepts HTTP requests and checks for the Authorization header containing Basic credentials (username and password).
+- If credentials are present, it attempts to authenticate them using an **AuthenticationManager**. If authentication fails or if the request is unauthenticated (no credentials provided) then BasicAuthenticationFilter invokes **AuthenticationEntryPoint** via **doFilterInternal**.
+
+![alt text](image-72.png)
+
+- **BasicAuthenticationEntryPoint** is a specific implementation of **AuthenticationEntryPoint** designed to handle HTTP Basic Authentication. It sends a 401 Unauthorized response with a `WWW-Authenticate: Basic` header, prompting the client to provide credentials.
+- When we entered invalid credentails using postman we got 401 Unauthorized as response. When you check the response headers we can see below things
+
+![alt text](image-73.png)
+
+- In the headers the `WWW-Authenticate` and HTTPStatus is set by **BasicAuthenticationEntryPoint**.
+
+![alt text](image-74.png)
+
+- Spring Security provides several implementations of **AuthenticationEntryPoint**:
+	- **BasicAuthenticationEntryPoint**: Used for HTTP Basic Authentication.
+	- **LoginUrlAuthenticationEntryPoint**: Used for form-based login, redirects to a login page.
+	- **DigestAuthenticationEntryPoint**: Used for HTTP Digest Authentication.
+
+- Now lets try to customize this and add our own response headers and body. Lets create a package `securityexceptionhandling` and implement the **AuthenticationEntryPoint**.
+
+```
+package com.springboot.security.securityexceptionhandling;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.AuthenticationEntryPoint;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+public class CustomAuthenticationExceptionHandling implements AuthenticationEntryPoint{
+
+	@Override
+	public void commence(HttpServletRequest request, HttpServletResponse response,
+			AuthenticationException authException) throws IOException, ServletException {
+		
+		/**
+		 * Headers
+		 */
+		response.setHeader("Custom-Header-Title", "Authentication Failed");
+		response.setHeader("Custom-Header-Msg", "Invalid Email ID");
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+		
+		/**
+		 * Body
+		 */
+        LocalDateTime currentTimeStamp = LocalDateTime.now();
+        String message="Invalid Credentails entered like Email ID or password hence authentication failed";
+        response.setContentType("application/json;charset=UTF-8");
+        String jsonResponse =
+                String.format("{\"timestamp\": \"%s\", \"status\": %d, \"error\": \"%s\", \"message\": \"%s\"}",
+                        currentTimeStamp, HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                        message);	
+        response.getWriter().write(jsonResponse);
+	}
+
+}
+```
+
+- Here we have added two custom headers `Custom-Header-Title` and `Custom-Header-Msg`. The HTTP status code should be UnAuthorized `response.setStatus(HttpStatus.UNAUTHORIZED.value())`. Added a custom message and a json response structure.
+- Now we need to specify spring that use our **CustomAuthenticationExceptionHandling** for basic authentication. The basic authentication is handle by `http.httpBasic(withDefaults())`.
+- So here, as of now, for the `httpBasic()`, we have set the configurations with the defaults. So with the defaults what is going to happen? We are going to send a empty Lambda expression. That means we don't want any further customizations. But since right now we want to have some customizations, let's remove these with the defaults and try to pass the Lambda expression as an input to these `httpBasic` method `httpBasic(i->i.authenticationEntryPoint(new CustomAuthenticationExceptionHandling()))`.
+
+- Using the **i** variable, we going to invoke the method which is `authenticationEntryPoint`. To this authenticationEntryPoint(), we need to pass the object of **CustomBasicAuthenticationEntryPoint**.
+
+```
+Production Project Security
+	@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http.requiresChannel(rcc->rcc.anyRequest().requiresSecure()) // ONLY HTTPS ALLOWED
+		.csrf(i->i.disable())
+		.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}").permitAll()
+				);
+		http.formLogin(withDefaults());
+		//http.formLogin(i->i.disable());
+		http.httpBasic(i->i.authenticationEntryPoint(new CustomAuthenticationExceptionHandling()));
+//		http.httpBasic(withDefaults());
+		//http.httpBasic(i->i.disable());
+		return http.build();
+	}
+
+Non-production project security
+	@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http.requiresChannel(rcc->rcc.anyRequest().requiresInsecure()) // ONLY HTTP ALLOWED
+		.csrf(i->i.disable())
+		.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}").permitAll()
+				);
+		http.formLogin(withDefaults());
+		//http.formLogin(i->i.disable());
+		http.httpBasic(i->i.authenticationEntryPoint(new CustomAuthenticationExceptionHandling()));
+//		http.httpBasic(withDefaults());
+		//http.httpBasic(i->i.disable());
+		return http.build();
+	}
+```
+
+- Now lets run the application and see the response.
+
+<video controls src="20240825-0933-45.3207199.mp4" title="Title"></video>
+
+- Lets say if you have mutliple authentication like basic authentication, O2Auth authentication etc.. in such case if you wanna define a global exception then we can use `http.exceptionHandling(i->i.authenticationEntryPoint(new CustomAuthenticationExceptionHandling()));`
+- Lets create our custom **AccessDeniedException**. **AccessDeniedException** is an exception in Spring Security that is thrown when an authenticated user attempts to access a resource they do not have permission to access. This typically happens when the user is authenticated but does not have the necessary roles or authorities to access a specific URL or endpoint.
+- **AccessDeniedHandler is an interface that you can implement to handle AccessDeniedException globally in your application. By default, Spring Security uses a AccessDeniedHandlerImpl which returns a 403 Forbidden status without any specific handling**
+
+![alt text](image-75.png)
+
+- Lets create a **CustomAuthorizationExceptionHandling**.
+
+```
+package com.springboot.security.securityexceptionhandling;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.web.access.AccessDeniedHandler;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+public class CustomAuthorizationExceptionHandling implements AccessDeniedHandler {
+
+	@Override
+	public void handle(HttpServletRequest request, HttpServletResponse response,
+			AccessDeniedException accessDeniedException) throws IOException, ServletException {
+		
+		/**
+		 * Headers
+		 */
+		response.setHeader("Custom-Header-Title", "Authorization Failed");
+		response.setHeader("Custom-Header-Msg", "Required privilege not found");
+        response.setStatus(HttpStatus.FORBIDDEN.value());
+		
+		/**
+		 * Body
+		 */
+        LocalDateTime currentTimeStamp = LocalDateTime.now();
+        String message="Required privilege not found hence user not authorized";
+        response.setContentType("application/json;charset=UTF-8");
+        String jsonResponse =
+                String.format("{\"timestamp\": \"%s\", \"status\": %d, \"error\": \"%s\", \"message\": \"%s\"}",
+                        currentTimeStamp, HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                        message);	
+        response.getWriter().write(jsonResponse);
+	}
+
+}
+```
+
+- The code structure is similar to **CustomAuthenticationExceptionHandling**. Below is the current security configuration.
+
+```
+	@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http.requiresChannel(rcc->rcc.anyRequest().requiresInsecure()) // ONLY HTTP ALLOWED
+		.csrf(i->i.disable())
+		.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}").permitAll()
+				);
+		http.formLogin(withDefaults());
+		//http.formLogin(i->i.disable());
+		http.httpBasic(i->i.authenticationEntryPoint(new CustomAuthenticationExceptionHandling()));
+//		http.httpBasic(withDefaults());
+		//http.httpBasic(i->i.disable());
+//		http.exceptionHandling(i->i.authenticationEntryPoint(new CustomExceptionHandling())); // Global Exception for Authentication Handling
+		return http.build();
+	}
+```
+
+- If you see any roles can access the pages. Lets restrict `/account` page , the page must be accessible to only **admin**. Also define **CustomAuthorizationExceptionHandling** as global exception for access denied exceptions.
 
 
+```
+	@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http.requiresChannel(rcc->rcc.anyRequest().requiresInsecure()) // ONLY HTTP ALLOWED
+		.csrf(i->i.disable())
+		.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts").hasRole("admin").
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}").permitAll()
+				);
+		http.formLogin(withDefaults());
+		//http.formLogin(i->i.disable());
+		http.httpBasic(i->i.authenticationEntryPoint(new CustomAuthenticationExceptionHandling()));
+//		http.httpBasic(withDefaults());
+		//http.httpBasic(i->i.disable());
+//		http.exceptionHandling(i->i.authenticationEntryPoint(new CustomExceptionHandling())); // Global Exception for Authentication Handling
+		http.exceptionHandling(i->i.accessDeniedHandler(new CustomAuthorizationExceptionHandling()));
+		return http.build();
+	}
+```
 
+- Lets run the application and check this.
 
+<video controls src="20240825-1128-55.9803478.mp4" title="Title"></video>
 
+- Oh wait, when we tried to login from UI, why did we got json type response? can we have a denied like page? yes.
+- Just like how we are invoking the AccessDeniedHandler, we should be able to invoke one more method, which is **AccessDeniedPage**. To this **AccessDeniedPage**, if there is a 403 error is coming, the end user will be redirected to the path denied.
+- To add **AccessDeniedPage** we need to change **ProjectSecurityConfigurationNonProd**.
 
+```
+	@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http.requiresChannel(rcc->rcc.anyRequest().requiresInsecure()) // ONLY HTTP ALLOWED
+		.csrf(i->i.disable())
+		.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts").hasRole("admin").
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}","/denied").permitAll()
+				);
+		http.formLogin(withDefaults());
+		//http.formLogin(i->i.disable());
+		http.httpBasic(i->i.authenticationEntryPoint(new CustomAuthenticationExceptionHandling()));
+//		http.httpBasic(withDefaults());
+		//http.httpBasic(i->i.disable());
+//		http.exceptionHandling(i->i.authenticationEntryPoint(new CustomExceptionHandling())); // Global Exception for Authentication Handling
+		http.exceptionHandling(i->i.accessDeniedHandler(new CustomAuthorizationExceptionHandling()).accessDeniedPage("/denied"));
+		return http.build();
+	}
+```
 
+- AccessDeniedPage requires a handler, so here we have defined `/denied` 
 
+```
+package com.springboot.security.controller;
 
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
+@RestController
+public class DeniedController {
 
+	@GetMapping("/denied")
+	public String deniedHandler() {
+		return "You are authenticated but not authorized to access this page";
+	}
+}
+```
+
+- Now when we try to login, we will get a page like below
+
+![alt text](image-76.png)
+
+### When is AccessDeniedHandler Recommended?
+- **REST API Applications**:
+	- Highly Recommended: For REST APIs, it is a good practice to return structured JSON or XML error responses. This provides clarity to API consumers about why their request failed due to insufficient permissions.
+- **UI-Based Applications**:
+	- Not Always Necessary: For applications with a UI, you might want to redirect the user to a custom error page or show a user-friendly error message instead of returning JSON. The global AccessDeniedHandler can still be used, but it might perform a redirect or set an error message in the model rather than returning JSON.
 
 
 

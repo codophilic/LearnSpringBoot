@@ -6,6 +6,7 @@ import javax.sql.DataSource;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.password.CompromisedPasswordChecker;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -18,7 +19,11 @@ import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
 
+import com.springboot.security.securityexceptionhandling.CustomAuthenticationExceptionHandling;
+import com.springboot.security.securityexceptionhandling.CustomAuthorizationExceptionHandling;
+
 @Configuration(enforceUniqueMethods = true)
+@Profile("security_production")
 public class ProjectSecurityConfiguration {
 
 	/**
@@ -28,7 +33,7 @@ public class ProjectSecurityConfiguration {
 	 */
 	@Bean
 	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-		http
+		http.requiresChannel(rcc->rcc.anyRequest().requiresSecure()) // ONLY HTTPS ALLOWED
 		.csrf(i->i.disable())
 		.authorizeHttpRequests((requests) -> requests.
 				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
@@ -36,7 +41,8 @@ public class ProjectSecurityConfiguration {
 				);
 		http.formLogin(withDefaults());
 		//http.formLogin(i->i.disable());
-		http.httpBasic(withDefaults());
+		http.httpBasic(i->i.authenticationEntryPoint(new CustomAuthenticationExceptionHandling()));
+//		http.httpBasic(withDefaults());
 		//http.httpBasic(i->i.disable());
 		return http.build();
 	}
