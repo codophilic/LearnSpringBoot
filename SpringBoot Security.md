@@ -2092,30 +2092,300 @@ public class DeniedController {
 - **UI-Based Applications**:
 	- Not Always Necessary: For applications with a UI, you might want to redirect the user to a custom error page or show a user-friendly error message instead of returning JSON. The global AccessDeniedHandler can still be used, but it might perform a redirect or set an error message in the model rather than returning JSON.
 
+## Session Management
+
+- Inside a Spring Boot application. By default, whatever session that is going to be created, once the login is completed, it is going to have a default timeout of 30 minutes.
+- Whenever user login, a JSESSIONID is associated with the user.
+
+![alt text](image-77.png)
+
+- So this JSESSIONID is created by the Spring security and Spring boot framework. By default it is going to have 30 minutes time, as a session timeout, which means if the end user is going to sit idle for 30 minutes, then this session is going to be invalidated by the Spring boot and Spring security and after the 30 minutes idle time, if the user is trying to perform some action on the UI, then the user will be redirected to the login page.
+- Lets say you wanna customize this time, you can customize it but it should be greater than 2 minutes, Spring security does not allows to have a short time out. To customize your session time out you need to configure below property in **application.properties**.
+
+```
+production.properties
+#2m -> 2 minutes, if we specify 240 -> then it is considered as 240 seconds
+server.servlet.session.timeout=10m
+
+UAT.properties
+#2m -> 2 minutes, if we specify 240 -> then it is considered as 240 seconds
+server.servlet.session.timeout=2m
+```
+
+- Also lets say you wanna show the user that post 'X' time the session got invalid, you need to create a MVC path controller and add that path in the session management of your project security configuration.
+
+```
+package com.springboot.security.controller;
+
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class SessionManagement {
+
+	@GetMapping("/invalid-session")
+	public String invalidSession() {
+		return "Session Got Invalid";
+	}
+}
+```
+
+- **ProjectSecurityConfigurationNonProd** update code.
+
+```
+	@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http.sessionManagement(i->i.invalidSessionUrl("/invalid-session")) // Re-directs to invalid-session url page when session becomes invalid
+		.requiresChannel(rcc->rcc.anyRequest().requiresInsecure()) // ONLY HTTP ALLOWED
+		.csrf(i->i.disable())
+		.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts").hasRole("admin").
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}","/denied","/invalid-session").permitAll()
+				);
+		http.formLogin(withDefaults());
+		//http.formLogin(i->i.disable());
+		http.httpBasic(i->i.authenticationEntryPoint(new CustomAuthenticationExceptionHandling()));
+//		http.httpBasic(withDefaults());
+		//http.httpBasic(i->i.disable());
+//		http.exceptionHandling(i->i.authenticationEntryPoint(new CustomExceptionHandling())); // Global Exception for Authentication Handling
+		http.exceptionHandling(i->i.accessDeniedHandler(new CustomAuthorizationExceptionHandling()).accessDeniedPage("/denied"));
+		return http.build();
+	}
+```
+
+<video controls src="20240825-1429-49.1883828.mp4" title="Title"></video>
+
+- **Concurrent session**: By default, the Spring Security framework is not going to enforce any constraints or any control on how many concurrent sessions an end user can have. The end user can have any number of sessions by default. But in real applications, we may want to restrict the end user to have only a single concurrent session or in some scenarios you may want to have only two or three or five concurrent sessions.
+- Lets say we wanted to have only 1 concurrent session for demonstration, so basically if users login on our page using chrome window, and then again tries to open a new browser like edge or opera window or chrome window in incognito and perform login, then the first window session will be expired automatically even before the timeout (`This session has been expired (possibly due to multiple concurrent logins being attempted as the same user).`)
+- To achieve this update the project security configuration
+
+```
+@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http.sessionManagement(i->i.invalidSessionUrl("/invalid-session").maximumSessions(1)) // Re-directs to invalid-session url page when session becomes invalid. Only 1 session allowed per user
+		.requiresChannel(rcc->rcc.anyRequest().requiresInsecure()) // ONLY HTTP ALLOWED
+		.csrf(i->i.disable())
+		.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts").hasRole("admin").
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}","/denied","/invalid-session").permitAll()
+				);
+		http.formLogin(withDefaults());
+		//http.formLogin(i->i.disable());
+		http.httpBasic(i->i.authenticationEntryPoint(new CustomAuthenticationExceptionHandling()));
+//		http.httpBasic(withDefaults());
+		//http.httpBasic(i->i.disable());
+//		http.exceptionHandling(i->i.authenticationEntryPoint(new CustomExceptionHandling())); // Global Exception for Authentication Handling
+		http.exceptionHandling(i->i.accessDeniedHandler(new CustomAuthorizationExceptionHandling()).accessDeniedPage("/denied"));
+		return http.build();
+	}
+```
+
+<video controls src="20240825-1458-36.6364007.mp4" title="Title"></video>
+
+- If a user has already logged in using first session, can we restrict out while performing another login , the session concurrency must be shown for the second loggin.
+
+```
+http.sessionManagement(i->i.invalidSessionUrl("/invalid-session").maximumSessions(1).maxSessionsPreventsLogin(true)) // Re-directs to invalid-session url page when session becomes invalid. Only 1 session allowed per user and prevents another session being created.
+```
+
+<video controls src="20240825-1501-57.3352502.mp4" title="Title"></video>
+
+### Session Hijacking and Session Fixation Attack
+
+![alt text](image-78.png)
+
+#### Session Hijacking
+
+- Session Hijacking is a type of security attack where the attacker is going to steal the session ID from your browser or from the web network.
+- Many organizations they're going to mention the session ID inside the URL itself. This is not going to be considered safe because you are making session ID visible to the end user now the end user may be attacker or hijacker.
+- Apart from URL few other organizations, they're also going to create the session ID as a cookie and store inside the browser.
+- Inside these two scenarios, if the hijacker steals the session ID using the same session ID, he should be able to perform some action on behalf of the user.
+- To avoid Session Hijacking attack scenarios there are multiple approaches.
+- The very first approach the organizations they're going to use is, to use the HTTPS protocol. If they use the HTTPS protocol for the communication, then hacker cannot steal the session ID during the network traffic or while your request is traveling throughout the internet.
+- The other approach is that typically organizations are going to follow is they're going to limit the session ID timeout for short time, like 10 minutes or 15 minutes like we discussed in the previous sections.
+- If the end user is trying to use a public computer, if some other person comes after some time, the session ID might have expired.
+- At the same time, few organizations during the login operation, they have a checkbox for the end user to check if they're using a public computer. In such scenarios, the organizations are going to be very cautious in creating the cookies inside the browser. Instead of creating the cookies inside the user browser, they may switch to some other option.
+- So if you see here in the scenario of session hijacking, there is no role played by the Spring Security directly.
+- So the organization, they have to take multiple measurements like using the HTTPS protocol, asking the end user if they're using the public computer and having the session timeout with a very short time.
+- By using all these approaches, we can avoid the Session Hijacking scenario.
+
+#### Session Fixation
+
+![alt text](image-79.png)
 
 
+- Think like there is a website with the name `fashionmart.com` and this website is being used extensionally by the user Emily who often shops online and she also stores her payment details for quick purchase inside these website. So Emily is a normal and good customer.
+- On the other side we have another user with the name Eva. Eva is a hacker and Eva discovers a vulnerability inside the Fashion Mart website which allows Eva to manipulate the session identifiers like session ID.
+- So let's try to understand how the manipulation of the sessions is going to happen. Initially the hacker, Eva, is going to log in into the website with her own credentials and in this scenario the website is going to provide a session ID `34hj...43`.
+- Now the hacker Eva, she's going to send an email to Emily pretending to be from the Fashion website itself.
+- So inside website **(3)** she's going to highlight some exciting offers saying that we are offering exclusive discounts to our loyal customers. Click here to access your personalized discount. So inside the link there is a session ID embedded which is `34hj...43`.
+- So this session ID belongs to Eva which got created during her login operation. So now think like Emily, she believes this story or believes this email and without worrying about the session ID in the link, she directly click on this link related to Fashion Mart.
+- And since there is no session ID generated or since there is no cookie inside the browser of Emily related to this session ID, what is going to happen is, the browser is going to ask Emily to log in with her own credentials.
+- So now Emily, what she's going to do, she's going to enter her credentials and with that the application is going to use the same session ID for Emily as well. So right now this **session ID is going to be mapped to Emily but originally this session ID provided by Eva**.
+- As a final step, what Eva is going to do is Eva in her own computer she will try to access an authorized page or authorized API by using the same session ID that she has initially. This time, as part of the response to Eva, she's going to get all the Emily's related details because right now this session ID is mapped with all the details related to Emily. With that Eva is going to see all the payment information of Emily and Eva should be able to buy some products with the payment information of Emily.
+- So in short, initially the hacker is going to generate a session ID and the hacker is going to provide the session ID to some other normal user and if the normal user use the same session ID to enter into the web application, then all the details of the normal user are going to be associated to the session ID which is originally shared by the hacker. And with that hacker can happily use the session ID to know the normal user details.
+- By default, if an application is using Spring Security as a dependency, Spring Security is going to take care of handling the Session Fixation Attack.
+
+![alt text](image-80.png)
 
 
+- To handle the Session Fixation Attack there are three different strategies.
+
+1. **ChangeSessionID (Default mechanism)**:
+	- In this strategy, what is going to happen is, whenever someone is trying to access an application very first time with some random session ID. Once the end user is authenticated, Spring Security, it is going to simply change the session ID but it is not going to change the details inside the session, which means a brand newSession or a complete fresh session is not going to be created.
+	- Whatever details associated to that session, they're going to be still there inside the session. But post login this session is going to get a new ID only.
+	- If you see below, as soon as user login the JSESSIONID got changed. The hacker will never know what is the new session ID that got generated on the normal person computer and with that he/she should not be able to see the extra details.
+	- So this is the default approach that is being used by the Spring Security and Spring Boot framework as of now. So this approach is introduced as part of the servlet 3.21 update.
+
+<video controls src="20240825-1755-35.1181270.mp4" title="Title"></video>
 
 
+2. **NewSession**:
+	- The next strategy available is new session. In this **newSession** what is going to happen is, for example, first the hacker logged in and the hacker got a session ID which is `abc`. The same is sent to the normal person. And the normal person this time, even though the normal person is trying to log in with the session ID `abc` but behind the scenes a new brand **newSession** or a complete fresh session is going to be created with the session ID like `def`.
+	- So inside these brand newSession, the previous session details that are not going to be copied. For example, inside this session, if there is a variable which is first name as Eva (hacker), it is not going to be copied to the brand newSession that is getting created here with the session ID `def`.
+	- But please note that Spring Security related attributes, they're going to be copied into this brand new scenario.
+
+```
+	@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http
+		.sessionManagement(i->i.sessionFixation(j->j.newSession()).invalidSessionUrl("/invalid-session").maximumSessions(1).maxSessionsPreventsLogin(true)) // Re-directs to invalid-session url page when session becomes invalid. Only 1 session allowed per user and prevents another session being created.
+		.requiresChannel(rcc->rcc.anyRequest().requiresInsecure()) // ONLY HTTP ALLOWED
+		.csrf(i->i.disable())
+		.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts").hasRole("admin").
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}","/denied","/invalid-session").permitAll()
+				);
+		http.formLogin(withDefaults());
+		//http.formLogin(i->i.disable());
+		http.httpBasic(i->i.authenticationEntryPoint(new CustomAuthenticationExceptionHandling()));
+//		http.httpBasic(withDefaults());
+		//http.httpBasic(i->i.disable());
+//		http.exceptionHandling(i->i.authenticationEntryPoint(new CustomExceptionHandling())); // Global Exception for Authentication Handling
+		http.exceptionHandling(i->i.accessDeniedHandler(new CustomAuthorizationExceptionHandling()).accessDeniedPage("/denied"));
+		return http.build();
+	}
+```
 
 
+3. **MigrateSession**:
+	- In this strategy what is going to happen is a brand new session is  or a complete fresh session, going to be created.
+	- Into this brand new session, all the previous existing session attributes that are going to be copied.
+	- So when a brand new session created it is also going to get a new session ID.
+
+```
+	@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http
+		.sessionManagement(i->i.sessionFixation(j->j.migrateSession()).invalidSessionUrl("/invalid-session").maximumSessions(1).maxSessionsPreventsLogin(true)) // Re-directs to invalid-session url page when session becomes invalid. Only 1 session allowed per user and prevents another session being created.
+		.requiresChannel(rcc->rcc.anyRequest().requiresInsecure()) // ONLY HTTP ALLOWED
+		.csrf(i->i.disable())
+		.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts").hasRole("admin").
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}","/denied","/invalid-session").permitAll()
+				);
+		http.formLogin(withDefaults());
+		//http.formLogin(i->i.disable());
+		http.httpBasic(i->i.authenticationEntryPoint(new CustomAuthenticationExceptionHandling()));
+//		http.httpBasic(withDefaults());
+		//http.httpBasic(i->i.disable());
+//		http.exceptionHandling(i->i.authenticationEntryPoint(new CustomExceptionHandling())); // Global Exception for Authentication Handling
+		http.exceptionHandling(i->i.accessDeniedHandler(new CustomAuthorizationExceptionHandling()).accessDeniedPage("/denied"));
+		return http.build();
+	}
+```
+
+>[!NOTE]
+> - In ChangeSessionID the session ID is changed but there is no new session generated, but incase of MigrateSession a new session is created copying previous session details and new ID is given for the newly session.
 
 
+- To disable session fixation security
+
+```
+	@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http
+		.sessionManagement(i->i.sessionFixation(j->j.none()).invalidSessionUrl("/invalid-session").maximumSessions(1).maxSessionsPreventsLogin(true)) // Re-directs to invalid-session url page when session becomes invalid. Only 1 session allowed per user and prevents another session being created.
+		.requiresChannel(rcc->rcc.anyRequest().requiresInsecure()) // ONLY HTTP ALLOWED
+		.csrf(i->i.disable())
+		.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts").hasRole("admin").
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}","/denied","/invalid-session").permitAll()
+				);
+		http.formLogin(withDefaults());
+		//http.formLogin(i->i.disable());
+		http.httpBasic(i->i.authenticationEntryPoint(new CustomAuthenticationExceptionHandling()));
+//		http.httpBasic(withDefaults());
+		//http.httpBasic(i->i.disable());
+//		http.exceptionHandling(i->i.authenticationEntryPoint(new CustomExceptionHandling())); // Global Exception for Authentication Handling
+		http.exceptionHandling(i->i.accessDeniedHandler(new CustomAuthorizationExceptionHandling()).accessDeniedPage("/denied"));
+		return http.build();
+	}
+```
+
+- No new session ID is created. However this is **NOT RECOMMENDED**
+
+<video controls src="20240825-1824-25.6523030.mp4" title="Title"></video>
+
+## Authentication Events
+
+![alt text](image-81.png)
+
+- Lets say on successful authentication, you may want to send an email to an end user saying that you have successfully authenticated, just informing the end user about the login operation. This might be required for the super critical applications, and similarly, in the scenarios of authentication failure also, you may want to send an email or you may want to make an entry inside the database about failure attempts happened.
+- To handle these kind of requirements, Spring Security is going to publish events whenever an authentication is going to be successful and whenever the authentication is a failure. We have an event with the name **AuthenticationSuccessEvent** and **AuthenticationFailureEvent**
+- So **AuthenticationSuccessEvent** is going to be published by the Spring Security Framework whenever the login operation or the authentication operation is successful. On the similar lines, Spring Security's also going to publish an **AuthenticationFailureEvent** in the scenarios when the login operation is failed due to invalid credentials or due to any other reason.
+- So, these events, they are going to be published by a class **DefaultAuthenticationEventPublisher** inside the Spring Security Framework.
+- We as developers, if we want to execute some business logic based upon these events, we don't have to make a lot, many changes. We just have to build event listeners to listen to these success events and failure events. So, how to do that, it's very simple.
+- We need to first create a bean. Inside this bean, we can define normal methods, like `onSuccess()`, `onFailure()`. These method names can be anything, but please make sure these methods are accepting the input, same as the **AuthenticationSuccessEvent** and the **AuthenticationFailureEvent** or **AbstractAuthenticationFailureEvent**.
+- Lets implement the authentication event.
+
+```
+package com.springboot.security.authenticationevent;
+
+import org.springframework.context.event.EventListener;
+import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Component
+@Slf4j // Used for logging
+public class CustomAuthenticationEvent {
+	
+	@EventListener
+	public void onUserSuccess(AuthenticationSuccessEvent successEvent) {
+		log.info("Login successful for the user : {}", successEvent.getAuthentication().getName());
+	}
+	
+	@EventListener
+	public void onUserFailure(AbstractAuthenticationFailureEvent failureEvent) {
+		log.error("Login failed for the user : {} due to : {}", failureEvent.getAuthentication().getName(),
+				failureEvent.getException().getMessage());
+	}
+}
+```
+
+- Post running the application we can see the log printed on the console.
+
+```
+On Success
+mc.s.s.a.CustomAuthenticationEvent- Login successful for the user : abc@gmail.com
 
 
+On Failure
+mc.s.s.a.CustomAuthenticationEvent- Login failed for the user : abc1@gmail.com due to : Customer Email Id - abc1@gmail.com does not exists
+```
 
-
-
-
-
-
-
-
-
-
-
-
+- `getName()` provides the name of the user who is trying to enter the credentails, incase of failure `failureEvent.getException().getMessage()` shows the failure message that user does not exists or invalid password etc..
 
 
 

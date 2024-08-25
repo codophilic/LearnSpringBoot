@@ -29,16 +29,18 @@ public class ProjectSecurityConfigurationNonProd {
 	/**
 	 * Customize Spring Securities
 	 * - permitAll() -> Allows end user to access all the pages without asking any logging credentials
-	 * - denyAll() -> Allows end user to perfom login but denies end user to access the page even though the user is authorized to access it.
+	 * - denyAll() -> Allows end user to perform login but denies end user to access the page even though the user is authorized to access it.
 	 */
 	@Bean
 	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-		http.requiresChannel(rcc->rcc.anyRequest().requiresInsecure()) // ONLY HTTP ALLOWED
+		http 
+		.sessionManagement(i->i.invalidSessionUrl("/invalid-session").maximumSessions(1).maxSessionsPreventsLogin(true)) // Re-directs to invalid-session url page when session becomes invalid. Only 1 session allowed per user and prevents another session being created.
+		.requiresChannel(rcc->rcc.anyRequest().requiresInsecure()) // ONLY HTTP ALLOWED
 		.csrf(i->i.disable())
 		.authorizeHttpRequests((requests) -> requests.
 				requestMatchers("/accounts").hasRole("admin").
 				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
-				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}","/denied").permitAll()
+				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}","/denied","/invalid-session").permitAll()
 				);
 		http.formLogin(withDefaults());
 		//http.formLogin(i->i.disable());
