@@ -3,7 +3,7 @@
 
 # Need of Security
 
-![alt text](image-5.png)
+![alt text](Images/springbootsecurity/image-5.png)
 
 
 
@@ -34,7 +34,7 @@ public class BankController {
 }
 ```
 
-![alt text](image.png)
+![alt text](Images/springbootsecurity/image.png)
 
 - Now lets add Spring Security dependencies in pom file.
 
@@ -47,17 +47,17 @@ public class BankController {
 
 - Lets again access `/welcome` url.
 
-![alt text](image-1.png)
+![alt text](Images/springbootsecurity/image-1.png)
 
 - Thats weird , we have not created any login page ? how did it appear?, all magic of Spring Boot Security.
 - If you add Spring Security to your project without any customization, Spring Boot automatically generates a very basic login page at the `/login` URL. This page includes simple username and password fields.
 - What is the user name and password?, initially when we added spring boot security dependencies, the default user name is **user** and the password for the user name is generated on the console.
 
-![alt text](image-2.png)
+![alt text](Images/springbootsecurity/image-2.png)
 
 - Use the user name as **user** and enter the password which is generated in console and try to login.
 
-![alt text](image-3.png)
+![alt text](Images/springbootsecurity/image-3.png)
 
 - By default, Spring Security will assume and protect each and every API and MVC path available inside your project.
 - Where is the login page located? how the user name and password is being getting generated? lets see
@@ -66,12 +66,12 @@ public class BankController {
     - The login page is provided by the **DefaultLoginPageGeneratingFilter** class within the Spring Security framework. This filter is responsible for generating the login page when one is not explicitly defined by the application.
     - Under class **generateLoginPageHtml** you will able to find the html piece of code for the login page.
 
-<video controls src="20240817-0344-34.1771385.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity/20240817-0344-34.1771385.mp4" title="Title"></video>
 
 - **User name and Password**:
     - User name and Password is present under the class **SecurityProperties**, if you see the user name is fixed which is **user** but the password is getting generated randomly. So whenever you restart your web application, you'll be seeing a different password in the console.
 
-<video controls src="20240817-0348-35.2661921.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity/20240817-0348-35.2661921.mp4" title="Title"></video>
 
 - Can we customize the user name and password? , of course, in the **application.properties** you can defined your user name and password, but what will the key in the property file? if you see there is a `@ConfigurationProperties(prefix = "spring.security")` above **SecurityProperties**, by using `spring.security.user.name` and `spring.security.user.password`. 
 
@@ -89,28 +89,28 @@ spring.security.user.password=${SPRINGBOOT_PASSWORD:password@1234}
 - Lets create a system environment variable **SPRINGBOOT_USERNAME**, we won't create **SPRINGBOOT_PASSWORD** and use default password which is `password@1234`. You need to configured that new system environment variable into eclipse and then run it as configuration.
 
 
-<video controls src="20240817-0518-06.8202911.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity/20240817-0518-06.8202911.mp4" title="Title"></video>
 
 - If still facing issue with enviroment variables you can add it in the **Run As -> Run Configuration -> Environment -> Select -> (select the variable name)**.
 
-![alt text](image-4.png)
+![alt text](Images/springbootsecurity/image-4.png)
 
 >[!NOTE]
 > - If any environment variable is created/deleted or update you need to stop start you eclipse/STS IDE.
 
 - What if it try to login with another tab within the browser? or try to refresh the same page ?
 
-<video controls src="20240817-0333-02.9513369.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity/20240817-0333-02.9513369.mp4" title="Title"></video>
 
 - Behind the scenes Spring boot security also manages sessions automatically.
 
 - Inpsect your page and go to application , you will a JSESSION ID
 
-![alt text](image-10.png)
+![alt text](Images/springbootsecurity/image-10.png)
 
 - Open a new tab, and go application you will get the same JSESSION ID
 
-![alt text](image-11.png)
+![alt text](Images/springbootsecurity/image-11.png)
 
 - If we edit the JESSION ID, it will tell us to login again.
 - The login page has a JSESSIONID value. Behind the scenes, the Spring Security framework, it is going to remember this JSESSIONID value belongs to an unauthenticated user. That's why as a next step, when we try to log in into the application and once the authentication is successful, we are going to get a new JSESSIONID value. For the same, I'm going to enter the username as HarshPandya followed by password@1234 as a password.
@@ -120,7 +120,7 @@ spring.security.user.password=${SPRINGBOOT_PASSWORD:password@1234}
 
 ## Spring Security Internal flow
 
-![alt text](image-7.png)
+![alt text](Images/springbootsecurity/image-7.png)
 
 - Now, let's try to understand the internal flow of Spring Security Framework.
 ### Step 1
@@ -222,18 +222,18 @@ FilterChainProxy - Invoking CorsFilter (5/16)
 - If you see there are over 16 filters applied when we hit **/welcome** page. Lets focus in **AuthorizationFilter** class. Under that there is a method **doFilter()** which checks if the request is authorize or not, if not then it throws an exception as 'Access Denied' . This results to generate a login page using **DefaultLogoutPageGeneratingFilter**.
 - Here **UsernamePasswordAuthenticationFilter** filter is invoked for authentication which extends an abstract class **AbstractAuthenticationProcessingFilter** in the below flow. 
 
-![alt text](image-8.png)
+![alt text](Images/springbootsecurity/image-8.png)
 
-![alt text](image-9.png)
+![alt text](Images/springbootsecurity/image-9.png)
 
 - Lets create a bank based web application, where there would be tab urls for **Accounts, Balance, Cards, Contact, Loans and Notice**.
 - Lets create different controller for these.
 
-![alt text](image-12.png)
+![alt text](Images/springbootsecurity/image-12.png)
 
 - By default all the MVC paths are secured by spring boot, it is not always necessary to secure all the paths e.g for contact & notice pages you don't require any security. How to do this? - first let us understand how all MVC path are secured? so under **SpringBootWebSecurityConfiguration** there is a static block which has a method **defaultSecurityFilterChain**
 
-![alt text](image-13.png)
+![alt text](Images/springbootsecurity/image-13.png)
 
 - `@Configuration` annotation indicates that the class defines beans, which are methods annotated with @Bean. These beans will be managed by Spring's application context.
 - `proxyBeanMethods = false` attribute is used to optimize performance by not creating proxy beans for method calls within the same class.
@@ -292,7 +292,7 @@ public class ProjectSecurityConfiguration {
 	}
 ```
 
-![alt text](image-14.png)
+![alt text](Images/springbootsecurity/image-14.png)
 
 - `permitAll()` allows end user to access all the pages without asking any logging credentials.
 
@@ -308,7 +308,7 @@ public class ProjectSecurityConfiguration {
 	}
 ```
 
-![alt text](image-15.png)
+![alt text](Images/springbootsecurity/image-15.png)
 
 - `denyAll()` allows end user to perfom login but denies end user to access the page even though the user is authorized to access it.
 - So now lets secure pages only of `/accounts`, `/balance`, `/cards` & `/loans` and provide permit all to `/contact` & `/notice`
@@ -326,7 +326,7 @@ public class ProjectSecurityConfiguration {
 	}
 ```
 
-<video controls src="20240817-1845-41.6415042.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity/20240817-1845-41.6415042.mp4" title="Title"></video>
 
 - Our require MVC path got secured , but if you see when we try to login on `/welcome` path, we got 403 error which unauthorized. So basically if we don't specify any path under `authenticated` or `permitAll` it will go under `denyAll`.
 - If you see the code `http.formLogin(withDefaults());` due to this the `/login` page is invoked, what if we disable it?
@@ -344,7 +344,7 @@ public class ProjectSecurityConfiguration {
 	}
 ```
 
-![alt text](image-16.png)
+![alt text](Images/springbootsecurity/image-16.png)
 
 - If you disable form login, you will need to provide another mechanism for authentication, such as HTTP Basic authentication, OAuth2, JWT, etc., or your custom login process. Currently if you see `httpBasic` authentication is available , due to which we got this page. This is a simple authentication scheme built into the HTTP protocol. When you enable it in Spring Security, the browser will show a basic authentication dialog box whenever you try to access a protected resource.
 
@@ -354,20 +354,20 @@ public class ProjectSecurityConfiguration {
 - If we disable `httpBasic()` authentication filter then the Spring security will give 403 error.
 - Lets try to hit the bank application urls using postman.
 
-![alt text](image-17.png)
+![alt text](Images/springbootsecurity/image-17.png)
 
 - To access and protected page, we need to provide credentials while sending the request via postman. So in the **Auth** you need to select basic authentication and entered user name and password.
 
 
-<video controls src="20240818-0609-37.0874476.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity/20240818-0609-37.0874476.mp4" title="Title"></video>
 
 -  If you see in the headers value are in base64 encoded format. Below when we decode it we get **user_name:password**. You can also see JSESSION ID present in the headers.
 
-![alt text](image-18.png)
+![alt text](Images/springbootsecurity/image-18.png)
 
 - Lets say we hit the url contact with **POST** http method, what will happen? `/contact` has `permitAll()` so it may pass the security right? NO, here spring security will still try to perform authentication because of CSRF protection. In CSRF attack, attackers inject malicious scripts which in terms of API they **POST** ( create a new resource ) these scripts. So in spring by default for except for **GET** all the http method will be authenticated.
 
-![alt text](image-39.png)
+![alt text](Images/springbootsecurity/image-39.png)
 
 - Currently we are authenticate using a single user details? what if there are multiple users ? so there are two ways, either you have a database where you could store all the user details or if spring has some memory which can keep this user details or **InMemoryUserDetailsManager**
 
@@ -376,11 +376,11 @@ public class ProjectSecurityConfiguration {
 
 - In the spring security internal flow , we have saw the there is an **UserDetailsService** .
 
-![alt text](image-19.png)
+![alt text](Images/springbootsecurity/image-19.png)
 
 - **UserDetailsService** is an interface which is extended by **UserDetailsManager**. The **UserDetailsManager** is implemented by **InMemoryUserDetailsManager** as well as by **JdbcUserDetailsManager**.
 
-![alt text](image-20.png)
+![alt text](Images/springbootsecurity/image-20.png)
 
 - So to add multiple user we need to create a bean of **UserDetailsService** under our ProjectSecurityConfiguration config class.
 
@@ -393,11 +393,11 @@ public class ProjectSecurityConfiguration {
 
 - Okay but how do we create users? if we open the UserDetailsService interface we will be able to see **UserDetails** return type.
 
-![alt text](image-21.png)
+![alt text](Images/springbootsecurity/image-21.png)
 
 - So **UserDetails** is an interface which is implemented by **User** class , the **User** class provide some instance variables like username and password.
 
-![alt text](image-22.png)
+![alt text](Images/springbootsecurity/image-22.png)
 
 - So lets create users using User class.
 
@@ -440,11 +440,11 @@ In InMemoryUserDetailsManager class,
 
 - When we try to login , on the console we can observer it is showing **Access Denied**
 
-![alt text](image-24.png)
+![alt text](Images/springbootsecurity/image-24.png)
 
 - I am entering a wrong password? nope, even after entering write password we get an access denied error , this is because the password we entered are converted into encoded format and during the build time of new user the password is still is in plain text format. So due to mismatch between encoded password from the frontend and plain text password during the build of new user, we get access denied error. Below is the image when the user1 is build and the password is in plain text format.
 
-![alt text](image-25.png)
+![alt text](Images/springbootsecurity/image-25.png)
 
 - When you enter a password on a login page, Spring Security automatically encodes the entered password using the configured `PasswordEncoder`. If you're storing passwords in plain text within InMemoryUserDetailsManager, you need to tell Spring Security not to encode or check the encoding of these passwords. This is where `{noop}` comes into play. `{noop}` is a prefix used to indicate that the password is stored in plain text and should not be encoded.
 
@@ -461,17 +461,17 @@ In InMemoryUserDetailsManager class,
 
 - Using new user details we were able to login
 
-![alt text](image-23.png)
+![alt text](Images/springbootsecurity/image-23.png)
 
 - Using `{noop}` is not a good choice . It should be always in hashed or encrypted format. So spring security provides some default hashing and encrypted method under interface **PasswordEncoder**
 
-![alt text](image-47.png)
+![alt text](Images/springbootsecurity/image-47.png)
 
-![alt text](image-26.png)
+![alt text](Images/springbootsecurity/image-26.png)
 
 - The interface **PasswordEncoder** is implemented by multiple class , lets checkout **PasswordEncoderFactories**
 
-![alt text](image-27.png)
+![alt text](Images/springbootsecurity/image-27.png)
 
 - There are multiple encoding format which you can prefer but most of them are deprecated. If you see the , the default password encryption provided by Spring security is **Bcrypty**.
 - Lets implement this in our ProjectSecurityConfiguration class.
@@ -548,7 +548,7 @@ public class ProjectSecurityConfiguration {
 
 - Here we mentioned prefix `{bcrypt}` saying spring to treat out password in bcrypt format. Post running we will be able to logged in into our application.
 
-![alt text](image-28.png)
+![alt text](Images/springbootsecurity/image-28.png)
 
 - We can have encoding format vary based on different user like below.
 
@@ -573,13 +573,13 @@ public class ProjectSecurityConfiguration {
 
 - Lets dive into **CompromisedPasswordChecker**, so **CompromisedPasswordChecker** is an interface which is implemented by **HaveIBeenPwnedRestApiPasswordChecker()**. Below is the code for **HaveIBeenPwnedRestApiPasswordChecker()**
 
-![alt text](image-29.png)
+![alt text](Images/springbootsecurity/image-29.png)
 
 - If you see it uses an api url `https://api.pwnedpasswords.com/range/` .  [This](https://haveibeenpwned.com/API/v3) is an open source api which helps to check if a password could be compromise or not. So using this api, to check whether a password could be compromise or not , spring security provides **HaveIBeenPwnedRestApiPasswordChecker** class.
 
 - Lets run the application and try to use our existing user1 password which is `password1`.
 
-![alt text](image-30.png)
+![alt text](Images/springbootsecurity/image-30.png)
 
 - So lets change the password for user1 to `thisCouldBe@1234` and user2 to `thisCoundNotBe@1234` (use the bcrypt generated password for it) and re run the application.
 
@@ -592,7 +592,7 @@ public class ProjectSecurityConfiguration {
 	}
 ```
 
-![alt text](image-31.png)
+![alt text](Images/springbootsecurity/image-31.png)
 
 - The HaveIBeenPwnedRestApiPasswordChecker is a component that integrates with the "Have I Been Pwned" (HIBP) API to check if a password has been exposed in known data breaches.
 
@@ -619,14 +619,14 @@ It provides an API that developers can use to check whether a specific password 
 - There are many applications like third-party applications that integrate with Google Workspace for authentication use OAuth or OpenID Connect to retrieve user details. These applications rely on Google’s identity service to authenticate users but do not manage user accounts directly.
 
 
-![alt text](image-32.png)
+![alt text](Images/springbootsecurity/image-32.png)
 
 >![NOTE]
 > - You won't see directly LDAP implementation for UserDetailsManager , you need to include additional dependencies for it.
 
 - The UserDetails interface is implemented by User along with additional methods.
 
-![alt text](image-6.png)
+![alt text](Images/springbootsecurity/image-6.png)
 
 
 - Uptil now we have seen 
@@ -637,15 +637,15 @@ It provides an API that developers can use to check whether a specific password 
 - Now lets use database to store user details. In order to store the **UserDetailsManager** in database we have **JdbcUserDetailsManager**.
 - So now first lets create a schema **springbootsecurityjdbc** in our MySQL database.
 
-![alt text](image-33.png)
+![alt text](Images/springbootsecurity/image-33.png)
 
 - If we see **JdbcUserDetailsManager** it implements **JdbcDaoImpl** and inside the **JdbcDaoImpl** we can see variable *DEFAULT_USER_SCHEMA_DDL_LOCATION* which has path where the DDL for creation of tables related to UserDetailsManager scripts are present
 
-![alt text](image-34.png)
+![alt text](Images/springbootsecurity/image-34.png)
 
-![alt text](image-35.png)
+![alt text](Images/springbootsecurity/image-35.png)
 
-![alt text](image-36.png)
+![alt text](Images/springbootsecurity/image-36.png)
 
 - Lets run the script in our MySQL database and create the tables for it.
 
@@ -656,7 +656,7 @@ create table authorities (username varchar(50) not null,authority varchar(50) no
 create unique index ix_auth_username on authorities (username,authority);
 ```
 
-![alt text](image-37.png)
+![alt text](Images/springbootsecurity/image-37.png)
 
 - Lets create users two additional users, user3 and user4
 
@@ -668,7 +668,7 @@ INSERT INTO `users` VALUES ('user4', '{bcrypt}$2a$12$u9OWWnVS0oAil3235w60eejI93U
 INSERT INTO `authorities` VALUES ('user4', 'admin');
 ```
 
-<video controls src="20240818-1609-07.1099655.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity/20240818-1609-07.1099655.mp4" title="Title"></video>
 
 - If you see **username** of username table is a foreign key of authorities table.
 
@@ -784,7 +784,7 @@ public class ProjectSecurityConfiguration {
 
 - Post running the spring boot application, we were able to login with the user defined in the database.
 
-![alt text](image-38.png)
+![alt text](Images/springbootsecurity/image-38.png)
 
 - In several applications, it is not necessary that the end user must have user name, they must also have an option to register or login in using email id.
 - Lets create a customer table which will have email id, password and role. Here we will use **Hibernate and JPA**.
@@ -930,7 +930,7 @@ public Person(String name, int age, String address) {
 - An application will be appear asking for exe path of all your IDEs. 
 - Click on **Specify Location** (if your IDE is not automatically detected) and provided the complete exe path
 
-![alt text](image-40.png)
+![alt text](Images/springbootsecurity/image-40.png)
 
 - Click on **Install/Update**. 
 - Restart your IDE and it will work. The getters setters method will be shown along with derived query method for JpaRepository will also appear.
@@ -1050,7 +1050,7 @@ public class CustomerService implements UserDetailsService{
 - Since our **CustomerService** class implements the interface **UserDetailsService**, the logic for unimplemented method **loadUserByUsername** needs to be address in the CustomerService class. So here since to identify our customer we will be having email id as user name for UserDetailsService, to get the details we use derived query of JpaRepository. If customer does not exists we need to throw `throw new UsernameNotFoundException("Customer Email Id - "+userEmailId+" does not exists");`.
 - If the customer exists we need to send the data but in **UserDetails** format. Again **UserDetails** is an interface which is implemented by **User** so we need to send the data into **User** type. User Class instance requires user name, password and list of granted authorities or roles.
 
-![alt text](image-41.png)
+![alt text](Images/springbootsecurity/image-41.png)
 
 - Method **saveCustomerDetails** is to register new customer, now the new customer password needs to be encoded for which we require **PasswordEncoder**. 
 
@@ -1167,7 +1167,7 @@ public class ProjectSecurityConfiguration {
 
 - Now lets try to create or register a user.
 
-![alt text](image-42.png)
+![alt text](Images/springbootsecurity/image-42.png)
 
 - Why we got this error? when we hit the url with **POST** http method spring security will try to perform authentication because of CSRF protection. In CSRF attack, attackers inject malicious scripts which in terms of API they **POST** ( create a new resource ) these scripts. So in spring by default for except for **GET** all the http method will be authenticated. So we need to temporarily disable the CSRF.
 
@@ -1191,28 +1191,28 @@ Disabling csrf
 - Lets try to hit the registration api
 
 
-![alt text](image-43.png)
+![alt text](Images/springbootsecurity/image-43.png)
 
 - Hooray, we were able to register the customer.
 
-![alt text](image-44.png)
+![alt text](Images/springbootsecurity/image-44.png)
 
 - Now fetch the customer via login page of accounts or using api.
 
-![alt text](image-45.png)
+![alt text](Images/springbootsecurity/image-45.png)
 
 - Why we are getting 401 unauthorized error? because in the **ProjectSecurityConfiguration**, we have specified to **JdbcUserDetailsManager** . If you have multiple beans of type **UserDetailsService** (like **JdbcUserDetailsManager** or **InMemoryUserDetailsManager** and your custom **CustomerService**), Spring Security might not know which one to use, potentially leading to issues. To comment out other and keep only 1 configuration and re-run the application.
 
-- ![alt text](image-46.png)
+- ![alt text](Images/springbootsecurity/image-46.png)
 
 - So this is how you implement a customize **UserDetailsService** , here we typically used to fetch the customer based on their mail id.
 
 
 ## Encoding VS Encryption VS Hashing
 
-![alt text](image-48.png)
+![alt text](Images/springbootsecurity/image-48.png)
 
-![alt text](image-49.png)
+![alt text](Images/springbootsecurity/image-49.png)
 
 | **Concept**  | **Purpose**                                           | **Reversible** | **Security**                             | **When to Use**                                                   |
 |--------------|-------------------------------------------------------|----------------|------------------------------------------|-------------------------------------------------------------------|
@@ -1222,17 +1222,17 @@ Disabling csrf
 | **Hashing**  | Generate a unique, fixed-size string for data integrity or secure storage. | No             | Used for security, but not reversible    | When verifying data integrity or securely storing passwords.         |
 
 
-![alt text](image-50.png)
+![alt text](Images/springbootsecurity/image-50.png)
 
-![alt text](image-51.png)
+![alt text](Images/springbootsecurity/image-51.png)
 
-![alt text](image-52.png)
+![alt text](Images/springbootsecurity/image-52.png)
 
-![alt text](image-53.png)
+![alt text](Images/springbootsecurity/image-53.png)
 
-![alt text](image-54.png)
+![alt text](Images/springbootsecurity/image-54.png)
 
-![alt text](image-55.png)
+![alt text](Images/springbootsecurity/image-55.png)
 
 >[!TIP]
 > - For storing password in your database always recommended to do hashing. For login retrieval purpose hash the input and compare the input with the database for the particular user. 
@@ -1244,7 +1244,7 @@ Disabling csrf
 - When a user logs in, they provide their plain-text password. The **BCryptPasswordEncoder** retrieves the stored hash and salt for that user.
 - It applies the same hashing algorithm to the provided password using the stored salt. The generated hash is compared to the stored hash. If they match, the authentication is successful.
 
-![alt text](image-56.png)
+![alt text](Images/springbootsecurity/image-56.png)
 
 >[!NOTE]
 > - As per Spring Security 6+ the recommended hash function is **BCrypt**. If in future if this BcryptPasswordEncoder has becomes weak, then obviously Spring Security team is going to move on to the more advanced password encoder and they're going to make that as a default one.
@@ -1263,11 +1263,11 @@ Disabling csrf
 - In such case , you need to have multiple authentication providers, but how will you manage those authentication providers? for that we will have layer called **ProviderManager**, but how the **ProviderManager** knows which authentication provider to call when the user tries to access the protected pages? like when user is login via gmail call the gmail authentication provider, if user is tries to login via meta then call the meta authentication provider? , the **ProviderManager** will come to know about it based on the **Type of Authentication Object**.
 
 
-![alt text](image-57.png)
+![alt text](Images/springbootsecurity/image-57.png)
 
 - Before we try to implement our own **AuthenticationProvider** , first lets try to understand about how it works?
 
-![alt text](image-58.png)
+![alt text](Images/springbootsecurity/image-58.png)
 
 - The **AuthenticationProvider** consist of two methods `authenticate()` and `supports()`. Lets try to understand these methods.
 	- `authenticate(Authentication authentication)`: This method attempts to authenticate the user based on the provided Authentication object (e.g., containing the username and password). If successful, it returns a fully authenticated Authentication object. If authentication fails, it can throw an exception.
@@ -1278,7 +1278,7 @@ Disabling csrf
 Passes this Authentication object to the **AuthenticationManager** for authentication.
 - The **ProviderManager** is the default implementation of **AuthenticationManager** in Spring Security.
 
-![alt text](image-59.png)
+![alt text](Images/springbootsecurity/image-59.png)
 
 -  **ProviderManager** holds a list of **AuthenticationProviders**.
 - When its `authenticate()` method is called (e.g., by **UsernamePasswordAuthenticationFilter**), it iterates through its list of **AuthenticationProviders**.
@@ -1360,7 +1360,7 @@ mo.s.s.a.ProviderManager-  Authenticating request with CustomAuthenticationProvi
 UnAuthorized Email ID, message from Custom Authentication
 ```
 
-![alt text](image-60.png)
+![alt text](Images/springbootsecurity/image-60.png)
 
 
 - There are lower environments like DEV (development), SIT (System Integration Testing) and UAT (User Acceptance Testing) where you perform heavy testing and during testing you may need to bypass the security just to test the core functionality of your application.
@@ -1446,12 +1446,12 @@ spring.config.import=production.properties,UAT.properties
 - Lets run the application and check whether the profiles are correctly getting load or not.
 
 
-<video controls src="20240822-0152-54.1744559.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity/20240822-0152-54.1744559.mp4" title="Title"></video>
 
 - It working, but if you see we need to change the `spring.profiles.active` again and again to load the specific property file, this there is possibility of human error, like you are running your test cases by making `spring.profiles.active` to uat but when you are moving to production if your forgot to change thr profiles active , then it will cause a major trouble.
 - So lets keep our active profile to **security_production**, but while running your application lets specify active profile configuration as `SPRING_PROFILES_ACTIVE=security_UAT` or `spring_profiles_active=security_UAT`.
 
-<video controls src="20240822-0209-38.7006712.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity/20240822-0209-38.7006712.mp4" title="Title"></video>
 
 - If you see the properties defined in the profile will be loaded by spring during deployment, but the underlying code is still active for all the profiles, it means even if you are testing then you need to provide valid login credentials, what if you can still seperate your code dependending on active profile? , yes using `Profile` annotation
 - So lets create a non production authentication provider
@@ -1573,18 +1573,18 @@ public class CustomAuthenticationProvider implements AuthenticationProvider{
 
 - Post running for UAT profile, we just specified only one character for password. This way developers & tester can test the core functionality of application.
 
-![alt text](image-61.png)
+![alt text](Images/springbootsecurity/image-61.png)
 
-![alt text](image-62.png)
+![alt text](Images/springbootsecurity/image-62.png)
 
 
 - Lets say you have an application running on production, so all your request must have HTTPS protocol but when you are working on your development its not necessary to work with HTTPS , you can also work with HTTP.
 - By default in SpringBoot if we don't specify request method protocol , it considers both (HTTP as well as HTTPS).
 - So currently we have a user mail id with `abc@gmail.com` with password `beezz@123` and we have allowed any password since we are running the application under **security_UAT** profile.
 
-![alt text](image-63.png)
+![alt text](Images/springbootsecurity/image-63.png)
 
-![alt text](image-64.png)
+![alt text](Images/springbootsecurity/image-64.png)
 
 - Now to allow HTTP only in case of UAT profile and HTTPS in case of production profile. We need to create two seperate **ProjectSecurityConfiguration** configurations for each of these profile. Using `requiresChannel(rcc->rcc.anyRequest().requiresInsecure())` we can state for UAT profile allow only HTTP request and `requiresChannel(rcc->rcc.anyRequest().requiresSecure())` allow only HTTP for production.
 
@@ -1744,7 +1744,7 @@ public class ProjectSecurityConfiguration {
 - Now lets run the application for **security_UAT** profile. It will allow only HTTP request but will throw error for HTTPS.
 
 
-<video controls src="20240825-0642-53.9066026.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity/20240825-0642-53.9066026.mp4" title="Title"></video>
 
 >[!NOTE]
 > - To send HTTPS request you need to configure SSL certificate. HTTPS (Hypertext Transfer Protocol Secure) requires a certificate to establish a secure connection between a web server and a user's browser. 
@@ -1754,7 +1754,7 @@ public class ProjectSecurityConfiguration {
 
 - Now when end user sends any unauthenticate request or any invalid credentails, currently we get this as a response
 
-![alt text](image-65.png)
+![alt text](Images/springbootsecurity/image-65.png)
 
 - This seems pretty unclear why the request got unauthorized? is the user invalid or password invalid? we don't know after looking the response. 
 - Behind the response springboot might throw any exception which ended up in such response, so can we customize this response by handling those exceptions? , we need to know about **ExceptionTranslationFilter**
@@ -1766,7 +1766,7 @@ public class ProjectSecurityConfiguration {
 
 
 
-![alt text](image-66.png)
+![alt text](Images/springbootsecurity/image-66.png)
 
 - So inside that security framework, there are two types of exceptions that may happen.
 	- **AuthenticationException** which may result into the **401** status. **401** indicates **Unauthorized** which means that the person or the client application is not authenticated (basically invalid credentials). So all the exceptions like **BadCredentialsException**, **UsernameNotFoundException** etc. they all come under the category of **AuthenticationException**.
@@ -1774,11 +1774,11 @@ public class ProjectSecurityConfiguration {
 - Spring security handles these two types of exception using **ExceptionalTranslationFilter**.
 - The responsibility of this filter is first it is going to check what is the type of exception received? If it is related to the **AuthenticationException**, it is going to invoke the **AuthenticationEntryPoint** related implementations. So **AuthenticationEntryPoint** is an interface inside the Spring Security framework, which is responsible to handle all authentication related exceptions. By default, Spring Security provide lot many **AuthenticationEntryPoint** implementations. So based upon the scenario on the flow, this ExceptionTranslationFilter, it is going to invoke one of the AuthenticationEntryPoint implementation classes.
 
-![alt text](image-67.png)
+![alt text](Images/springbootsecurity/image-67.png)
 
 -  Similarly, in the scenarios where the exception type is **AccessDeniedException**, then the responsibility of the ExceptionTranslationFilter is to invoke one of the implementation of **AccessDeniedHandler** interface.
 
-![alt text](image-68.png)
+![alt text](Images/springbootsecurity/image-68.png)
 
 - We just have to override these two interfaces and write our own logic to send our own custom response.
 
@@ -1787,18 +1787,18 @@ public class ProjectSecurityConfiguration {
 
 - Under **ExceptionTranslationFilter** there is a method **doFilter**.
 
-![alt text](image-69.png)
+![alt text](Images/springbootsecurity/image-69.png)
 
 - Inside these `doFilter()` methods, you'll be able to see inside the try block, which don't have much of the business logic. They're just trying to invoke the next filter inside the chain. So these are very happy part scenario where if there is no exception inside the flow, then this filter it is not going to do anything other than invoking the next filter inside the filter chain.
 - But in the scenario where if there is an exception happens, then this catch block is going to be executed. Inside this catch block, this method is `handleSpringSecurityException()`.
 
-![alt text](image-70.png)
+![alt text](Images/springbootsecurity/image-70.png)
 
 
 - Inside this method they're trying to check what is the instance of exception. Is this belong to the AuthenticationException or AccessDeniedException? If it is an authentication related exception, they're trying to invoke the `handleAuthenticationException`. Otherwise they're going to invoke the `handleAccessDeniedException`.
 - Inside `handleAccessDeniedException` method they're trying to invoke one more method, which is `sendStartAuthentication`.
 
-![alt text](image-71.png)
+![alt text](Images/springbootsecurity/image-71.png)
 
 - Inside this method you'll be able to see they are invoking one of the implementation of **AuthenticationEntryPoint** by invoking its `commence` method.
 - Whereas in the scenario of **AccessDeniedException**, the filter is going to call this method, which is `handleAccessDeniedException`, which calls `accessDeniedHandler` , `handle` method.
@@ -1829,16 +1829,16 @@ public class ProjectSecurityConfiguration {
 - It intercepts HTTP requests and checks for the Authorization header containing Basic credentials (username and password).
 - If credentials are present, it attempts to authenticate them using an **AuthenticationManager**. If authentication fails or if the request is unauthenticated (no credentials provided) then BasicAuthenticationFilter invokes **AuthenticationEntryPoint** via **doFilterInternal**.
 
-![alt text](image-72.png)
+![alt text](Images/springbootsecurity/image-72.png)
 
 - **BasicAuthenticationEntryPoint** is a specific implementation of **AuthenticationEntryPoint** designed to handle HTTP Basic Authentication. It sends a 401 Unauthorized response with a `WWW-Authenticate: Basic` header, prompting the client to provide credentials.
 - When we entered invalid credentails using postman we got 401 Unauthorized as response. When you check the response headers we can see below things
 
-![alt text](image-73.png)
+![alt text](Images/springbootsecurity/image-73.png)
 
 - In the headers the `WWW-Authenticate` and HTTPStatus is set by **BasicAuthenticationEntryPoint**.
 
-![alt text](image-74.png)
+![alt text](Images/springbootsecurity/image-74.png)
 
 - Spring Security provides several implementations of **AuthenticationEntryPoint**:
 	- **BasicAuthenticationEntryPoint**: Used for HTTP Basic Authentication.
@@ -1934,13 +1934,13 @@ Non-production project security
 
 - Now lets run the application and see the response.
 
-<video controls src="20240825-0933-45.3207199.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity/20240825-0933-45.3207199.mp4" title="Title"></video>
 
 - Lets say if you have mutliple authentication like basic authentication, O2Auth authentication etc.. in such case if you wanna define a global exception then we can use `http.exceptionHandling(i->i.authenticationEntryPoint(new CustomAuthenticationExceptionHandling()));`
 - Lets create our custom **AccessDeniedException**. **AccessDeniedException** is an exception in Spring Security that is thrown when an authenticated user attempts to access a resource they do not have permission to access. This typically happens when the user is authenticated but does not have the necessary roles or authorities to access a specific URL or endpoint.
 - **AccessDeniedHandler is an interface that you can implement to handle AccessDeniedException globally in your application. By default, Spring Security uses a AccessDeniedHandlerImpl which returns a 403 Forbidden status without any specific handling**
 
-![alt text](image-75.png)
+![alt text](Images/springbootsecurity/image-75.png)
 
 - Lets create a **CustomAuthorizationExceptionHandling**.
 
@@ -2034,7 +2034,7 @@ public class CustomAuthorizationExceptionHandling implements AccessDeniedHandler
 
 - Lets run the application and check this.
 
-<video controls src="20240825-1128-55.9803478.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity/20240825-1128-55.9803478.mp4" title="Title"></video>
 
 - Oh wait, when we tried to login from UI, why did we got json type response? can we have a denied like page? yes.
 - Just like how we are invoking the AccessDeniedHandler, we should be able to invoke one more method, which is **AccessDeniedPage**. To this **AccessDeniedPage**, if there is a 403 error is coming, the end user will be redirected to the path denied.
@@ -2084,7 +2084,7 @@ public class DeniedController {
 
 - Now when we try to login, we will get a page like below
 
-![alt text](image-76.png)
+![alt text](Images/springbootsecurity/image-76.png)
 
 ### When is AccessDeniedHandler Recommended?
 - **REST API Applications**:
@@ -2097,7 +2097,7 @@ public class DeniedController {
 - Inside a Spring Boot application. By default, whatever session that is going to be created, once the login is completed, it is going to have a default timeout of 30 minutes.
 - Whenever user login, a JSESSIONID is associated with the user.
 
-![alt text](image-77.png)
+![alt text](Images/springbootsecurity/image-77.png)
 
 - So this JSESSIONID is created by the Spring security and Spring boot framework. By default it is going to have 30 minutes time, as a session timeout, which means if the end user is going to sit idle for 30 minutes, then this session is going to be invalidated by the Spring boot and Spring security and after the 30 minutes idle time, if the user is trying to perform some action on the UI, then the user will be redirected to the login page.
 - Lets say you wanna customize this time, you can customize it but it should be greater than 2 minutes, Spring security does not allows to have a short time out. To customize your session time out you need to configure below property in **application.properties**.
@@ -2157,7 +2157,7 @@ public class SessionManagement {
 	}
 ```
 
-<video controls src="20240825-1429-49.1883828.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity/20240825-1429-49.1883828.mp4" title="Title"></video>
 
 - **Concurrent session**: By default, the Spring Security framework is not going to enforce any constraints or any control on how many concurrent sessions an end user can have. The end user can have any number of sessions by default. But in real applications, we may want to restrict the end user to have only a single concurrent session or in some scenarios you may want to have only two or three or five concurrent sessions.
 - Lets say we wanted to have only 1 concurrent session for demonstration, so basically if users login on our page using chrome window, and then again tries to open a new browser like edge or opera window or chrome window in incognito and perform login, then the first window session will be expired automatically even before the timeout (`This session has been expired (possibly due to multiple concurrent logins being attempted as the same user).`)
@@ -2185,7 +2185,7 @@ public class SessionManagement {
 	}
 ```
 
-<video controls src="20240825-1458-36.6364007.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity/20240825-1458-36.6364007.mp4" title="Title"></video>
 
 - If a user has already logged in using first session, can we restrict out while performing another login , the session concurrency must be shown for the second loggin.
 
@@ -2193,11 +2193,11 @@ public class SessionManagement {
 http.sessionManagement(i->i.invalidSessionUrl("/invalid-session").maximumSessions(1).maxSessionsPreventsLogin(true)) // Re-directs to invalid-session url page when session becomes invalid. Only 1 session allowed per user and prevents another session being created.
 ```
 
-<video controls src="20240825-1501-57.3352502.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity/20240825-1501-57.3352502.mp4" title="Title"></video>
 
 ### Session Hijacking and Session Fixation Attack
 
-![alt text](image-78.png)
+![alt text](Images/springbootsecurity/image-78.png)
 
 #### Session Hijacking
 
@@ -2216,7 +2216,7 @@ http.sessionManagement(i->i.invalidSessionUrl("/invalid-session").maximumSession
 
 #### Session Fixation
 
-![alt text](image-79.png)
+![alt text](Images/springbootsecurity/image-79.png)
 
 
 - Think like there is a website with the name `fashionmart.com` and this website is being used extensionally by the user Emily who often shops online and she also stores her payment details for quick purchase inside these website. So Emily is a normal and good customer.
@@ -2231,7 +2231,7 @@ http.sessionManagement(i->i.invalidSessionUrl("/invalid-session").maximumSession
 - So in short, initially the hacker is going to generate a session ID and the hacker is going to provide the session ID to some other normal user and if the normal user use the same session ID to enter into the web application, then all the details of the normal user are going to be associated to the session ID which is originally shared by the hacker. And with that hacker can happily use the session ID to know the normal user details.
 - By default, if an application is using Spring Security as a dependency, Spring Security is going to take care of handling the Session Fixation Attack.
 
-![alt text](image-80.png)
+![alt text](Images/springbootsecurity/image-80.png)
 
 
 - To handle the Session Fixation Attack there are three different strategies.
@@ -2242,7 +2242,7 @@ http.sessionManagement(i->i.invalidSessionUrl("/invalid-session").maximumSession
 	- If you see below, as soon as user login the JSESSIONID got changed. The hacker will never know what is the new session ID that got generated on the normal person computer and with that he/she should not be able to see the extra details.
 	- So this is the default approach that is being used by the Spring Security and Spring Boot framework as of now. So this approach is introduced as part of the servlet 3.21 update.
 
-<video controls src="20240825-1755-35.1181270.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity/20240825-1755-35.1181270.mp4" title="Title"></video>
 
 
 2. **NewSession**:
@@ -2333,11 +2333,11 @@ http.sessionManagement(i->i.invalidSessionUrl("/invalid-session").maximumSession
 
 - No new session ID is created. However this is **NOT RECOMMENDED**
 
-<video controls src="20240825-1824-25.6523030.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity/20240825-1824-25.6523030.mp4" title="Title"></video>
 
 ## Authentication Events
 
-![alt text](image-81.png)
+![alt text](Images/springbootsecurity/image-81.png)
 
 - Lets say on successful authentication, you may want to send an email to an end user saying that you have successfully authenticated, just informing the end user about the login operation. This might be required for the super critical applications, and similarly, in the scenarios of authentication failure also, you may want to send an email or you may want to make an entry inside the database about failure attempts happened.
 - To handle these kind of requirements, Spring Security is going to publish events whenever an authentication is going to be successful and whenever the authentication is a failure. We have an event with the name **AuthenticationSuccessEvent** and **AuthenticationFailureEvent**
