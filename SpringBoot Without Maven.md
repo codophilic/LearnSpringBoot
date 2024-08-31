@@ -930,6 +930,7 @@ error.email.invalid=Le format de l'email est invalide
 
 - Above learnings are implemented [here](https://github.com/codophilic/LearnSpringBoot/tree/main/SpringBoot%20Without%20Maven/api)
 
+- Lets learn about [Spring Boot Security](https://github.com/codophilic/LearnSpringBoot/blob/main/SpringBoot%20Security.md#about-springboot-security)
 
 
 
