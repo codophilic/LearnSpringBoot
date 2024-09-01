@@ -862,37 +862,196 @@ xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
 <video controls src="20240831-1915-07.3404230.mp4" title="Title"></video>
 
 **How It Works?**
-    - Integration with Spring Security: Thymeleaf, with the help of thymeleaf-extras-springsecurity6, integrates with Spring Security to evaluate expressions like isAnonymous() and isAuthenticated(). It checks the user's current security context to determine their authentication status or roles.
-    - Rendering Logic: When Thymeleaf processes the HTML template, it evaluates each sec:authorize expression. If the expression evaluates to true, the element and its content are rendered in the final HTML output. If the expression evaluates to false, the element is not included in the output.
+    - Integration with Spring Security: Thymeleaf, with the help of `thymeleaf-extras-springsecurity6`, integrates with Spring Security to evaluate expressions like `isAnonymous()` and `isAuthenticated()`. It checks the user's current security context to determine their authentication status or roles.
+    - Rendering Logic: When Thymeleaf processes the HTML template, it evaluates each `sec:authorize` expression. If the expression evaluates to true, the element and its content are rendered in the final HTML output. If the expression evaluates to false, the element is not included in the output.
 
 
+## Roles of SecurityContext & SecurityContextHolder
+
+![alt text](image-13.png)
+
+- Whenever the authentication is completed, for later use, the framework is going to store the already authenticated details inside the **SecurityContext**.
+- During the authentication process, an Authentication object is going to be created. Inside this Authentication object,
+we are going to have details like **Principal**, **Credentials** and **Authorities**.
+    - **Principal** is nothing but the name or the username of the authenticated user.
+    - **Credentials** is password.
+    - **Authorities** is the authorities or the rights associated to the end user.
+- This Authentication object, it also have a Boolean variable indicating whether the authentication is successful or not. Once the authentication action is completed, the Spring Security framework, it is going to store the authentication details inside the object of SecurityContext.
+- So **SecurityContext is an interface**. There is an implementation class for this interface with the name **SecurityContextImplementation (SecurityContextImpl)**.
+
+![alt text](image-14.png)
+
+- SecurityContext is going to be managed by a class with the name **SecurityContextHolder**. So this holder class is responsible to manage the details inside the SecurityContext. The holder class exposes various methods to clear the SecurityContext, to add new details to the SecurityContext, to update the SecurityContext details.
+- So all the CRUD operation related to the SecurityContext along with the other utility methods are present inside the SecurityContextHolder class.
+
+![alt text](image-15.png)
+
+- Spring Security framework is going to leverage this holder class to a great extent whenever it is trying to store or deal with the SecurityContext object.
+- We don't have to implement our own SecurityContext or our own SecurityContextHolder, but as a Spring Security developer, you should know about all these important classes and interfaces.
+- Interface **SecurityContext**  has methods to retrieve the authentication and to set the authentication details.
+
+![alt text](image-16.png)
+
+- The SecurityContext object is going to be stored inside the SecurityContextHolder. So whenever you are thinking about the SecurityContextHolder, just think about this locker like how we store valuable information inside a strong locker, very similarly, SecurityContextHolder is like a locker to store the objects of SecurityContext.
+
+![alt text](image-17.png)
+
+- By default SecurityContextHolder, it is going to store the SecurityContext by using a strategy called **ThreadLocal**. Whenever the SecurityContext details are stored inside a ThreadLocal object, what is going to happen is we don't have to explicitly pass on the SecurityContext object to all the methods that are being invoked as part of the same thread. Anywhere, if you're looking to access the Authentication details or the SecurityContext details, we should be able to easily access them without needing to pass the SecurityContext details to all the methods that are being invoked inside a thread.
+
+### MODE_THREADLOCAL
+
+- So whenever the client is sending a request to the backend application, for each request, there is going to be a new thread. So think like these of 4 request we have all threads like T1, T2, T3, and T4. Each thread may invoke hundreds of different methods during its execution. Think like this T1 is invoking hundred methods. We can't manually pass the SecurityContext object or Authentication object that is stored inside the SecurityContextHolder manually to all these hundred different methods.
+- Each of the thread, they're going to have their own ThreadLocal (TH1, TH2, TH3 and TH4). So any objects that are stored inside the ThreadLocal, they're going to be access to all the methods that are going to be invoked as part of the thread journey.
+- Apart from ThreadLocal, there are other strategies as well that Spring Security supports. We know by default ThreadLocal is going to be used. So this is that default mode, this **MODE_THREADLOCAL** should work most of the times. We don't have to change this default behavior.
+
+### MODE_INHERITABLETHREADLOCAL
+
+- But for some special scenarios, there are other modes are available. For example, there is a mode with the name **MODE_INHERITABLETHREADLOCAL**. Think like there is a client application, and there is a backend application. So this client application can be your browser. If a user is trying to send a request to the backend application, a thread is going to be created, which is T1, and inside the backend logic, somewhere you might have written some **asynchronous** logic. We have annotations like `@Async` inside the Spring framework. Whenever you are using this annotation on top of a method, the logic inside that method is going to be executed using a separate asynchronous thread. In such scenario, what is going to happen? A new thread is going to be created by your backend method
+- So these threads, we can call them as **asynchronous** thread. Let's name this asynchronous thread as T2. Technically, if you see all these threads, they are being processed inside the same request. Whenever an asynchronous thread is going to be created by the Spring framework, all the details available inside this T1, they're going to be copied into the T2 thread, which is an asynchronous thread. This way, the SecurityContext details, they're going to be available to the T2 thread as well. If you're not using this **INHERITABLE** mode, and if you're using the default THREADLOCAL mode,
+
+### MODE_GLOBAL
+
+- Whenever we are using **MODE_GLOBAL** mode, all the threads of the application, they are going to see the same SecurityContext instance or object, which means if your application is having thousands of threads, all these thousand threads, they're going to see the same SecurityContext details.
+- This mode is strictly not applicable for the web applications, because inside web applications we know different users, they're going to use your application. It will show the same user details for all the authenticated users in your application.
+- you may have question then under which scenarios we need to use is **MODE_GLOBAL** ? Think like you are building a desktop application. So usually desktop applications that are going to be used by a same user inside the same system. So if you have a scenario where you are building the desktop application, which can be used by only one user at a time, then in such scenarios you can use this MODE_GLOBAL strategy.
 
 
+- let's try to understand how to change the strategy from LOCAL to INHERITTHREADLOCAL, or from LOCAL to GLOBAL based upon your requirements. The very first approach is by using an application property with the property name as `spring.security.strategy`. To this property, you can pass the valueslike INHERITABLETHREADLOCAL and GLOBAL.
+- Otherwise, inside your application, you can create a Bean, which is going to set the strategy by invoking the `setStrategyName()` method, which is available inside the SecurityContextHolder.
+
+![alt text](image-18.png)
+
+- Load user details into your method
+
+![alt text](image-19.png)
+
+## CORS (Cross-Origin Resource Sharing)
+
+- Lets take an example to understand CORS. Imagine there are two websites:
+    - Banking Website: `https://mybank.com`
+    - Malicious Website: `https://hacker.com`
+- The banking website, `https://mybank.com`, is used by customers to check their bank balance, transfer money, etc. When a user logs in, their browser stores a session cookie that keeps them authenticated. 
+- Suppose the banking website allows any website to make requests to it. Below sort of configuration is done on the banking website.
+
+```
+Access-Control-Allow-Origin: *
+```
+
+- This header means that the server is allowing any domain or website to request its resources, which is dangerous.
+- The hacker knows about that the banking website does not have any policy configure and it allows any type of origin or website to share its resources like personal info, account balance , debit card details etc..
+- So a user of the banking application which uses the banking website `https://mybank.com` randomly during surfing landed up to the hacker website `https://hacker.com` , The attacker has placed JavaScript code on their site `(hacker.com)` that looks like this
+
+```
+fetch("https://mybank.com/api/account-balance", {
+  method: "GET",
+  credentials: "include"
+})
+.then(response => response.json())
+.then(data => {
+  console.log("Account balance:", data.balance);
+  // Attacker can use this data for malicious purposes
+});
+```
+
+- This code is trying to send a request to `https://mybank.com`to fetch the user's bank account balance. When the user loads `https://hacker.com`, the malicious JavaScript code executes in the user’s browser.
+- Now using the user details , the hacker will try to access the `https://mybank.com` pretending to be the user and since due to the misconfigured CORS policy (`Access-Control-Allow-Origin: *`), `https://mybank.com `does not reject the request and sends back the user's account balance data in response to hacker unknowingly.
+- The response data (user's account balance) is now available to the malicious JavaScript code running on `https://hacker.com`, which logs it or sends it back to the attacker’s server.
+
+- To prevent such an attack, set a specific srigin by configure the CORS policy to only allow trusted domains. For example:
+
+```
+Access-Control-Allow-Origin: https://trustedDomain.com
+```
+
+- This restricts requests only to the same origin, effectively blocking `https://hacker.com` from accessing the API. Only allow specific HTTP methods (GET, POST, etc.) that are necessary for your application. Restrict the use of potentially dangerous methods like PUT, DELETE, etc., unless absolutely required.
+
+- CORS : CORS is a security feature implemented by web browsers to prevent a web page from making requests to a different domain. This is crucial for security reasons because it stops malicious websites from reading sensitive information from another site. A CORS attack occurs when a malicious website exploits CORS misconfigurations in a web server to steal sensitive data or perform unauthorized actions on behalf of a user. **CORS is not a security threat or a security attack. It is a protection provided by the browser by blocking the communication between the different origins**.
+
+![alt text](image-20.png)
+
+- In Spring Boot Security, there are two main ways to configure CORS (Cross-Origin Resource Sharing)
+
+1. Using the `@CrossOrigin` Annotation: This method is straightforward and useful for simple use cases. You can use the `@CrossOrigin` annotation on individual controllers or methods to enable CORS for specific endpoints. However, it becomes cumbersome when you have multiple controllers or want to manage CORS settings centrally.
+
+```
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class MyController {
+
+    @CrossOrigin(origins = "http://allowed-origin.com") // Specify allowed origin
+    @GetMapping("/api/data")
+    public String getData() {
+        return "Data from server";
+    }
+}
+```
+
+![alt text](image-21.png)
 
 
+2. Configuring CORS in the **SecurityFilterChain** HTTP Configuration: This approach is more scalable and centralized, allowing you to configure CORS globally for all endpoints or specific patterns using the SecurityFilterChain.
 
+![alt text](image-22.png)
 
+- So whenever you are using spring security inside your application, we can try to invoke the `cors()` method using the **http** parameter. To this `cors()` method, we need to provide the CORS related configurations. **CorsConfigurationSource** is an interface which will be used to provide the CORS related configurations. So using method `configureSource()` we need to pass the object of **CorsConfigurationSource**. Since this is an interface, we can't create the object of this interface. So that's why here, we are trying to define an anonymous class here. Here we are trying override the interface method available, which is `getCorsConfiguration()`.
+- Inside this method, we need to define an object of CorsConfiguration. Using this CorsConfiguration object, we need to invoke various methods like `setAllowedOrigins()`, `setAllowedMethods()`, `setAllowedCredentials()`, `setAllowedHeaders()`, and `setMax()`.
+- So the very first important method is `setAllowedOrigins()`. So with the help of this setAllowedOrigins(), we are trying to provide the list of origins from where we want to accept the traffic. If you are trying to mention multiple values, you can mention all the multiple origin details by having comma as a separator.
+- We can also let the browser to allow the traffic only for some specific http methods. For example, if I want to accept the traffic only for http get methods from a given origin,  we can configure the same under the `setAllowedMethods()`. Whereas if you're looking to accept any kind of http method traffic, you just have to mention **`*`**.
+- With the help of `setAllowedCredentials()`, we are letting the browser to send the credentials or any applicable cookies while it is trying to make a request to the backend API.
+- Next, with the help of `setAllowedHeaders()` method, we can define what are the list of headers that the backend is fine to accept from the UI application or from the different origin.
+- At last,  use the `setMaxAge()` method as well. To this `setMaxAge()` method, we are trying to pass 3600 seconds, which means one hour. So what we are telling to the browser is try to remember all these configurations for one hour. So far, one hour, it is going to cache all these details. So within one hour, if it is trying to make multiple request to the backend API, it is not going to perform the CORS policy related checks multiple times. It is going to do only for the very first time, and it is going to remember all these CORS related configurations up to one hour based upon the `maxAge()` configurations that we have done. In real applications, usually this will be set for 24 hours or for seven days.
+- Other way to define CORS configuration is 
 
+```
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
+import java.util.List;
 
+@Configuration
+public class SecurityConfig {
 
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .cors() // Enable CORS support
+            .and()
+            .authorizeRequests()
+                .anyRequest().authenticated() // Require authentication for all requests
+            .and()
+            .csrf().disable(); // Disable CSRF for simplicity, enable in production
 
+        return http.build();
+    }
 
+    @Bean
+    public CorsFilter corsFilter() {
+        CorsConfiguration corsConfig = new CorsConfiguration();
+        corsConfig.setAllowedOrigins(List.of("http://allowed-origin.com")); // Set allowed origins
+        corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE")); // Set allowed HTTP methods
+        corsConfig.setAllowedHeaders(List.of("Authorization", "Content-Type")); // Set allowed headers
+        corsConfig.setAllowCredentials(true); // Allow credentials
 
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfig); // Apply CORS configuration to all endpoints
 
+        return new CorsFilter(source);
+    }
+}
+```
 
+- By default, Spring Security does not enable CORS (Cross-Origin Resource Sharing) support. This means that if you don’t explicitly configure CORS in your Spring Security configuration or use the `@CrossOrigin` annotation, Spring Security will block any cross-origin HTTP requests.  Without explicit CORS configuration, all cross-origin requests are blocked, and the browser will throw a CORS error like No `Access-Control-Allow-Origin` header is present on the requested resource.
+- This default behavior is secure by default. It prevents malicious websites from making unauthorized requests to your application.
 
-
-
-
-
-
-
-
-
-
-
-
+![alt text](image-23.png)
 
 
 
