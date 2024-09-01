@@ -1,6 +1,7 @@
 package com.springboot.security.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -53,8 +54,11 @@ public class CustomerService implements UserDetailsService{
 		  * - password
 		  * - list of granted authorities or roles.
 		  */
-		 List<GrantedAuthority> grantedRoles = List.of(new SimpleGrantedAuthority(exists.getRole()));
-		 return new User(exists.getEmailid(),exists.getPwd(),grantedRoles);
+//		 List<GrantedAuthority> grantedRoles = List.of(new SimpleGrantedAuthority(exists.getRole()));
+		 List<GrantedAuthority> grantedAuths=exists.getCustAuthorities().stream().map(
+				 i -> new SimpleGrantedAuthority(i.getAuthority())).collect(Collectors.toList());
+		 System.out.println("Granded Authorities- "+grantedAuths);
+		 return new User(exists.getEmailid(),exists.getPwd(),grantedAuths);
 	}
 
 	public Customer saveCustomerDetails(Customer customer) {

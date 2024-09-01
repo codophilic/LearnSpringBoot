@@ -1169,7 +1169,7 @@ public class ProjectSecurityConfiguration {
 
 ![alt text](Images/springbootsecurity/image-42.png)
 
-- Why we got this error? when we hit the url with **POST** http method spring security will try to perform authentication because of CSRF protection. In CSRF attack, attackers inject malicious scripts which in terms of API they **POST** ( create a new resource ) these scripts. So in spring by default for except for **GET** all the http method will be authenticated. So we need to temporarily disable the CSRF.
+- Why we got this error? when we hit the url with **POST** http method spring security will try to perform authentication because of CSRF protection. In CSRF attack, attackers inject malicious scripts which is in terms of API they **POST** ( create a new resource ) these scripts. So in spring by default for except for **GET** all the http method will be authenticated. So we need to temporarily disable the CSRF.
 
 ```
 Disabling csrf
@@ -2386,3 +2386,359 @@ mc.s.s.a.CustomAuthenticationEvent- Login failed for the user : abc1@gmail.com d
 ```
 
 - `getName()` provides the name of the user who is trying to enter the credentails, incase of failure `failureEvent.getException().getMessage()` shows the failure message that user does not exists or invalid password etc..
+
+## Authorization or Privileges or Roles or Authorities
+
+![alt text](Images/springbootsecurity/remaining/image-1.png)
+
+- In Spring Security, authorities (or granted authorities) represent the permissions or roles assigned to a user that determine what actions they are allowed to perform within an application. These roles are used by Spring Security to enforce authorization rules, deciding whether a user has access to specific resources or functionalities based on their assigned authorities.
+- In Spring Security, the GrantedAuthority interface represents an authority or privilege that a user has. An authority is a simple string value, like "ROLE_USER" or "ROLE_ADMIN", which is used by Spring Security to make authorization decisions.
+- There are three different implementation classes for **GrantedAuthority** interface.
+
+![alt text](Images/springbootsecurity/remaining/image.png)
+
+- Among all of these, **SimpleGrantedAuthority** is the most commonly used implementation class. So let's try to open the same.
+
+![alt text](Images/springbootsecurity/remaining/image-2.png)
+
+- So this is the final class and it has a instance field with the name role. Though the field name is role, we should be able to store authority or roles information.
+- So whenever someone want to store role information or authorities information, they need to create the object of this class by invoking the constructor. To the constructor, they need to pass the, what is the role name or what is the authority name. 
+- Once the role or authority is populated during the object creation, Spring security framework code or the developers, they should be able to use the `getAuthority()` method to understand what is the role are authorities assigned to your current logged in user.
+- Now the question arises how these authorities gets stored? lets see the interface **UserDetails**
+
+![alt text](Images/springbootsecurity/remaining/image-3.png)
+
+- When using the **UserDetails** service to manage user authentication data, each UserDetails object (representing a user) contains a `Collection<? extends GrantedAuthority>` that represents the authorities granted to that user. A user may or may not have multiple roles or authorities assigned to it.
+- Thats why when we loaded the customer details using email id , we had create a list of GrantedAuthority .
+
+```
+	@Override
+	public UserDetails loadUserByUsername(String userEmailId) throws UsernameNotFoundException {
+		 Customer exists=customerDao.findByEmailid(userEmailId);
+		 if(exists==null) { // If user now found then throw exception
+			 throw new UsernameNotFoundException("Customer Email Id - "+userEmailId+" does not exists");
+		 }
+		 
+		 /**
+		  * The UserDetails is an interface which is implemented by User class. So we need to return
+		  * instance of User class.
+		  * User Class instance requires below thing
+		  * - user name
+		  * - password
+		  * - list of granted authorities or roles.
+		  */
+		 List<GrantedAuthority> grantedRoles = List.of(new SimpleGrantedAuthority(exists.getRole()));
+		 return new User(exists.getEmailid(),exists.getPwd(),grantedRoles);
+	}
+```
+
+- The **UserDetails** implementation object is typically used by the **AuthenticationProvider** to authenticate users. Now here we have defined our own **AuthenticationProvider** implementation which uses **UserDetails** implementation object.
+
+```
+Prod profile
+	@Override
+	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+		/**
+		 * Input from page or API
+		 */
+		String inputMailId=authentication.getName();
+		String inputPwd=authentication.getCredentials().toString();
+
+		/**
+		 * Custom logic like age > 10 here we are just specifying user must be abc@gmail.com only
+		 * PasswordEncoder is require to perform encoded match between the input entered password and the password 
+		 * in database
+		 */
+		if(!("abc@gmail.com").equals(inputMailId)) {
+			System.out.println("UnAuthorized Email ID, message from Custom Authentication");
+			throw new BadCredentialsException("UnAuthorized Email ID, message from Custom Authentication");
+		}
+		
+		
+		/**
+		 * Fetch Details from database
+		 */
+		UserDetails uc=customerService.loadUserByUsername(inputMailId);
+		
+		if(passwordEncoder.matches(inputPwd, uc.getPassword())) {
+			return new UsernamePasswordAuthenticationToken(uc.getUsername(),uc.getPassword(),uc.getAuthorities());
+		}
+		
+		/**
+		 * AuthenticationException is an abstract class which is implemented by multiple exceptions like
+		 * - BadCredentialsException
+		 * - UsernameNotFoundException ( this exception is thrown by loadByUserName of UserDetailsService )
+		 * .. and  many more
+		 */
+		throw new BadCredentialsException("Invalid Credentials");
+	}
+```
+
+- Once the authentication is successful, we are trying to return the object of **UsernamePasswordAuthenticationToken**, which is an implementation of Authentication interface. So to this constructor also, we need to pass what is a username, what is a password, and the authorities details that are available inside the UserDetails.
+
+![alt text](Images/springbootsecurity/remaining/image-4.png)
+
+![alt text](Images/springbootsecurity/remaining/image-5.png)
+
+### Authorities and Roles
+
+![alt text](Images/springbootsecurity/remaining/image-6.png)
+
+- In Spring Security, "authorities" and "roles" are related but have distinct meanings and usage. Here's a simple explanation of each and their differences
+
+1. **Authorities**
+	- Definition: Authorities represent specific permissions or privileges that a user has. They are usually defined as simple strings and can be thought of as granular access rights.
+	- Examples: "READ_PRIVILEGES", "WRITE_PRIVILEGES", "DELETE_PRIVILEGES".
+	- Usage: Authorities are often used to define fine-grained access control within an application. For example, a user might have the authority to read but not write data.
+2. **Roles**
+	- Definition: Roles are a higher-level abstraction that typically group multiple authorities under a common name. Roles are often used to represent broader categories of permissions.
+	- Examples: "ROLE_USER", "ROLE_ADMIN", "ROLE_MANAGER".
+	- Usage: Roles are used to simplify access control by grouping multiple authorities into a single entity. For example, the "ROLE_ADMIN" role might include all permissions necessary for administrative tasks.
+
+- Lets take an example , a role user **ROLE_USER** might include **READ_PRIVILEGES** authority whereas role **ROLE_ADMIN** might include **READ_PRIVILEGES**, **WRITE_PRIVILEGES**, and **DELETE_PRIVILEGES** authorities.
+- One more difference between AUTHORITY and ROLE is whenever you are using AUTHORITY, you are going to restrict the access in a fine-grained manner means that you are going very deep while enforcing the authorization. Whereas whenever we are using ROLE, we are going to restrict the access in a course-grained manner. Course-grained means we are going to restrict the access on a high level with the help of roles information.
+- In Spring Security framework whenever we defined any role it must have prefix **ROLE_**. But what if you wanna change the prefix?
+
+![alt text](Images/springbootsecurity/remaining/image-7.png)
+
+- Lets try to implement roles and authorities. First lets update the entity for customer and create a new entity for authorities.
+
+```
+package com.springboot.security.entities;
+
+import java.util.List;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+@Entity
+@Table(name = "customer_table")
+@Getter
+@Setter
+@ToString
+public class Customer {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private int id;
+	
+	@Column(name = "customer_emailid", unique = true)
+	private String emailid;
+	
+	@Column(name = "customer_password")
+	private String pwd;
+	
+	@Column(name = "customer_active")
+	private String isActive;
+	
+	@Column(name = "customer_role")
+	private String role;
+	
+	/**
+	 * One customer may have multiple authorities
+	 */
+	@OneToMany(mappedBy = "customer")
+	private List<CustomerAuthorities> custAuthorities;
+}
+
+
+package com.springboot.security.entities;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+@Entity
+@Table(name = "customer_authorities")
+@Getter
+@Setter
+@ToString
+public class CustomerAuthorities {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private int uniqueid;
+	
+	private String authority;
+	
+	@ManyToOne
+	@JoinColumn(name="foreignkey_cust_id", referencedColumnName = "id")
+	private Customer customer;
+}
+```
+
+- This will create new table and foreign key with name **foreignkey_cust_id** between customer table and authority tables which is based on customer id (**id**). So lets insert a data for a user.
+
+![alt text](Images/springbootsecurity/remaining/image-8.png)
+
+![alt text](Images/springbootsecurity/remaining/image-9.png)
+
+- In the service layer lets modify code for **loadUserByUsername**.
+
+```
+	@Override
+	public UserDetails loadUserByUsername(String userEmailId) throws UsernameNotFoundException {
+		 Customer exists=customerDao.findByEmailid(userEmailId);
+		 if(exists==null) { // If user now found then throw exception
+			 throw new UsernameNotFoundException("Customer Email Id - "+userEmailId+" does not exists");
+		 }
+		 
+		 /**
+		  * The UserDetails is an interface which is implemented by User class. So we need to return
+		  * instance of User class.
+		  * User Class instance requires below thing
+		  * - user name
+		  * - password
+		  * - list of granted authorities or roles.
+		  */
+//		 List<GrantedAuthority> grantedRoles = List.of(new SimpleGrantedAuthority(exists.getRole()));
+		 List<GrantedAuthority> grantedAuths=exists.getCustAuthorities().stream().map(
+				 i -> new SimpleGrantedAuthority(i.getAuthority())).collect(Collectors.toList());
+		 System.out.println("Granded Authorities- "+grantedAuths);
+		 return new User(exists.getEmailid(),exists.getPwd(),grantedAuths);
+	}
+```
+
+- Lets create restrictions in project security configuration.
+
+```
+	@Bean
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+		http 
+		.sessionManagement(i->i.invalidSessionUrl("/invalid-session").maximumSessions(1).maxSessionsPreventsLogin(true)) // Re-directs to invalid-session url page when session becomes invalid. Only 1 session allowed per user and prevents another session being created.
+		.requiresChannel(rcc->rcc.anyRequest().requiresInsecure()) // ONLY HTTP ALLOWED
+		.csrf(i->i.disable())
+		.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts").hasAuthority("VIEWACCOUNTS").
+				requestMatchers("/accounts").hasRole("ADMIN").
+				requestMatchers("/balance").hasAnyAuthority("VIEWACCOUNTS","VIEWBALANCE").
+				requestMatchers("/balance").hasRole("ADMIN").
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}","/denied","/invalid-session").permitAll()
+				);
+		http.formLogin(withDefaults());
+		//http.formLogin(i->i.disable());
+		http.httpBasic(i->i.authenticationEntryPoint(new CustomAuthenticationExceptionHandling()));
+//		http.httpBasic(withDefaults());
+		//http.httpBasic(i->i.disable());
+//		http.exceptionHandling(i->i.authenticationEntryPoint(new CustomExceptionHandling())); // Global Exception for Authentication Handling
+		http.exceptionHandling(i->i.accessDeniedHandler(new CustomAuthorizationExceptionHandling()).accessDeniedPage("/denied"));
+		return http.build();
+	}
+```
+
+- Lets run the application.
+
+```
+Output:
+Granded Authorities- [VIEWACCOUNTS, VIEWBALANCE, UPDATEBALANCE]
+```
+
+![alt text](Images/springbootsecurity/remaining/image-10.png)
+
+- Lets say if we change the role to **READ**
+
+```
+		.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts").hasAuthority("VIEWACCOUNTS").
+				requestMatchers("/accounts").hasRole("READ").
+				requestMatchers("/balance").hasAnyAuthority("VIEWACCOUNTS","VIEWBALANCE").
+				requestMatchers("/balance").hasRole("READ").
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}","/denied","/invalid-session").permitAll()
+				);
+```
+
+- We will be still able to access the endpoint. However, if your user also has any of the required authorities, like **VIEWACCOUNTS** or VIEWBALANCE, then they could still access the endpoints due to those authority checks (`hasAuthority("VIEWACCOUNTS")`, `hasAnyAuthority("VIEWACCOUNTS", "VIEWBALANCE")`).
+- Lets remove the authorities and test.
+
+```
+		.authorizeHttpRequests((requests) -> requests.
+				requestMatchers("/accounts").hasAuthority("VIEWACCOUNTS").
+				requestMatchers("/accounts").hasRole("READ").
+				requestMatchers("/balance").hasRole("READ").
+				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
+				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}","/denied","/invalid-session").permitAll()
+				);
+```
+
+![alt text](Images/springbootsecurity/remaining/image-11.png)
+
+- Its like either the role is READ or the user has required authority.
+
+![alt text](Images/springbootsecurity/remaining/image-12.png)
+
+- To handle any authorization denied request we can implement the below method
+
+![alt text](Images/springbootsecurity/remaining/image-13.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

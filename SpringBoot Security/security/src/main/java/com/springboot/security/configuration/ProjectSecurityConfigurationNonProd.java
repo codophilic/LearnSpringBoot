@@ -38,7 +38,10 @@ public class ProjectSecurityConfigurationNonProd {
 		.requiresChannel(rcc->rcc.anyRequest().requiresInsecure()) // ONLY HTTP ALLOWED
 		.csrf(i->i.disable())
 		.authorizeHttpRequests((requests) -> requests.
-				requestMatchers("/accounts").hasRole("admin").
+				requestMatchers("/accounts").hasAuthority("VIEWACCOUNTS").
+				requestMatchers("/accounts").hasRole("ADMIN").
+				requestMatchers("/balance").hasAnyAuthority("VIEWACCOUNTS","VIEWBALANCE").
+				requestMatchers("/balance").hasRole("ADMIN").
 				requestMatchers("/accounts","/balance","/cards","/loans").authenticated().
 				requestMatchers("/contact","/notice","/customer-registration","/fetch-customer/{emailId}","/denied","/invalid-session").permitAll()
 				);

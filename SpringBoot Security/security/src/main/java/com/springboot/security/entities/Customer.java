@@ -1,5 +1,7 @@
 package com.springboot.security.entities;
 
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,4 +30,9 @@ public class Customer {
 	@Column(name = "customer_role")
 	private String role;
 	
+	/**
+	 * One customer may have multiple authorities
+	 */
+	@OneToMany(mappedBy = "customer")
+	private List<CustomerAuthorities> custAuthorities;
 }
