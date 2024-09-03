@@ -1125,6 +1125,103 @@ public class SecurityConfig {
 ![alt text](image-28.png)
 
 
+## Filters
+
+![alt text](image-29.png)
+
+- Using filters inside a servlet-based web application, we should be able to intercept each and every request that is coming towards our web application. By leveraging this feature of filters, Spring Security have built a lot many Spring Security filters.
+- So the role of these Spring Security filters is they are going to intercept each and every request coming towards a web application and they're going to examine the request and they're going to perform the authentication, authorization rules or any other checks based upon our configurations inside our web application.
+- When a request reaches to an Spring boot web application, which also has Spring Security configurations configured, in these kind of scenarios, the request is going to be intercepted by multiple filters. So inside Spring Security framework, we are going to have multiple filters. It is not like only a single filter is going to handle all the functionality. There'll be more than 20 filters processing your incoming request. The number of filters that are going to be activated for a request is completely dependent on the type of configurations that you have done inside your web application.
+
+![alt text](image-30.png)
+
+- Inside the Spring Security, they are going to executed in the form of filter chain. So whatever filters that are going to be activated by the Spring Security for a given request, they are all going to be executed in a chain manner. So once the filter one execution is completed, it needs to call the next to filter inside the chain. At last, once all the filters inside the security filter chain are completed, then other normal filters or other normal business logic execution is going to be executed. Inside the Spring boot applications, once all the Spring Security related filters are executed, the request will be forwarded to the DispatcherServlet.
+- So DispatcherServlet is going to be responsible to forward the given request to the corresponding controller based upon the MVC path or based upon the rest api that we are trying to invoke.
+- Inside the real applications you may have some requirements where you want to inject your own custom filter. Maybe you may have a requirement which needs to be executed after the filter chain. So in this scenario, you need to create your own custom filter, and this custom filter needs to be executed after the filter chain.
+- Maybe you want to perform some input validation on the request that you are receiving, or you may want to execute some tracing, auditing or reporting related logic, or you may want to log the client details like what is the IP address  from where the request is being received, or you may want to do some encryption and decryption of the request before Spring Security try to authenticate. So all these kind of requirements can be handled using our own custom filters.
+- In all the previous sections, we already saw the inbuilt filters of Spring Security framework, like UsernamePasswordAuthenticationFilter, BasicAuthenticationFilter, DefaultLoginPageGeneratingFilter.
+- Lets see how many filters are executed within spring security. To see that first we need to enable debug mode of web security and application properties must have logging level of trace.
+
+```
+@Configuration
+@RequiredArgsConstructor
+@EnableWebSecurity(debug = true)
+public class ProjectSecurityConfig {
+    ...
+}
+
+application.properties
+logging.level.org.springframework.security=${SPRING_SECURITY_LOG_LEVEL:TRACE}
+```
+
+- Lets run the server and see 
+
+<video controls src="20240903-0302-41.3529500.mp4" title="Title"></video>
+
+- If you see **14** filters were executed. We can also see the list of filters being executed. Once all the filters are executed.
+
+>[!WARNING]
+> - This is not recommended in production because it display JSESSSION ID and TOKEN on the console.
+
+- When we create a custom filter it will get populated on the console which inidicates the list of filters executed. Before creating our own custom filter first we need to understand how spring security has constructed these filters.
+- When we want to create our own custom filter, there are three important or most commonly used approaches. The very first approaches is you should be implementing an interface with the name, **Filter**.
+
+![alt text](image-31.png)
+
+### Filter Interface
+
+- If you try to look for the list of methods available inside this filter interface, there is a single abstract method (**doFilter**) and there are some default methods as well.
+- As a developer, whenever you're looking to create your own custom filter, first you need to implement this interface followed by you need to define all your business logic, inside these `doFilter()` override method. So this method, it is going to accept three input parameters. The very first one is **ServletRequest**, which is going to represent your Servlet request that is coming from the client application, followed by **ServletResponse**, which is representing the http response that we are going to send to the client applications. And the third parameter is **FilterChain**. Like we saw before, all the filters inside the Spring Security are inside any Servlet container environment, meaning they're going to be executed in a chain manner.
+- Once you are done executing your own business logic inside your own custom filter using these **FilterChain** object, you need to make sure you are invoking the next filter inside the chain. So that's the purpose of this third parameter **FilterChain**. Apart from this abstract method, this Filter interface, it also has couple of default method.
+- The very first one is `init()` method. Inside this `init()` method, by default this `init()` method is going to be empty. Similarly, if you look for, `destroy()` also is an empty method. `destroy()` is a method which is going to be invoked by the Servlet Container whenever the Servlet is getting destroyed. So most of the times the Servlets are going to be destroyed during the shutdown process of the web application. So if you have some business logic that needs to be executed during the destroy of the filter, then you can define all such logic.
+- In the similar lines, if you're looking to execute some business logic during the initialization of your filter, you can build such logic inside these init filter, usually `init()` method is going to be invoked only during the startup of your web application. In real projects, most of the times inside the `inIt()` method developers they're going to write some logic related to the connecting to your database or connecting to your data source so that these connection details they will be able to use inside that `doFilter()` method and `destroy()` method is going to be in work during the shutdown process of the application. The logic usually returned by the developers inside the destroy is to release any connections or to close any connections with the database or with any other data source. So any cleanup activities that you want to do , you can achieve that by writing logic inside that `destroy()` method.
+
+### GenericFilterBean abstract class
+
+- The second option that you can explore is, **GenericFilterBean**. So there is an abstract class with the name **GenericFilterBean** by extending this **GenericFilterBean**, you should be able to define your own custom filter.
+
+![alt text](image-32.png)
+
+- If you see this abstract class, it is also implementing the filter but what is the difference between the Filter option and the GenericFilterBean option? Whenever you have a requirement that you want to read some servlet related init parameters that are defined inside your deployment descriptor like **web.xml** or if you're looking for an option to read the servlet context details or the environment property details, so in all such scenarios you can leverage **GenericFilterBean** abstract class. If you look for the list of methods available inside this abstract class, there are good amount of methods related to Environment, `FilterConfig()`, `ServletContext()`, so anytime if you're looking for an option to read the ServletInitParameter, ServletContextDetails or EnvironmentDetails in all such scenarios, you can happily use these GenericFilterBean.
+
+![alt text](image-33.png)
+
+### OncePerRequestFilter abstract class
+
+- Apart from these two approaches, there is one more approach which is an abstract class **OncePerRequestFilter** which extends **GenericFilterBean**. So whenever you define a filter by extending this abstract class in such scenarios the Spring framework, it is going to guarantee you that your filter is going to be executed only once at max for each request. 
+
+![alt text](image-34.png)
+
+- There will be certain scenarios where the same request can be processed to multiple times inside the servlet container environment. In such scenarios, if you're looking for an option to execute your business logic only once, then this is the class that you need to construct to create your custom filter.
+- Inside this class there is a method `doFilter()` as part of this, `doFilter()` the framework team, they have written a logic to make sure that your custom filter is going to be executed only once.
+- This **OncePerRequestFilter** it also has other useful methods like `shouldNotFilter()`. This method you can use in the scenarios whenever you want your filter not to be executed under certain scenarios, maybe you may have a requirement that your filter should not be executed for certain MVC parts or for certain rest API parts.
+- To create our own custom filter , we need to understand how to place our filter into the filter chain. So there are 3 ways to do so.
+
+![alt text](image-35.png)
+
+- Adding Custom filter after another filter in Filter chain
+
+```
+http.addFilterBefore(new AbcCustomFilter(), UsernamePasswordAuthenticationFilter.class);
+
+In this example, AbcCustomFilter will be added after the UsernamePasswordAuthenticationFilter.
+```
+
+- Adding Custom filter before another filter in Filter chain
+
+```
+http.addFilterBefore(new AbcCustomFilter(), UsernamePasswordAuthenticationFilter.class);
+
+In the example above, AbcCustomFilter is your custom filter, and it will be added before the UsernamePasswordAuthenticationFilter in the filter chain.
+```
+
+- Replace a specific filter
+
+```
+http.addFilterAt(new AbcCustomFilter(), UsernamePasswordAuthenticationFilter.class);
+
+In the above code, AbcCustomFilter will replace the UsernamePasswordAuthenticationFilter. This means UsernamePasswordAuthenticationFilter will not be executed, and instead, your custom filter will execute at its position.
+```
 
 
 
