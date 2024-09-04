@@ -1215,13 +1215,207 @@ http.addFilterBefore(new AbcCustomFilter(), UsernamePasswordAuthenticationFilter
 In the example above, AbcCustomFilter is your custom filter, and it will be added before the UsernamePasswordAuthenticationFilter in the filter chain.
 ```
 
-- Replace a specific filter
+- Adding a filter at specific location but its order is not deterministic
 
 ```
 http.addFilterAt(new AbcCustomFilter(), UsernamePasswordAuthenticationFilter.class);
 
-In the above code, AbcCustomFilter will replace the UsernamePasswordAuthenticationFilter. This means UsernamePasswordAuthenticationFilter will not be executed, and instead, your custom filter will execute at its position.
+In the above code, AbcCustomFilter will added before or after the UsernamePasswordAuthenticationFilter. This means UsernamePasswordAuthenticationFilter will present along with AbcCustomFilter, but  execution order cannot be determined.
 ```
+
+- Lets create our own custom filter, our custom filter **UserIdChecker** will not authenticate the user if the user contains `test` as its user id. So basically before authentication **BasicAuthenticationFilter** we need to add our own filter.
+- First lets hit the url `http://localhost:8080/login` using postman and lets see the console.
+
+![alt text](image-36.png)
+
+![alt text](image-37.png)
+
+- Now under the request header, there is the authorization field which consist of base64 encoded format of **username:password**.
+
+![alt text](image-38.png)
+
+- Now to retrieve this user name and its password, to check the user id, we need to access the request header authorization using **HttpServlet** . Here we will be using **Filter** interface.
+
+```
+package com.eazybytes.eazyschool.filter;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.util.StringUtils;
+
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+public class UserIDChecker implements Filter {
+
+	@Override
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+			throws IOException, ServletException {
+		
+		/**
+		 * Converting ServletRequest To HttpServletRequest
+		 */
+		HttpServletRequest req = (HttpServletRequest) request;
+		HttpServletResponse res = (HttpServletResponse) response;
+		
+		/**
+		 * Fetch Authorization key from Headers
+		 */
+		String authorizationValue=req.getHeader(HttpHeaders.AUTHORIZATION);
+		
+		/**
+		 * "Basic based64_Encoded_Format_Username_Password
+		 */
+		System.out.println(authorizationValue);
+		if(null != authorizationValue) {
+			authorizationValue = authorizationValue.trim();
+            if(StringUtils.startsWithIgnoreCase(authorizationValue, "Basic ")) {
+                byte[] base64Token = authorizationValue.substring(6).getBytes(StandardCharsets.UTF_8);
+                byte[] decoded;
+                try {
+                    decoded = Base64.getDecoder().decode(base64Token);
+                    String token = new String(decoded, StandardCharsets.UTF_8); // un:pwd
+                    int delim = token.indexOf(":");
+                    if(delim== -1) {
+                        throw new BadCredentialsException("Invalid basic authentication token");
+                    }
+                    String userId = token.substring(0,delim);
+                    System.out.println("User ID - "+userId);
+                    if(userId.toLowerCase().contains("test")) {
+                        res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        return;
+                    }
+                } catch (IllegalArgumentException exception) {
+                    throw new BadCredentialsException("Failed to decode basic authentication token");
+                }
+            }
+        }
+		
+		/**
+		 * Calling Next Filter chain
+		 */
+        chain.doFilter(request, response);
+	}
+
+}
+```
+
+- Lets configure project security
+
+```
+    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+
+        http.csrf((csrf) -> csrf.disable())
+                .authorizeHttpRequests((requests) -> requests.requestMatchers("/dashboard").authenticated()
+                        .requestMatchers("/", "/home", "/holidays/**", "/contact", "/saveMsg",
+                                "/courses", "/about", "/assets/**","/login/**").permitAll())
+                .formLogin(i->i.loginPage("/login").usernameParameter("customerId").passwordParameter("custPass")
+                		.failureUrl("/login?error").successHandler(doSomethingWhenUserIsValid)
+                		.failureHandler(doSomethingWhenUserIsInvalid)
+                		)
+                .httpBasic(Customizer.withDefaults());
+        
+        http.logout(i->i.logoutSuccessUrl("/login?logout=true").invalidateHttpSession(true)
+        		.clearAuthentication(true).deleteCookies("JSESSIONID"));
+        
+        /**
+         * Check if user id contains 'test'
+         */
+        http.addFilterBefore(new UserIDChecker(), BasicAuthenticationFilter.class);
+
+        return http.build();
+    }
+```
+
+- Post running, if user contains **test** as its user id, spring security will throw bad request.
+
+<video controls src="20240904-0436-49.9943335.mp4" title="Title"></video>
+
+- Here we have also tried `addFilterAfter` and we can see in the security filter chain list the ordering of our **UserIDChecker**.
+- Lets use `addFilterAt` for a logging class
+
+```
+package com.eazybytes.eazyschool.filter;
+
+import java.io.IOException;
+
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class LoggingFilterAt implements Filter{
+	
+	
+	@Override
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+			throws IOException, ServletException {
+		log.info("Validation is in progress..................");
+		
+		/**
+		 * Calling Next Filter chain
+		 */
+        chain.doFilter(request, response);
+     }
+
+	
+}
+```
+
+- Configure project security, the logging class may be execute before or after **UsernamePasswordAuthenticationFilter**.
+
+```
+    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+
+        http.csrf((csrf) -> csrf.disable())
+                .authorizeHttpRequests((requests) -> requests.requestMatchers("/dashboard").authenticated()
+                        .requestMatchers("/", "/home", "/holidays/**", "/contact", "/saveMsg",
+                                "/courses", "/about", "/assets/**","/login/**").permitAll())
+                .formLogin(i->i.loginPage("/login").usernameParameter("customerId").passwordParameter("custPass")
+                		.failureUrl("/login?error").successHandler(doSomethingWhenUserIsValid)
+                		.failureHandler(doSomethingWhenUserIsInvalid)
+                		)
+                .httpBasic(Customizer.withDefaults());
+        
+        http.logout(i->i.logoutSuccessUrl("/login?logout=true").invalidateHttpSession(true)
+        		.clearAuthentication(true).deleteCookies("JSESSIONID"));
+        
+        /**
+         * Check if user id contains 'test'
+         */
+        http.addFilterAfter(new UserIDChecker(), BasicAuthenticationFilter.class);
+        
+        /**
+         * Logging Filter At
+         */
+        http.addFilterAt(new LoggingFilterAt(), UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+```
+
+- Lets run the project.
+
+![alt text](image-39.png)
+
+![alt text](image-40.png)
+
+
+
 
 
 

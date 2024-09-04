@@ -14,11 +14,15 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import com.eazybytes.eazyschool.controller.DoSomethingWhenUserIsInvalid;
 import com.eazybytes.eazyschool.controller.DoSomethingWhenUserIsValid;
+import com.eazybytes.eazyschool.filter.LoggingFilterAt;
+import com.eazybytes.eazyschool.filter.UserIDChecker;
 
 import lombok.RequiredArgsConstructor;
 
@@ -42,10 +46,20 @@ public class ProjectSecurityConfig {
                 		.failureUrl("/login?error").successHandler(doSomethingWhenUserIsValid)
                 		.failureHandler(doSomethingWhenUserIsInvalid)
                 		)
-                .httpBasic(Customizer.withDefaults());
+                .httpBasic(Customizer.withDefaults()); 
         
         http.logout(i->i.logoutSuccessUrl("/login?logout=true").invalidateHttpSession(true)
         		.clearAuthentication(true).deleteCookies("JSESSIONID"));
+        
+        /**
+         * Check if user id contains 'test'
+         */
+        http.addFilterAfter(new UserIDChecker(), BasicAuthenticationFilter.class);
+        
+        /**
+         * Logging Filter At
+         */
+        http.addFilterAt(new LoggingFilterAt(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
