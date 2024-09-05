@@ -1315,7 +1315,24 @@ public class UserIDChecker implements Filter {
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
 
-        http.csrf((csrf) -> csrf.disable())
+        CsrfTokenRequestAttributeHandler csrfTokenRequestAttributeHandler = new CsrfTokenRequestAttributeHandler();
+        http.securityContext(contextConfig -> contextConfig.requireExplicitSave(false))
+                .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+                .cors(corsConfig -> corsConfig.configurationSource(new CorsConfigurationSource() {
+                    @Override
+                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+                        CorsConfiguration config = new CorsConfiguration();
+                        config.setAllowedOrigins(Collections.singletonList("http://localhost:8080"));
+                        config.setAllowedMethods(Collections.singletonList("*"));
+                        config.setAllowCredentials(true);
+                        config.setAllowedHeaders(Collections.singletonList("*"));
+                        config.setMaxAge(3600L);
+                        return config;
+                    }
+                }))
+                .csrf(csrfConfig -> csrfConfig.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
+                        .ignoringRequestMatchers( "/login","/contact") // Allowing List of Path which does not requires CSRF validation
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                 .authorizeHttpRequests((requests) -> requests.requestMatchers("/dashboard").authenticated()
                         .requestMatchers("/", "/home", "/holidays/**", "/contact", "/saveMsg",
                                 "/courses", "/about", "/assets/**","/login/**").permitAll())
@@ -1381,7 +1398,24 @@ public class LoggingFilterAt implements Filter{
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
 
-        http.csrf((csrf) -> csrf.disable())
+        CsrfTokenRequestAttributeHandler csrfTokenRequestAttributeHandler = new CsrfTokenRequestAttributeHandler();
+        http.securityContext(contextConfig -> contextConfig.requireExplicitSave(false))
+                .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+                .cors(corsConfig -> corsConfig.configurationSource(new CorsConfigurationSource() {
+                    @Override
+                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+                        CorsConfiguration config = new CorsConfiguration();
+                        config.setAllowedOrigins(Collections.singletonList("http://localhost:8080"));
+                        config.setAllowedMethods(Collections.singletonList("*"));
+                        config.setAllowCredentials(true);
+                        config.setAllowedHeaders(Collections.singletonList("*"));
+                        config.setMaxAge(3600L);
+                        return config;
+                    }
+                }))
+                .csrf(csrfConfig -> csrfConfig.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
+                        .ignoringRequestMatchers( "/login","/contact") // Allowing List of Path which does not requires CSRF validation
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                 .authorizeHttpRequests((requests) -> requests.requestMatchers("/dashboard").authenticated()
                         .requestMatchers("/", "/home", "/holidays/**", "/contact", "/saveMsg",
                                 "/courses", "/about", "/assets/**","/login/**").permitAll())
@@ -1492,71 +1526,472 @@ public class LoggingFilterAt implements Filter{
 - What if the end user changed the signature itself to match the tampered payload value or tampered header value? So the hacker can't do that because the hacker don't have the secret value. So if someone get this secret value which is being maintained by the backend, they should be able to generate the successful tokens with whatever data that they want. So that's why always securing the secret properly inside your backend application is most important.
 - To check practially how JWT token works , refer the website [here](https://jwt.io/)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+- Lets implement JWT Token into our project, so firstly we need to download the dependencies related to JWT.
+
+```
+<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-api</artifactId>
+			<version>0.12.5</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-impl</artifactId>
+			<version>0.12.5</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId>
+			<version>0.12.5</version>
+			<scope>runtime</scope>
+		</dependency>
+```
+
+- Now when a new request arrives we need to generate the token or else we need to validate the token. We should also make sure we are generating the hash value of the digital signature.
+- In the **ProjectSecurityConfig** class, currently we are telling to the Spring Security framework to generate the JSESSIONID always. Even if not specified the generating JSESSIONID is the default behaviour by Spring security. `SessionCreationPolicy.ALWAYS`
+
+```
+ @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+    CsrfTokenRequestAttributeHandler csrfTokenRequestAttributeHandler = new CsrfTokenRequestAttributeHandler();
+        http.securityContext(contextConfig -> contextConfig.requireExplicitSave(false))
+                .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+                .cors(corsConfig -> corsConfig.configurationSource(new CorsConfigurationSource() {
+                    @Override
+                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+                        CorsConfiguration config = new CorsConfiguration();
+                        config.setAllowedOrigins(Collections.singletonList("http://localhost:8080"));
+                        config.setAllowedMethods(Collections.singletonList("*"));
+                        config.setAllowCredentials(true);
+                        config.setAllowedHeaders(Collections.singletonList("*"));
+                        config.setMaxAge(3600L);
+                        return config;
+                    }
+                }))
+                .csrf(csrfConfig -> csrfConfig.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
+                        .ignoringRequestMatchers( "/login","/contact") // Allowing List of Path which does not requires CSRF validation
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                .authorizeHttpRequests((requests) -> requests.requestMatchers("/dashboard").authenticated()
+                        .requestMatchers("/", "/home", "/holidays/**", "/contact", "/saveMsg",
+                                "/courses", "/about", "/assets/**","/login/**").permitAll())
+                .formLogin(i->i.loginPage("/login").usernameParameter("customerId").passwordParameter("custPass")
+                		.failureUrl("/login?error").successHandler(doSomethingWhenUserIsValid)
+                		.failureHandler(doSomethingWhenUserIsInvalid)
+                		)
+                .httpBasic(Customizer.withDefaults()); 
+        
+        http.logout(i->i.logoutSuccessUrl("/login?logout=true").invalidateHttpSession(true)
+        		.clearAuthentication(true).deleteCookies("JSESSIONID"));
+        
+        /**
+         * Check if user id contains 'test'
+         */
+        http.addFilterAfter(new UserIDChecker(), BasicAuthenticationFilter.class);
+        
+        /**
+         * Logging Filter At
+         */
+        http.addFilterAt(new LoggingFilterAt(), UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+```
+
+- Since JWT tokens are stateless we need to specify spring framework not to generate JSESSIONID by using `SessionCreationPolicy.STATELESS`. So with the STATELESS configuration, what we're trying to achieve, we are making our application STATELESS. Once the token is generated, it will send back to the UI,and the UI application whenever it is making a further request, it needs to make sure to send the same token to the backend. So the backend code, it is going to validate the token by calculating the hash value from the token. If the hash values are same, it is going to assume that the token is not tampered, and it is going to process the request.
+- But where we are going to store this token? it will be stored on either the client side or on the backend side.
+
+```
+    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+
+        http
+        .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//        .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+
+//        .csrf((csrf) -> csrf.disable())
+                .authorizeHttpRequests((requests) -> requests.requestMatchers("/dashboard").authenticated()
+                        .requestMatchers("/", "/home", "/holidays/**", "/contact", "/saveMsg",
+                                "/courses", "/about", "/assets/**","/login/**").permitAll())
+                .formLogin(i->i.loginPage("/login").usernameParameter("customerId").passwordParameter("custPass")
+                		.failureUrl("/login?error").successHandler(doSomethingWhenUserIsValid)
+                		.failureHandler(doSomethingWhenUserIsInvalid)
+                		)
+                .httpBasic(Customizer.withDefaults()); 
+        
+        http.logout(i->i.logoutSuccessUrl("/login?logout=true").invalidateHttpSession(true)
+        		.clearAuthentication(true).deleteCookies("JSESSIONID"));
+        
+        /**
+         * Check if user id contains 'test'
+         */
+        http.addFilterAfter(new UserIDChecker(), BasicAuthenticationFilter.class);
+        
+        /**
+         * Logging Filter At
+         */
+        http.addFilterAt(new LoggingFilterAt(), UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+```
+
+- As of now with these cors related configurations, we trying to accept any headers from the client to the backend server, so the client application should be able to send us any header value inside the request, but my backend will not be able to send any header inside its response. Since we are going to generate a Jot token we need to send the JOT token into the headers in the response. The response will be send by the backend application. So to expose the headers from the backend to the client application which are deployed at different origins, we need to make one more configuration in the CORS which will be invoking `setExposedHeaders()`.
+
+```
+@Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+
+        CsrfTokenRequestAttributeHandler csrfTokenRequestAttributeHandler = new CsrfTokenRequestAttributeHandler();
+        http.securityContext(contextConfig -> contextConfig.requireExplicitSave(false))
+                .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+                .cors(corsConfig -> corsConfig.configurationSource(new CorsConfigurationSource() {
+                    @Override
+                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+                        CorsConfiguration config = new CorsConfiguration();
+                        config.setAllowedOrigins(Collections.singletonList("http://localhost:8080"));
+                        config.setAllowedMethods(Collections.singletonList("*"));
+                        config.setAllowCredentials(true);
+                        config.setAllowedHeaders(Collections.singletonList("*"));
+                        config.setExposedHeaders(Arrays.asList("JWT Authorization"));
+                        config.setMaxAge(3600L);
+                        return config;
+                    }
+                }))
+                .csrf(csrfConfig -> csrfConfig.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
+                        .ignoringRequestMatchers( "/login","/contact") // Allowing List of Path which does not requires CSRF validation
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                .authorizeHttpRequests((requests) -> requests.requestMatchers("/dashboard").authenticated()
+                        .requestMatchers("/", "/home", "/holidays/**", "/contact", "/saveMsg",
+                                "/courses", "/about", "/assets/**","/login/**").permitAll())
+                .formLogin(i->i.loginPage("/login").usernameParameter("customerId").passwordParameter("custPass")
+                		.failureUrl("/login?error").successHandler(doSomethingWhenUserIsValid)
+                		.failureHandler(doSomethingWhenUserIsInvalid)
+                		)
+                .httpBasic(Customizer.withDefaults()); 
+        
+        http.logout(i->i.logoutSuccessUrl("/login?logout=true").invalidateHttpSession(true)
+        		.clearAuthentication(true).deleteCookies("JSESSIONID"));
+        
+        /**
+         * Check if user id contains 'test'
+         */
+        http.addFilterAfter(new UserIDChecker(), BasicAuthenticationFilter.class);
+        
+        /**
+         * Logging Filter At
+         */
+        http.addFilterAt(new LoggingFilterAt(), UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+```
+
+- Using arrays, we to call `asList()` method. To this `asList()` method, wee are going to mention the header name that I'll be sending inside the response which is **JWT Authorization**. How are we going to generate the JOT token and validate it?, since this are part of authentication and authorization it must incerpt the request right? so we need to use filters.
+- For generating JWT tokens, it will be generate only once per filter. We don't want to generate multiple Jot tokens multiple times if the filter is invoked multiple times. But when it will get generated? only when the customer goes to `/login` page. So here to specify that our filter **should not be invoked** if any other path is entered by customer and must only get invoked if the path is `/login`.
+
+
+```
+package com.eazybytes.eazyschool.filter;
+
+import java.io.IOException;
+
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+public class JWTTokenGeneratorFilter extends OncePerRequestFilter {
+
+	@Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+			throws ServletException, IOException {
+		
+		// Here will be logic of generating the token
+	}
+	
+	@Override
+	protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+		
+		/**
+		 * When we write request.getServletPath().equals("/login") and if the user enters /login path, 
+		 * the condition will be true and shouldNotFilter() will return true, which indicates that
+		 * the doFilterInternal will not be invoked since return boolean type is true.
+		 * 
+		 * So using !request.getServletPath().equals("/login"), it will return false, which 
+		 * states that the doFilterInternal should be executed.
+		 * 
+		 */
+		
+		return !request.getServletPath().equals("/login");
+	}
+
+}
+```
+
+- Similarly for validating the JWT token, it must be done only once for each filter.
+
+```
+package com.eazybytes.eazyschool.filter;
+
+import java.io.IOException;
+
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+public class JWTTokenValidatorFilter extends OncePerRequestFilter {
+
+	@Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+			throws ServletException, IOException {
+		
+		// Here will be logic of validating the token
+	}
+	
+	@Override
+	protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+		
+		/**
+		 * When we write request.getServletPath().equals("/login") and if the user enters /dashboard path, 
+		 * which requires authentication, here we need to invoke the validator filter
+		 * so request.getServletPath().equals("/login") will return false, which indicates that 
+		 * filer should be executed.
+		 * 
+		 */
+		
+		return request.getServletPath().equals("/login");
+	}
+
+}
+```
+
+- Uptil now we have not written, the logic for generating and validating token, we are first setting up the require configuration. Now to use this filter we need to configure project security.
+
+```
+    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+
+        CsrfTokenRequestAttributeHandler csrfTokenRequestAttributeHandler = new CsrfTokenRequestAttributeHandler();
+        http.securityContext(contextConfig -> contextConfig.requireExplicitSave(false))
+                .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+                .cors(corsConfig -> corsConfig.configurationSource(new CorsConfigurationSource() {
+                    @Override
+                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+                        CorsConfiguration config = new CorsConfiguration();
+                        config.setAllowedOrigins(Collections.singletonList("http://localhost:8080"));
+                        config.setAllowedMethods(Collections.singletonList("*"));
+                        config.setAllowCredentials(true);
+                        config.setAllowedHeaders(Collections.singletonList("*"));
+                        config.setExposedHeaders(Arrays.asList("JWT Authorization"));
+                        config.setMaxAge(3600L);
+                        return config;
+                    }
+                }))
+                .csrf(csrfConfig -> csrfConfig.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
+                        .ignoringRequestMatchers( "/login","/contact") // Allowing List of Path which does not requires CSRF validation
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                .authorizeHttpRequests((requests) -> requests.requestMatchers("/dashboard").authenticated()
+                        .requestMatchers("/", "/home", "/holidays/**", "/contact", "/saveMsg",
+                                "/courses", "/about", "/assets/**","/login/**").permitAll())
+                .formLogin(i->i.loginPage("/login").usernameParameter("customerId").passwordParameter("custPass")
+                		.failureUrl("/login?error").successHandler(doSomethingWhenUserIsValid)
+                		.failureHandler(doSomethingWhenUserIsInvalid)
+                		)
+                .httpBasic(Customizer.withDefaults()); 
+        
+        http.logout(i->i.logoutSuccessUrl("/login?logout=true").invalidateHttpSession(true)
+        		.clearAuthentication(true).deleteCookies("JSESSIONID"));
+        
+        /**
+         * Check if user id contains 'test'
+         */
+        http.addFilterAfter(new UserIDChecker(), BasicAuthenticationFilter.class);
+        
+        /**
+         * Logging Filter At
+         */
+        http.addFilterAt(new LoggingFilterAt(), UsernamePasswordAuthenticationFilter.class);
+        
+        /**
+         * Adding JWTTokenGeneratorFilter after BasicAuthenticationFilter
+         * Since we're looking for an option to generate the Jot token once the authentication is successful,
+         */
+        http.addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class);
+        
+        /**
+         * Adding JWTTokenValidatorFilter before BasicAuthenticationFilter
+         * Inside the JWTTokenValidatorFilter, we're going to validate if the JWT token is valid.
+         * If yes, we're going to let the Spring Security framework that the authentication is already 
+         * validated and successful, don't try to perform the authentication one more time.
+         * So since we are looking for an option to execute our filter
+         * before the authentication
+         */
+        http.addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class);
+
+        return http.build();
+    }
+```
+
+- Lets write the logic to generate JWT token.
+
+```
+package com.eazybytes.eazyschool.filter;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import java.util.stream.Collectors;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.core.env.Environment;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.eazybytes.eazyschool.constant.ApplicationConstants;
+
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+public class JWTTokenGeneratorFilter extends OncePerRequestFilter {
+
+	@Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+			throws ServletException, IOException {
+		
+		// Here will be logic of generating the token
+		
+		/**
+		 * Post Basic Authentication is done, the authentication details will be stored inside the 
+		 * Security Context, so from there we need to fetch the authentication details
+		 */
+		Authentication authentication=SecurityContextHolder.getContext().getAuthentication();
+		if(null!=authentication) {
+			
+			/**
+			 * To generate JWT Token , we require a secret key, now this secret key must be present
+			 * in environment variables, here we have create a constant class to define such things
+			 * and using environment method provided by spring we will fetch it
+			 */
+            Environment env = getEnvironment();
+			if (null != env) {
+				
+                String secret = env.getProperty(ApplicationConstants.JWT_SECRET_KEY,
+                        ApplicationConstants.JWT_SECRET_DEFAULT_VALUE);
+                
+                System.out.println("Secret - "+secret);
+                SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+                String jwt = Jwts.builder().issuer("Eazy Bank").subject("Eazy Bank JWT Token")
+                        .claim("username", authentication.getName())
+                        .claim("authorities", authentication.getAuthorities().stream().map(
+                                GrantedAuthority::getAuthority).collect(Collectors.joining(",")))
+                        .issuedAt(new Date())
+                        .expiration(new Date((new Date()).getTime() + 30000000))
+                        .signWith(secretKey).compact();
+                response.setHeader("JWT Authorization", jwt);
+            }
+        }
+        filterChain.doFilter(request, response);			
+	}
+	
+	@Override
+	protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+		
+		/**
+		 * When we write request.getServletPath().equals("/login") and if the user enters /login path, 
+		 * the condition will be true and shouldNotFilter() will return true, which indicates that
+		 * the doFilterInternal will not be invoked since return boolean type is true.
+		 * 
+		 * So using !request.getServletPath().equals("/login"), it will return false, which 
+		 * states that the doFilterInternal should be executed.
+		 * 
+		 */
+		
+		return !request.getServletPath().equals("/login");
+	}
+
+}
+```
+
+- Since this filter is going to be executed once the authentication is successful and it is going to be executed only during the login operation, very first we need to read the current authenticated details. So how to do that, it's very easy, we just have to get the help from the **SecurityContextHolder**.
+
+```
+		Authentication authentication=SecurityContextHolder.getContext().getAuthentication();
+```
+
+- To generate a Jot token value we need to maintain a secret value. To maintain the secret value it is always advisable to have it in the environment variable. Once the environment variable is declared, we need to read that environment variable and its value inside our code. So `getEnvironment()` method is available as part of the **GenericFilterBean**. **GenericFilterBean** is capable of reading all the environment variables.
+
+![alt text](image-52.png)
+
+- What is my environment variable key. If there is no such environment variable created inside your system, we should also pass what is a default value it is going to consider. So here we have created a **ApplicationConstants**
+
+```
+package com.eazybytes.eazyschool.constant;
+
+public final class ApplicationConstants {
+
+    public static final String JWT_SECRET_KEY = "JWT_SECRET";
+    public static final String JWT_SECRET_DEFAULT_VALUE = "jxgEQeXHuPq8VdbyYFNkANdudQ53YUn4";
+    
+}
+```
+
+- If there is no such environment available available, we want to use a default secret value. Please make sure you are mentioning some secret value, which is very hard to guess. So if you try to mention some simple secrets like 1, 2, 3, 4, 5, or password. So such secrets, they are more vulnerable to get hacked by hackers. So let us use these constants.
+
+```
+            Environment env = getEnvironment();
+			if (null != env) {
+				
+                String secret = env.getProperty(ApplicationConstants.JWT_SECRET_KEY,
+                        ApplicationConstants.JWT_SECRET_DEFAULT_VALUE);
+                
+                System.out.println("Secret - "+secret);
+            }
+```
+
+- Now we need to define **SecretKey** which has a method `hmacShaKeyFor()`. To this method, we need to pass the secret value as an bytes.
+
+```
+                String secret = env.getProperty(ApplicationConstants.JWT_SECRET_KEY,
+                        ApplicationConstants.JWT_SECRET_DEFAULT_VALUE);
+                
+                System.out.println("Secret - "+secret);
+                SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+```
+
+- Now we need to create the Jwt token, using `Jwts.builder`. The purpose of this `issuer()` method is it is going to give some clarity to the client applications, which organization or which application issued the token. The `subject()` method is simply mention the subject as **Eazy Bank JWT Token**. The `climb()` method, first we need to mention a key which is **username** followed by the value for the key. So similarly, if I want to add more details, like all the authorities assigned to the user which is done using `getAuthorities`. After the climb related method, we are going to invoke a method which is `issuedAt()` which states that on which date the toke has been issued to the user. Now we also need to set the expiration so here `expiration()` we are passing the `date + 30000000 milliseconds` which means the current date + 8 hours. So the JWT will expire after 8 hours. Finally we have the signature `signWith` for the JWT which uses the secret key and the `compact` method converts the JWT token to string.
+
+```
+                String jwt = Jwts.builder().issuer("Eazy Bank").subject("Eazy Bank JWT Token")
+                        .claim("username", authentication.getName())
+                        .claim("authorities", authentication.getAuthorities().stream().map(
+                                GrantedAuthority::getAuthority).collect(Collectors.joining(",")))
+                        .issuedAt(new Date())
+                        .expiration(new Date((new Date()).getTime() + 30000000))
+                        .signWith(secretKey).compact();
+```
+
+- This JWT toke needs to be given inside the response header.
+
+```
+                response.setHeader("JWT Authorization", jwt);
+```
+
+- To ensure we are forwarding the request and response to the next filter inside the FilterChain.
+- Lets write the logic for **JWTTokenValidatorFilter**.
 
 
 
