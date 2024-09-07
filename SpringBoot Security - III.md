@@ -108,7 +108,7 @@
 - As a next step, the client also has to prove its identity by sharing its client secret. So that's why as part of the step five, what is going to happen is the client application, it is going to send a request saying that, here are my client credentials. When you say client credentials, it will be **client_id** and **client_secret**. So both of them we can together call them as **client credentials**. Along with the client credentials, it should also send the same Authorization Code that it has received as part of step four.
 - So by providing all these details, **it is going to request the auth server to issue an access token**. If all the details are valid, as part of the step six, the Auth Server, it is going to issue an access token to the client application. By the time the step six is completed, now the client application has the access token. So now using this access token, it is going to call the Resource Server saying that I want to access so-and-so end user resources, and we know resource server won't be giving the client if its ask directly, that's why the client worked with the Auth server and got an access token, and this is the access token for your reference. So that is what is going to happen as part of step seven. 
 - So inside the step eight, the Resource Server is going to validate if the access token is valid or not. If the access token is valid, it is going to send the actual resources requested by the client application as a response. So these resource detail will eventually display to the end user. So this is how the authorization code grant type flow works.
-- But how my Resource Server is going to validate the access token is issued by the Auth Server? this token can be issue by any other server right? there is no direct communication between resource and auth server? it is done using **JWT Token**. Inside the JWT tokens, there is a digital signature concept. Using the digital signature concept, one can validate if the token is valid or not by them self without the need of reaching out to the token-issuing component.
+- But how the Resource Server is going to validate the access token is issued by the Auth Server? this token can be issue by any other server right? there is no direct communication between resource and auth server? it is done using **JWT Token**. Inside the JWT tokens, there is a digital signature concept. Using the digital signature concept, one can validate if the token is valid or not by them self without the need of reaching out to the token-issuing component.
 - Okay but the client may have other products or pages , now how auth server will which of its pages does the user needs to be landed up? the answer is based on the request format that Client application is going to send to the Auth Server.
 
 ![alt text](image-12.png)
@@ -224,7 +224,7 @@ grant_type=authorization_code
 <video controls src="20240907-1906-49.9584738.mp4" title="Title"></video>
 
 - In the very first step, the client application, it has to generate the **code_verifier** and the **code_challenge** using SHA256 algorithm and base64 encoding.
-- Now my client application generatedboth code_verifier and code_challenge and it is going to store these details somewhere inside the request.
+- Now the client application generated both code_verifier and code_challenge and it is going to store these details somewhere inside the request.
 
 <video controls src="20240907-1908-38.2811828.mp4" title="Title"></video>
 
@@ -271,6 +271,51 @@ grant_type=authorization_code
 ![alt text](image-20.png)
 
 
+## Grant Type - Password Grant
+
+![alt text](image-21.png)
+
+
+- Password Grant Type Flow, also called as Resource Owner Credentials Grant Type Flow. Inside this flow what is going to happen is that end user is going to hand over his credentials to the client application itself. What is going to happen is the client application, it is going to redirect the end user to the login page of the odd server to enter his credentials. But inside this flow, the client application itself is going to have their own login page where they are going to ask the end user credentials that he's maintaining inside the AUTH server. 
+- So once the end user credentials are accepted by this client application, it is going to make a request to the AUTH server with the details of user credentials, client to credentials. 
+- So both the client credentials and the end user credentials, it is going to send as part of the request to the AUTH server. If all the credentials are valid as part of the step three,the access token is directly going to be issued to the client application.
+- Using this access token, the client application can make a request to the Resource Server. If the access token is valid, the resource server is going to respond with the proper successful response.
+- So there is a very good chance that this client application may misuse the end user credentials. So before it is trying to invoke the AUTH server with the end user credential, the client application may store the end user credentials somewhere inside its own database. Since this serious drawback is present inside this Grant Type Flow, this is no more recommended for any production usage but still you will see some organizations using password Grant Type Flow. 
+- The reason is this flow is very simple to follow, but whenever someone is following this flow, they'll make sure this client application and this AUTH server, Resource Server, they all belongs to the same organization. So in this kind of setup, there is no chance that this client application can misuse the credentials of the end user because both client and AUTH server belongs to the same organization or the same project.
+
+
+## Grant Type - Client Credentials
+
+![alt text](image-22.png)
+
+
+- It is the most commonly used grant type flow inside the microservices environment. We need to use this grant type flow when now there is no end user is involved and when our two backend applications are two different APIs that are trying to communicate with each other. So this Resource Server can be a microservice and this client also can be another microservice, or some other backend application or backend API who are trying to talk with each other.
+- But instead of directly allowing them to talk with each other, we are going to enforce security with the help of Client Credentials Grant Type Flow. Behind the scenes, what this client application has to do is it has to register with the auth server and it needs to get its own client credentials.
+- So once this step is completed, the client application, it is going to resume client ID and client secret. So these values are going to act as username and password for this client whenever it want to get an token from the auth server.
+- The client is going to approach the auth server to provide an access token and inside the request it is also going to mention its client credentials and since there is no user involved inside this, it's not going to share any end user-related details. If the client credentials are valid, the auth server, it is going to issue an access token to the client.
+- Now the client, which can be a microservice or a backend API or a backend server, it can invoke another backend server or another backend API or microservice which is the resource server
+
+![alt text](image-23.png)
+
+
+## Grant Type - Refresh Token
 
 
 
+- Whenever we are using Authorization Code Grant Type flow or PKCE Grant Type flow, inside the response we get two types of tokens. The very first one is **access_token** and the other one is **refresh_token**. There is a purpose for this **refresh_token**. Using this **refresh_token**, we can use Refresh Grant Type flow. 
+
+![alt text](image-14.png)
+
+- Let's try to understand the flow of this grant type flow by looking at the slides. The Refresh Token Grant Type flow, it is only going to be initiated by the client application behind the scenes without involving the end user. That's why here we have only three components, Client, Auth Server and Resource Server.
+- The end user will only be involved in the scenarios where he has to enter his credentials during the initial authentication process. So let's imagine of a scenario where my client application does not know whether a given access token is expired or not. In this scenario, the client application, as usual, it is going to make a request to the Resource Server with the access_token. But this time, the Resource Server, since the access_token is expired, it is going to throw an error, which is 403 forbidden.
+- So now my client application, it will reach out to the auth server in a hurry saying that, "Hey, auth server my access_token is expired, I want a new access_token. And here is the refresh_token that you have issued in the initial authentication process."
+- If the refresh_token is valid, the auth server, it is going to issue a new access_token and new refresh_token. We also have an option of using the same refresh_token always, but it is advisable to rotate the refresh_token as well where now these Refresh Token Grant Type flow is being invoked.
+- Now using the access_token that it has resolved inside the step four, my client application, it is going to make a request to the Resource Server. This time, since the access_token is valid, the Resource Server, it is going to respond with the proper response which can be processed by the client application.
+
+
+![alt text](image-24.png)
+
+- So what details we are going to send as part of step three, the client application, it is going to send the client_id and client_secret, along with the refresh_token that it has resolved during the initial authentication process. The purpose of the scope you already know, coming to the grant_type. This time we need to mention the value as **refresh_token**.
+- So this is an indication to the auth server that Refresh Token Grant Type flow is initiated. With this grant type flow behind the scenes, the auth server, it is going to expect the value under the refresh_token.
+- Why can't we make an access_token, which is never going to be expired? So that we can avoid extra complexity around the refresh_token. If we issue an access_token with an unlimited time, then it is going to be as good as end user credentials. So anyone who has this access_token, they'll be able to use these forever because the token is never going to be expired. So to avoid these kind of security related issues, always the access_token, they are going to be issued with a short duration. Most of the times it is going to be issued with 24 hours time, which will work for most of the applications. But if your application is a super critical application, like a bank application, then obviously you can't issue an access_token with an expiration of 24 hours. You need to reduce the time to one hour or 30 minutes based upon your business requirements.
+- Then Why can't we make our refresh_token to never expire? though it is possible but it is not recommended considering the scenarios where the refresh tokens can be stolen by some bad users.
