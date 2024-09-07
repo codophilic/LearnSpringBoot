@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.password.CompromisedPasswordChecker;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity;
@@ -40,7 +41,8 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity(debug = true)
-public class ProjectSecurityConfig {
+@EnableMethodSecurity(prePostEnabled = true)
+public class ProjectSecurityConfig{
 	
 	private final DoSomethingWhenUserIsInvalid doSomethingWhenUserIsInvalid;
 	
@@ -60,7 +62,7 @@ public class ProjectSecurityConfig {
                         config.setAllowedMethods(Collections.singletonList("*"));
                         config.setAllowCredentials(true);
                         config.setAllowedHeaders(Collections.singletonList("*"));
-                        config.setExposedHeaders(Arrays.asList("JWT Authorization"));
+                        config.setExposedHeaders(Arrays.asList("EazyBankJWTAuthorization"));
                         config.setMaxAge(3600L);
                         return config;
                     }
@@ -68,7 +70,7 @@ public class ProjectSecurityConfig {
                 .csrf(csrfConfig -> csrfConfig.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
                         .ignoringRequestMatchers( "/login","/contact") // Allowing List of Path which does not requires CSRF validation
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
-                .authorizeHttpRequests((requests) -> requests.requestMatchers("/dashboard").authenticated()
+                .authorizeHttpRequests((requests) -> requests.requestMatchers("/dashboard","/notallowed","/allidname").authenticated()
                         .requestMatchers("/", "/home", "/holidays/**", "/contact", "/saveMsg",
                                 "/courses", "/about", "/assets/**","/login/**").permitAll())
                 .formLogin(i->i.loginPage("/login").usernameParameter("customerId").passwordParameter("custPass")

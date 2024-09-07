@@ -1653,7 +1653,7 @@ public class LoggingFilterAt implements Filter{
                         config.setAllowedMethods(Collections.singletonList("*"));
                         config.setAllowCredentials(true);
                         config.setAllowedHeaders(Collections.singletonList("*"));
-                        config.setExposedHeaders(Arrays.asList("JWT Authorization"));
+                        config.setExposedHeaders(Arrays.asList("EazyBankJWTAuthorization"));
                         config.setMaxAge(3600L);
                         return config;
                     }
@@ -1788,7 +1788,7 @@ public class JWTTokenValidatorFilter extends OncePerRequestFilter {
                         config.setAllowedMethods(Collections.singletonList("*"));
                         config.setAllowCredentials(true);
                         config.setAllowedHeaders(Collections.singletonList("*"));
-                        config.setExposedHeaders(Arrays.asList("JWT Authorization"));
+                        config.setExposedHeaders(Arrays.asList("EazyBankJWTAuthorization"));
                         config.setMaxAge(3600L);
                         return config;
                     }
@@ -1901,7 +1901,7 @@ public class JWTTokenGeneratorFilter extends OncePerRequestFilter {
                         .issuedAt(new Date())
                         .expiration(new Date((new Date()).getTime() + 30000000))
                         .signWith(secretKey).compact();
-                response.setHeader("JWT Authorization", jwt);
+                response.setHeader("EazyBankJWTAuthorization", jwt);
             }
         }
         filterChain.doFilter(request, response);			
@@ -1987,16 +1987,365 @@ public final class ApplicationConstants {
 - This JWT toke needs to be given inside the response header.
 
 ```
-                response.setHeader("JWT Authorization", jwt);
+                response.setHeader("EazyBankJWTAuthorization", jwt);
 ```
 
 - To ensure we are forwarding the request and response to the next filter inside the FilterChain.
 - Lets write the logic for **JWTTokenValidatorFilter**.
 
+```
+package com.eazybytes.eazyschool.filter;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.core.env.Environment;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.eazybytes.eazyschool.constant.ApplicationConstants;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+
+public class JWTTokenValidatorFilter extends OncePerRequestFilter {
+
+	@Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+			throws ServletException, IOException {
+		
+		// Here will be logic of validating the token
+		
+		/**
+		 * The request will be sending JWT Token inside its header, so from the header
+		 * we need to fetch the token
+		 */
+	       String jwt = request.getHeader("EazyBankJWTAuthorization");
+	       if(null != jwt) {
+	           try {
+	        	   
+	        	   /**
+	        	    * From Environment fetch the secret key
+	        	    */
+	               Environment env = getEnvironment();
+	               if (null != env) {
+	                   String secret = env.getProperty(ApplicationConstants.JWT_SECRET_KEY,
+	                           ApplicationConstants.JWT_SECRET_DEFAULT_VALUE);
+	                   
+	                   /**
+	                    * Generating the secret key
+	                    */
+	                   SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+	                   if(null !=secretKey) {
+	                	   
+	                	   /**
+	                	    * `Jwts.parser().verifyWith(secretKey).build()` verifies the token
+	                	    * using secret key if any exception caught which means token is being tampered then
+	                	    * the catch block will be executed.
+	                	    * 
+	                	    * If token is valid then using `parseSignedClaims` we will fetch
+	                	    * username and authorities which were set during jwt token generation
+	                	    */
+	                	   
+	                       Claims claims = Jwts.parser().verifyWith(secretKey)
+	                                .build().parseSignedClaims(jwt).getPayload();
+	                       String username = String.valueOf(claims.get("username"));
+	                       String authorities = String.valueOf(claims.get("authorities"));
+	                       
+	                       /**
+	                        * Creating authentication object and setting that 
+	                        * into securityContextHolder, here password is kept null since authentication
+	                        * is already done using jwt token.
+	                        */
+	                       Authentication authentication = new UsernamePasswordAuthenticationToken(username, null,
+	                               AuthorityUtils.commaSeparatedStringToAuthorityList(authorities));
+	                       SecurityContextHolder.getContext().setAuthentication(authentication);
+	                   }
+	               }
+
+	           } catch (Exception exception) {
+	               throw new BadCredentialsException("Invalid Token received!");
+	           }
+	       }
+	        filterChain.doFilter(request,response);
+	}
+	
+	@Override
+	protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+		
+		/**
+		 * When we write request.getServletPath().equals("/login") and if the user enters /dashboard path, 
+		 * which requires authentication, here we need to invoke the validator filter
+		 * so request.getServletPath().equals("/login") will return false, which indicates that 
+		 * filer should be executed.
+		 * 
+		 */
+		
+		return request.getServletPath().equals("/login");
+	}
+
+}
+```
+
+- Here we are already authenticate the user , then why to create authentication object?  So whenever we create this object, when we going to create a authentication object it set the authenticated Boolean value as true.
+
+![alt text](image-53.png)
+
+- So this is an indication to the spring security framework that the user has lready completed authentication, that's why this authentication object has a Boolean value as true. So based upon this Boolean value, spring security framework will not try to authenticate the user one more time, because the Boolean value is true. If the Boolean value is false, then only it'll try to authenticate the user one more time. Once this authentication object is created, we need to store it into the SecurityContextHolder.
+- Lets run the application and check, when we hit the `/login` endpoint using postman, in the response header we will get **EazyBankJWTAuthorization** header which consist of JWT tokens.
+
+![alt text](image-54.png)
+
+![alt text](image-55.png)
+
+- If we decode this we will get the user name and authorities associated with it.
+
+![alt text](image-56.png)
+
+- Now lets send this response header as request header while accessing `/dashboard`.
+
+![alt text](image-57.png)
+
+- Lets say if we tempered the JWT token
+
+![alt text](image-58.png)
+
+- Lets also check expiration of token. Lets reduce the expiration time from 8 hrs (30000000) to 3 seconds (3000) for testing purpose.
 
 
+![alt text](image-59.png)
+
+## Method Level Security
+
+- Apart from API level security, Spring Security also supports method level security, which means with the help of Spring Security framework, we should be able to enforce security on top of our Java method. Your Java method can be present inside controller layer service layer, repository layer. The method can be in any layer, but still we should be able to secure our Java methods. In critical applications, securing the methods is also equally important because at the end of the day, all the Java methods, they're going to hold a business logic and once the business logic is executed, the Java methods are going to return lot of sensitive data.
+
+![alt text](image-60.png)
+
+- To enable the method level security inside any web application, we need to make sure we are mentioning the annotation, which is `@EnableMethodSecurity`. This annotation you can keep on top of your Spring Boot main class or you can also keep it on top of a configuration class.
+- Method level security is also going to be useful to enforce the authorization rules in the non-web applications. What is a non-web application? Many times, few organizations, they're going to build a desktop applications. That means these applications can be used inside a particular desktop and these applications can't be accessed using web APIs or using the browsers. These types of application does not support any web services.
+- Since these kind of desktop applications are non-web applications, they're not going to have any end points. Enforcing the security  with the help of method level security is going to be super helpful so that the business logic or the methods can be invoke by authenticated and authorized users only.
+- There are two different approaches on how we are going to apply the authorization rules on top of a Java method or on top of a business logic.
+
+1. **Invocation authorization** - As part of this Invocation authorization, spring security is going to help us to decide whether to invoke a method or not based upon the authorization rules that we are going to define. Basically based on user credentials.
+
+2. **Filtering authorization** -  We know all our Java methods,they're going to accept lot of input parameters and they also going to return lot of data as part of the response. With the help of Filtering authorization approach, we should be able to perform validations and accept the data only if the data satisfies to our filtering criteria or to the authorization criteria that we have defined using Filtering authorization. Similarly, the written type of the method also can be controlled based upon the filtering condition or based upon the authorization condition that we are going to define.
+
+- Method security provides 3 different styles to secure any java method.
+
+![alt text](image-61.png)
+
+1. **prePostEnabled**: 
+    - This enables Spring Security's `@PreAuthorize` and `@PostAuthorize` annotations.
+    - `@PreAuthorize` checks conditions before a method is executed. For example, you can specify that only users with a certain role can call a method.
+    - `@PostAuthorize` checks conditions after the method has executed, useful for filtering results based on user permissions.
+    - Use this when you need fine-grained control over method execution, allowing you to check permissions before or after a method runs.
+    - This attribute is by default true when we use method security.
+
+2. **securedEnabled**:
+    - This enables the `@Secured` annotation.
+    - `@Secured` allows you to specify which roles are allowed to execute a particular method. It’s simpler and less flexible compared to `@PreAuthorize`.
+    - Use this when you need to secure methods based on roles without the need for complex expressions.
+    - This attribute is by default false when we use method security.
+
+3. **jsr250Enabled**:
+    - This enables the `@RolesAllowed` annotation from **JSR-250**.
+    - `@RolesAllowed` works similarly to @Secured but is part of the JSR-250 standard, making it more portable across different Java EE implementations.
+    - Use this if you're following the JSR-250 standard or working in an environment where JSR-250 is preferred.
+    - This attribute is by default false when we use method security.
+
+<details>
+
+<summary> About JSR-250 standard </summary>
+
+- Just like JPA (Java Persistence API) is a specification that defines a standard way to manage relational data in Java applications, and Hibernate is one of the implementations of that specification, JSR-250 is a specification that defines a set of standard annotations for common tasks like security and resource management, and various frameworks, including Spring, provide implementations of these standards.
+-  A specification that provides standard annotations for security roles (`@RolesAllowed`), resource injection (`@Resource`), and other common tasks. Spring framework that implements these annotations, allowing you to use them in your Spring-based applications.
+- Standards like JSR-250 and JPA ensure that you have a consistent way of handling common concerns across different projects, even if you use different underlying frameworks.
+- Key Annotations in JSR-250
+
+1.`@RolesAllowed`:
+    - Specifies the roles permitted to access a method or class.
+    - Example: `@RolesAllowed({"ADMIN", "USER"})` indicates that only users with the roles "ADMIN" or "USER" can access the annotated method or class.
+
+2. `@RunAs`:
+    - Specifies that a class or method should be executed under a specific security role.
+    - Example: `@RunAs("ADMIN")` makes the method or class execute as if it were an "ADMIN" role.
+
+3. `@PermitAll`:
+    - Indicates that any user, regardless of role, is allowed to access the method or class.
+    - Example: `@PermitAll` makes the annotated method accessible to everyone.
+
+4. `@DenyAll`:
+    - Specifies that no one is allowed to access the annotated method or class.
+    - Example: `@DenyAll` makes the method or class inaccessible to all users.
+
+5. `@Resource`:
+    - Used for injecting a resource, such as a database connection or an external service, into a class.
+    - Example: `@Resource(name = "myDataSource")` injects a data source resource named "myDataSource".
+
+- These are some of the annotation defined in JSR-250 standard.
+- These annotations provide a straightforward way to manage security, resource injection, and lifecycle management without the need for complex XML configurations or proprietary annotations.
+- In Spring, the `@RolesAllowed` annotation from JSR-250 can be enabled for method-level security by setting **jsr250Enabled** to true. This makes your Spring application compliant with the JSR-250 standard, allowing for easier integration with other Java EE technologies.
+
+</details>
+
+- Aspect-Oriented Programming (AOP) is a programming paradigm that allows you to separate cross-cutting concerns (like security, logging, or transaction management) from the main business logic of your application. This helps keep your code clean and focused on its primary purpose.
+- In the context of Spring Security, an interceptor is a piece of code that intercepts (or "wraps around") a method call to perform additional actions before or after the business logic method executes. These actions might include checking if the user has the right permissions, logging the action, or managing transactions.
+- When you use method-level security annotations like `@PreAuthorize` or `@Secured`, Spring Security uses AOP to intercept method calls and apply security checks. Basically the manual check which you gonna perform like if the user has required roles or not using if statements those are handle via method security using AOP. Such checks becomes cross-cutting concerns.
+- Without AOP (manually checking permission)
+
+```
+public void deleteUser(Long userId) {
+    if (!currentUserHasRole("ADMIN")) {
+        throw new AccessDeniedException("You do not have permission to delete users.");
+    }
+    // Logic to delete the user
+}
+```
+
+- With AOP
+
+```
+@Secured("ROLE_ADMIN")
+public void deleteUser(Long userId) {
+    // Logic to delete the user
+}
+```
+
+- Lets look into **invocation authorization**. Invocation authorization can be achieved with the help of two important annotations that are available as part of Spring Security framework. The very first annotation is `@PreAuthorize` annotation, and the other annotation is `@PostAuthorize` annotation
+
+1. **`@PreAuthorize`**
+
+- This `@PreAuthorize` annotation is mentioned on top of a java method , it can be also specified on top of a class to enforce the authorization rules. When we add this annotation we should be able to provide our authorization configurations as an input.
+
+![alt text](image-62.png)
+
+- So to this method, if you pass the hasAuthority, hasRole, hasAnyRole or has any authority methods along with the authority name or role details, behind the scenes, Spring Security framework, it is going to perform the validations, whether a given end user has enough authority or roles to invoke this method. If the end user does not have given role or authorities, then Spring Security, it is going to throw the 403 error.
+- Now when a end user hits our api, we already have api level security like authentication manager which already checks whether the end user has enough roles and authorities? when why again to specify those authorities and roles again on each method? there could be a possible scenario where the end user has enough roles to access our api but not execute certain methods like suppose there is one branch of a private bank, now this bank has its own employee, the bank consist of a vault which can be only access by the bank manager and not its other employee. Similarly, for critical web applications, we will have such kind of requirements to enforce authorization rules at multiple layers. When we enforce the authorization rule on top of a API, the Spring Security, it is only going to perform the authorization checks during the API invocation or MVC path invocation. But as part of that API or MVC path, we may invoke 100 different Java methods. If the hacker is somehow able to invoke the API without any proper role or proper authority, we should also have some extra check by enforcing these authorization rules with the help of these annotation.
+- Here, lets say if we wanna invoke the method only if the user has the **username** as its name. We can also achieve it using expression.
+
+```
+@PreAuthorize("#username==authentication.principal.username")
+```
+
+>[!NOTE]
+> - The image consist of many **`@PreAuthorize`** annotation, this is just to showcase how can we implement the roles, authorities and user name based invocation of method. Spring does not allow you to write these annotation multiple times on top of a method.
+
+2. **`@PostAuthorize`**
+
+- It is going to work exactly opposite of `@PreAuthorize` annotation. When we enforce an authorization rule with the help of `@PreAuthorize` annotation, the Java method is never going to be invoked if the authorization check fails; whereas when we're using the `@PostAuthorize` annotation, the Spring Security framework is not going to perform any authorization checks during the method invocation. Once the method invocation is completed and the method execution is completed while returning the output from the method, at that point of time, the Spring Security framework, it is going to enforce the authorization checks.
 
 
+![alt text](image-63.png)
 
+- Why we would require `@PostAuthorize` ? lets take an example, a customer service representative views account details for customers. However, after fetching the details, the system checks if the representative is authorized to view accounts from that particular region or branch. Even if the method initially retrieves all accounts, @PostAuthorize ensures that only those the representative is allowed to manage are shown.
+- Lets say your method returns something, so whatever return object that my method is going to return, it is going to be referred as return object. Inside this return object, if we have a field with the name username, we can compare it with the logged-in user username. So if the logged-in user username is same as with the **username** present inside the return object, then only we want to return the object. Otherwise, we want to stop returning that object by throwing the 403 error.
+
+```
+@PostAuthorize("returnObject.username==authentication.principal.username")
+```
+
+>[!NOTE]
+> - The image consist of many **`@PostAuthorize`** annotation, this is just to showcase how can we implement the roles, authorities and user name based invocation of method. Spring does not allow you to write these annotation multiple times on top of a method.
+
+- In Spring Security, the method-level security annotations like `@PreAuthorize` and `@PostAuthorize` are implemented using Aspect-Oriented Programming (AOP) through interceptors such as **AuthorizationManagerBeforeMethodInterceptor** and **AuthorizationManagerAfterMethodInterceptor**
+
+![alt text](image-64.png)
+
+![alt text](image-65.png)
+
+- **AuthorizationManagerBeforeMethodInterceptor** is linked to `@PreAuthorize` and ensures that security checks are performed before the method executes. **AuthorizationManagerAfterMethodInterceptor** is linked to `@PostAuthorize` and ensures that security checks are performed after the method executes.
+- Both are AOP interceptors, meaning they intercept method calls and apply security checks as part of the aspect-oriented programming approach in Spring Security.
+- Lets see an example of `PreAuthorize` , lets create a new controller with name **RestrictedController**.
+
+```
+package com.eazybytes.eazyschool.controller;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class RestrictedController {
+
+	@PreAuthorize("hasAuthority('admin')")
+	@GetMapping("/notallowed")
+	public String restricted(String defaultAdminUser) {
+		return "Access Granted";
+	}
+}
+```
+
+<video controls src="20240907-0841-20.8670527.mp4" title="Title"></video>
+
+
+- Lets see about Filtering authorization on methods. With the help of this Filtering authorization, we should be able to control what kind of input that a method can accept and what kind of output that a method can return to the client application. Basically we can filter input and output a method accepts and sends.
+- In Spring Security, `@PreFilter` and `@PostFilter` are used for filtering collections of data. They allow you to control which elements of a collection.
+
+1. **`@PreFilter`**
+
+- When a method annotated with `@PreFilter` is called, Spring Security evaluates the provided filter expression to decide which elements in the input collection should be included in the method's execution. It can exclude the items that the user shouldn't have access to before the method starts.
+
+![alt text](image-66.png)
+
+2. **`@PostFilter`**
+
+- After the method completes its execution and returns a collection of results, Spring Security evaluates the provided filter expression to determine which elements in the result set should be included in the final output. It can exclude the items that the user shouldn't see after the method has completed.
+
+![alt text](image-67.png)
+
+
+- Lets implement both, so first lets create a class which will accept data from response body.
+
+```
+package com.eazybytes.eazyschool.model;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@ToString
+public class IDNameCollections {
+
+	private int id;
+	
+	private String name;
+}
+```
+
+- Lets create a path for it.
+
+```
+	@GetMapping("/allidname")
+	@PreFilter("filterObject.name != 'Harsh' && filterObject.name != 'Meet'")
+	@PostFilter("filterObject.name != 'Test'")
+	public List<IDNameCollections> idnameCollectionsMethod(@RequestBody List<IDNameCollections> allcollections){
+		IDNameCollections obj1= new IDNameCollections();
+		obj1.setId(1);
+		obj1.setName("Test");
+		IDNameCollections obj2= new IDNameCollections();
+		obj2.setId(2);
+		obj2.setName("Jeet");
+		allcollections.add(obj1);
+		allcollections.add(obj2);
+		return allcollections;
+	}
+```
+
+![alt text](image-68.png)
+
+- Here we are filtering input as well as output. When the collections consist of name **Harsh** and **Meet**. During output we only sent **Jeet** name data and exclude the **Test**.
 
 

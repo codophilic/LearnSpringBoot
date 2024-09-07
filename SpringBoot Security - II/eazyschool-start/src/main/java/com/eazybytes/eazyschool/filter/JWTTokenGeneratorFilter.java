@@ -56,9 +56,9 @@ public class JWTTokenGeneratorFilter extends OncePerRequestFilter {
                         .claim("authorities", authentication.getAuthorities().stream().map(
                                 GrantedAuthority::getAuthority).collect(Collectors.joining(",")))
                         .issuedAt(new Date())
-                        .expiration(new Date((new Date()).getTime() + 30000000))
+                        .expiration(new Date((new Date()).getTime() + 30000000)) //3000 (3 seconds)
                         .signWith(secretKey).compact();
-                response.setHeader("JWT Authorization", jwt);
+                response.setHeader("EazyBankJWTAuthorization", jwt);
             }
         }
         filterChain.doFilter(request, response);			

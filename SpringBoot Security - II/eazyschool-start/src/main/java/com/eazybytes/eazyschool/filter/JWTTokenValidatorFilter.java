@@ -20,6 +20,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 
 public class JWTTokenValidatorFilter extends OncePerRequestFilter {
 
@@ -28,19 +30,48 @@ public class JWTTokenValidatorFilter extends OncePerRequestFilter {
 			throws ServletException, IOException {
 		
 		// Here will be logic of validating the token
-	       String jwt = request.getHeader(ApplicationConstants.JWT_HEADER);
+		
+		/**
+		 * The request will be sending JWT Token inside its header, so from the header
+		 * we need to fetch the token
+		 */
+	       String jwt = request.getHeader("EazyBankJWTAuthorization");
 	       if(null != jwt) {
 	           try {
+	        	   
+	        	   /**
+	        	    * From Environment fetch the secret key
+	        	    */
 	               Environment env = getEnvironment();
 	               if (null != env) {
 	                   String secret = env.getProperty(ApplicationConstants.JWT_SECRET_KEY,
 	                           ApplicationConstants.JWT_SECRET_DEFAULT_VALUE);
+	                   
+	                   /**
+	                    * Generating the secret key
+	                    */
 	                   SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
 	                   if(null !=secretKey) {
+	                	   
+	                	   /**
+	                	    * `Jwts.parser().verifyWith(secretKey).build()` verifies the token
+	                	    * using secret key if any exception caught which means token is being tampered then
+	                	    * the catch block will be executed.
+	                	    * 
+	                	    * If token is valid then using `parseSignedClaims` we will fetch
+	                	    * username and authorities which were set during jwt token generation
+	                	    */
+	                	   
 	                       Claims claims = Jwts.parser().verifyWith(secretKey)
 	                                .build().parseSignedClaims(jwt).getPayload();
 	                       String username = String.valueOf(claims.get("username"));
 	                       String authorities = String.valueOf(claims.get("authorities"));
+	                       
+	                       /**
+	                        * Creating authentication object and setting that 
+	                        * into securityContextHolder, here password is kept null since authentication
+	                        * is already done using jwt token.
+	                        */
 	                       Authentication authentication = new UsernamePasswordAuthenticationToken(username, null,
 	                               AuthorityUtils.commaSeparatedStringToAuthorityList(authorities));
 	                       SecurityContextHolder.getContext().setAuthentication(authentication);
