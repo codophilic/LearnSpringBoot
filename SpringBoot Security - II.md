@@ -2,15 +2,15 @@
 
 - So here we have a spring boot MVC application which has frontend based on HTML & Thymeleaf. 
 
-<video controls src="20240831-1207-25.6853539.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity2/20240831-1207-25.6853539.mp4" title="Title"></video>
 
 - Here we have images, js, css and webfonts file . These are static files. So it is specified under static folder.
 
-![alt text](image.png)
+![alt text](Images/springbootsecurity2/image.png)
 
 - All the HTML files are present under folder template
 
-![alt text](image-1.png)
+![alt text](Images/springbootsecurity2/image-1.png)
 
 - We have different controller
 
@@ -140,7 +140,7 @@ public class HolidaysController {
 }
 ```
 
-![alt text](image-2.png)
+![alt text](Images/springbootsecurity2/image-2.png)
 
 
 5. Contact Controller
@@ -203,7 +203,7 @@ public class ContactController {
 ```
 
 
-![alt text](image-3.png)
+![alt text](Images/springbootsecurity2/image-3.png)
 
 
 - Now to store contact details we would require contact DTO and a service layer.
@@ -373,7 +373,7 @@ public class ProjectSecurityConfig {
 - So whatever present inside the asset folder we want to be accessible without any security. That's why we have mentioned assets, asterisk, asterisk. That means anything that is coming after the assets path I want to `permitAll`. The same applies for holidays, as well. After the holidays path, if there is any subsequent path, I also want to `permitAll()`.
 - Example `/holidays/all` or any sort of url which gets appended as suffix must have `permitAll` .
 
-![alt text](image-4.png)
+![alt text](Images/springbootsecurity2/image-4.png)
 
 - Below is the Web MVC Configuration.
 
@@ -431,12 +431,12 @@ public class WebConfig implements WebMvcConfigurer {
 
 - Lets run the application and go to the login page
 
-![alt text](image-5.png)
+![alt text](Images/springbootsecurity2/image-5.png)
 
 - It says too many re-directs because the problem right now we have is, framework is trying to redirect it to the login page for authentication, but we have not specified that to access login page no authentication is required. By default spring security perform authentication for any page and login itself is the UI for authentication that's why it is again trying to redirect it.
 - Provide the url under `permitAll`.
 
-![alt text](image-6.png)
+![alt text](Images/springbootsecurity2/image-6.png)
 
 - Lets make `/dashboard` as secured, because user must perform authentication then only dashboard must be accessible.
 
@@ -455,11 +455,11 @@ public class WebConfig implements WebMvcConfigurer {
     }
 ```
 
-<video controls src="20240831-1640-03.4579858.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity2/20240831-1640-03.4579858.mp4" title="Title"></video>
 
 - So if user tries to access dashboard , he or she will be redirected to login page. Lets try to login on dashboard.
 
-![alt text](image-7.png)
+![alt text](Images/springbootsecurity2/image-7.png)
 
 - The user name **defaultAdminUser** is populated using **Authentication** Object inside the dashboard controller
 
@@ -515,11 +515,11 @@ public class DashboardController {
 - If you see , to accept user name and password we have two fields `name="username"` and `name="password"`. Now during authentication where the values of these parameters get stored? how the authentication happens using html attributes?
 - Here we are using default authentication, so **UsernamePasswordAuthenticationFilter** is invoked. This filter consist of two final variables
 
-![alt text](image-8.png)
+![alt text](Images/springbootsecurity2/image-8.png)
 
 - The variable values are same as html parameter name values. If we run the application in debug mode we can see the user name , fetch from the request.
 
-![alt text](image-9.png)
+![alt text](Images/springbootsecurity2/image-9.png)
 
 - Lets say if we want to customize the name field in html for user name and password.
 
@@ -549,7 +549,7 @@ public class DashboardController {
 
 - What if the user enters wrong credentials?
 
-<video controls src="20240831-1717-17.1080149.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity2/20240831-1717-17.1080149.mp4" title="Title"></video>
 
 - If you see the url gets changed to `http://localhost:8080/login?error` but there is nothing notified about that if the user credentails are wrong. How to handle this in a customize form page?
 - So we need to configure a default **failureUrl**. To allow everyone (including unauthenticated users) to access the login page, you need to permit access to /login and any related URLs in your Spring Security configuration (`**/login/**`).
@@ -610,7 +610,7 @@ public class DashboardController {
                     </div>
 ```
 
-![alt text](image-10.png)
+![alt text](Images/springbootsecurity2/image-10.png)
 
 
 - Lets say you wanna log something incase of a user credentials are valid or invalid, when the click on **LogIn** button, this can be achieved by using **AuthenticationSuccessHandler** and **AuthenticationFailureHandler**.
@@ -776,7 +776,7 @@ public class ProjectSecurityConfig {
 }
 ```
 
-<video controls src="20240831-1826-06.0477170.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity2/20240831-1826-06.0477170.mp4" title="Title"></video>
 
 - We can see the log entries on the console.
 - Can we have our own logout page? - yes, just like the steps we performed for login error process, same steps can be applied for logout.
@@ -823,7 +823,7 @@ public class ProjectSecurityConfig {
     }
 ```
 
-![alt text](image-11.png)
+![alt text](Images/springbootsecurity2/image-11.png)
 
 - In Spring Security, when you configure logout functionality using `.logout()` in your security configuration, you are defining how the application should handle user logout operations. While Spring Security provides a default behavior for logout, such as invalidating the session and clearing authentication, it does not automatically perform all tasks unless explicitly configured.
 - `.invalidateHttpSession(true)` : Ensures that the current HTTP session is invalidated when the user logs out. This is crucial for ensuring that any data associated with the session (like user-specific data or session-scoped beans) is removed, preventing any unauthorized access.
@@ -833,7 +833,7 @@ public class ProjectSecurityConfig {
 - `.deleteCookies("JSESSIONID")` : Deletes the specified cookies from the browser. Removing the `JSESSIONID` cookie helps ensure that the session is fully terminated on the client side as well, enhancing security by preventing the reuse of an old session ID.
 
 
-![alt text](image-12.png)
+![alt text](Images/springbootsecurity2/image-12.png)
 
 - Lets say your `/dashboard` url must only be visible when the user with valid credentials login, other user who are anonymous must not able to see the `/dashboard` page. We can achieve this using built-in method provided by thymeleaf for spring security.
 - In your **headers.html** add the below namespace
@@ -859,7 +859,7 @@ xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
 - The `sec:authorize` attribute is used to conditionally display or hide parts of the HTML content based on the user's authentication status or roles. `isAnonymous()` this expression returns true if the user is not authenticated (i.e., the user is browsing anonymously or not logged in).
 - Thymeleaf with spring security allows you to dynamically display or hide content based on whether the user is logged in or not, and also based on the user's roles and permissions. This is particularly useful for personalizing the user experience and enhancing security by hiding sensitive elements from unauthorized users.
 
-<video controls src="20240831-1915-07.3404230.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity2/20240831-1915-07.3404230.mp4" title="Title"></video>
 
 **How It Works?**
     - Integration with Spring Security: Thymeleaf, with the help of `thymeleaf-extras-springsecurity6`, integrates with Spring Security to evaluate expressions like `isAnonymous()` and `isAuthenticated()`. It checks the user's current security context to determine their authentication status or roles.
@@ -868,7 +868,7 @@ xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
 
 ## Roles of SecurityContext & SecurityContextHolder
 
-![alt text](image-13.png)
+![alt text](Images/springbootsecurity2/image-13.png)
 
 - Whenever the authentication is completed, for later use, the framework is going to store the already authenticated details inside the **SecurityContext**.
 - During the authentication process, an Authentication object is going to be created. Inside this Authentication object,
@@ -879,22 +879,22 @@ we are going to have details like **Principal**, **Credentials** and **Authoriti
 - This Authentication object, it also have a Boolean variable indicating whether the authentication is successful or not. Once the authentication action is completed, the Spring Security framework, it is going to store the authentication details inside the object of SecurityContext.
 - So **SecurityContext is an interface**. There is an implementation class for this interface with the name **SecurityContextImplementation (SecurityContextImpl)**.
 
-![alt text](image-14.png)
+![alt text](Images/springbootsecurity2/image-14.png)
 
 - SecurityContext is going to be managed by a class with the name **SecurityContextHolder**. So this holder class is responsible to manage the details inside the SecurityContext. The holder class exposes various methods to clear the SecurityContext, to add new details to the SecurityContext, to update the SecurityContext details.
 - So all the CRUD operation related to the SecurityContext along with the other utility methods are present inside the SecurityContextHolder class.
 
-![alt text](image-15.png)
+![alt text](Images/springbootsecurity2/image-15.png)
 
 - Spring Security framework is going to leverage this holder class to a great extent whenever it is trying to store or deal with the SecurityContext object.
 - We don't have to implement our own SecurityContext or our own SecurityContextHolder, but as a Spring Security developer, you should know about all these important classes and interfaces.
 - Interface **SecurityContext**  has methods to retrieve the authentication and to set the authentication details.
 
-![alt text](image-16.png)
+![alt text](Images/springbootsecurity2/image-16.png)
 
 - The SecurityContext object is going to be stored inside the SecurityContextHolder. So whenever you are thinking about the SecurityContextHolder, just think about this locker like how we store valuable information inside a strong locker, very similarly, SecurityContextHolder is like a locker to store the objects of SecurityContext.
 
-![alt text](image-17.png)
+![alt text](Images/springbootsecurity2/image-17.png)
 
 - By default SecurityContextHolder, it is going to store the SecurityContext by using a strategy called **ThreadLocal**. Whenever the SecurityContext details are stored inside a ThreadLocal object, what is going to happen is we don't have to explicitly pass on the SecurityContext object to all the methods that are being invoked as part of the same thread. Anywhere, if you're looking to access the Authentication details or the SecurityContext details, we should be able to easily access them without needing to pass the SecurityContext details to all the methods that are being invoked inside a thread.
 
@@ -919,11 +919,11 @@ we are going to have details like **Principal**, **Credentials** and **Authoriti
 - let's try to understand how to change the strategy from LOCAL to INHERITTHREADLOCAL, or from LOCAL to GLOBAL based upon your requirements. The very first approach is by using an application property with the property name as `spring.security.strategy`. To this property, you can pass the valueslike INHERITABLETHREADLOCAL and GLOBAL.
 - Otherwise, inside your application, you can create a Bean, which is going to set the strategy by invoking the `setStrategyName()` method, which is available inside the SecurityContextHolder.
 
-![alt text](image-18.png)
+![alt text](Images/springbootsecurity2/image-18.png)
 
 - Load user details into your method
 
-![alt text](image-19.png)
+![alt text](Images/springbootsecurity2/image-19.png)
 
 ## CORS (Cross-Origin Resource Sharing)
 
@@ -967,7 +967,7 @@ Access-Control-Allow-Origin: https://trustedDomain.com
 
 - CORS : CORS is a security feature implemented by web browsers to prevent a web page from making requests to a different domain. This is crucial for security reasons because it stops malicious websites from reading sensitive information from another site. A CORS attack occurs when a malicious website exploits CORS misconfigurations in a web server to steal sensitive data or perform unauthorized actions on behalf of a user. **CORS is not a security threat or a security attack. It is a protection provided by the browser by blocking the communication between the different origins**.
 
-![alt text](image-20.png)
+![alt text](Images/springbootsecurity2/image-20.png)
 
 - In Spring Boot Security, there are two main ways to configure CORS (Cross-Origin Resource Sharing)
 
@@ -989,12 +989,12 @@ public class MyController {
 }
 ```
 
-![alt text](image-21.png)
+![alt text](Images/springbootsecurity2/image-21.png)
 
 
 2. Configuring CORS in the **SecurityFilterChain** HTTP Configuration: This approach is more scalable and centralized, allowing you to configure CORS globally for all endpoints or specific patterns using the SecurityFilterChain.
 
-![alt text](image-22.png)
+![alt text](Images/springbootsecurity2/image-22.png)
 
 - So whenever you are using spring security inside your application, we can try to invoke the `cors()` method using the **http** parameter. To this `cors()` method, we need to provide the CORS related configurations. **CorsConfigurationSource** is an interface which will be used to provide the CORS related configurations. So using method `configureSource()` we need to pass the object of **CorsConfigurationSource**. Since this is an interface, we can't create the object of this interface. So that's why here, we are trying to define an anonymous class here. Here we are trying override the interface method available, which is `getCorsConfiguration()`.
 - Inside this method, we need to define an object of CorsConfiguration. Using this CorsConfiguration object, we need to invoke various methods like `setAllowedOrigins()`, `setAllowedMethods()`, `setAllowedCredentials()`, `setAllowedHeaders()`, and `setMax()`.
@@ -1051,7 +1051,7 @@ public class SecurityConfig {
 - By default, Spring Security does not enable CORS (Cross-Origin Resource Sharing) support. This means that if you don’t explicitly configure CORS in your Spring Security configuration or use the `@CrossOrigin` annotation, Spring Security will block any cross-origin HTTP requests.  Without explicit CORS configuration, all cross-origin requests are blocked, and the browser will throw a CORS error like No `Access-Control-Allow-Origin` header is present on the requested resource.
 - This default behavior is secure by default. It prevents malicious websites from making unauthorized requests to your application.
 
-![alt text](image-23.png)
+![alt text](Images/springbootsecurity2/image-23.png)
 
 
 ## CSRF (Cross-Site Request Forgery) or Sea Surf or XSRF
@@ -1080,9 +1080,9 @@ public class SecurityConfig {
 
 - CSRF is a type of attack that tricks a user into performing actions they didn't intend to do on a web application where they are authenticated. It forces an authenticated user to perform unwanted actions on a web application where they are currently logged in. The attacker tricks the user’s browser into sending a request to the application without the user's knowledge or consent.
 
-![alt text](image-24.png)
+![alt text](Images/springbootsecurity2/image-24.png)
 
-![alt text](image-25.png)
+![alt text](Images/springbootsecurity2/image-25.png)
 
 - To Prevent CSRF the most common and effective way to prevent CSRF attacks is by using **CSRF tokens**.
 
@@ -1116,24 +1116,24 @@ public class SecurityConfig {
 - When the hidden form auto-submits, it sends a POST request to `https://socialmedia.com.` However, this request does not include the correct CSRF token because, the attacker cannot guess the unique, unpredictable CSRF token that was generated and sent by `https://socialmedia.com`. The attacker cannot directly read the CSRF token from the user’s session cookie or from the server-side storage. Browsers prevent sites from accessing cookies or other data set by a different origin (the Same-Origin Policy).
 - `https://socialmedia.com` receives the request. The server checks for the CSRF token included in the request. Because the request does not have a valid CSRF token, the server recognizes this as a potential CSRF attack and rejects the request. The malicious action is not performed.
 
-![alt text](image-26.png)
+![alt text](Images/springbootsecurity2/image-26.png)
 
-![alt text](image-27.png)
+![alt text](Images/springbootsecurity2/image-27.png)
 
 - Spring Security provides built-in CSRF (Cross-Site Request Forgery) protection and enables it by default. This default configuration is designed to help protect web applications from CSRF attacks without requiring additional configuration.
 
-![alt text](image-28.png)
+![alt text](Images/springbootsecurity2/image-28.png)
 
 
 ## Filters
 
-![alt text](image-29.png)
+![alt text](Images/springbootsecurity2/image-29.png)
 
 - Using filters inside a servlet-based web application, we should be able to intercept each and every request that is coming towards our web application. By leveraging this feature of filters, Spring Security have built a lot many Spring Security filters.
 - So the role of these Spring Security filters is they are going to intercept each and every request coming towards a web application and they're going to examine the request and they're going to perform the authentication, authorization rules or any other checks based upon our configurations inside our web application.
 - When a request reaches to an Spring boot web application, which also has Spring Security configurations configured, in these kind of scenarios, the request is going to be intercepted by multiple filters. So inside Spring Security framework, we are going to have multiple filters. It is not like only a single filter is going to handle all the functionality. There'll be more than 20 filters processing your incoming request. The number of filters that are going to be activated for a request is completely dependent on the type of configurations that you have done inside your web application.
 
-![alt text](image-30.png)
+![alt text](Images/springbootsecurity2/image-30.png)
 
 - Inside the Spring Security, they are going to executed in the form of filter chain. So whatever filters that are going to be activated by the Spring Security for a given request, they are all going to be executed in a chain manner. So once the filter one execution is completed, it needs to call the next to filter inside the chain. At last, once all the filters inside the security filter chain are completed, then other normal filters or other normal business logic execution is going to be executed. Inside the Spring boot applications, once all the Spring Security related filters are executed, the request will be forwarded to the DispatcherServlet.
 - So DispatcherServlet is going to be responsible to forward the given request to the corresponding controller based upon the MVC path or based upon the rest api that we are trying to invoke.
@@ -1156,7 +1156,7 @@ logging.level.org.springframework.security=${SPRING_SECURITY_LOG_LEVEL:TRACE}
 
 - Lets run the server and see 
 
-<video controls src="20240903-0302-41.3529500.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity2/20240903-0302-41.3529500.mp4" title="Title"></video>
 
 - If you see **14** filters were executed. We can also see the list of filters being executed. Once all the filters are executed.
 
@@ -1166,7 +1166,7 @@ logging.level.org.springframework.security=${SPRING_SECURITY_LOG_LEVEL:TRACE}
 - When we create a custom filter it will get populated on the console which inidicates the list of filters executed. Before creating our own custom filter first we need to understand how spring security has constructed these filters.
 - When we want to create our own custom filter, there are three important or most commonly used approaches. The very first approaches is you should be implementing an interface with the name, **Filter**.
 
-![alt text](image-31.png)
+![alt text](Images/springbootsecurity2/image-31.png)
 
 ### Filter Interface
 
@@ -1180,24 +1180,24 @@ logging.level.org.springframework.security=${SPRING_SECURITY_LOG_LEVEL:TRACE}
 
 - The second option that you can explore is, **GenericFilterBean**. So there is an abstract class with the name **GenericFilterBean** by extending this **GenericFilterBean**, you should be able to define your own custom filter.
 
-![alt text](image-32.png)
+![alt text](Images/springbootsecurity2/image-32.png)
 
 - If you see this abstract class, it is also implementing the filter but what is the difference between the Filter option and the GenericFilterBean option? Whenever you have a requirement that you want to read some servlet related init parameters that are defined inside your deployment descriptor like **web.xml** or if you're looking for an option to read the servlet context details or the environment property details, so in all such scenarios you can leverage **GenericFilterBean** abstract class. If you look for the list of methods available inside this abstract class, there are good amount of methods related to Environment, `FilterConfig()`, `ServletContext()`, so anytime if you're looking for an option to read the ServletInitParameter, ServletContextDetails or EnvironmentDetails in all such scenarios, you can happily use these GenericFilterBean.
 
-![alt text](image-33.png)
+![alt text](Images/springbootsecurity2/image-33.png)
 
 ### OncePerRequestFilter abstract class
 
 - Apart from these two approaches, there is one more approach which is an abstract class **OncePerRequestFilter** which extends **GenericFilterBean**. So whenever you define a filter by extending this abstract class in such scenarios the Spring framework, it is going to guarantee you that your filter is going to be executed only once at max for each request. 
 
-![alt text](image-34.png)
+![alt text](Images/springbootsecurity2/image-34.png)
 
 - There will be certain scenarios where the same request can be processed to multiple times inside the servlet container environment. In such scenarios, if you're looking for an option to execute your business logic only once, then this is the class that you need to construct to create your custom filter.
 - Inside this class there is a method `doFilter()` as part of this, `doFilter()` the framework team, they have written a logic to make sure that your custom filter is going to be executed only once.
 - This **OncePerRequestFilter** it also has other useful methods like `shouldNotFilter()`. This method you can use in the scenarios whenever you want your filter not to be executed under certain scenarios, maybe you may have a requirement that your filter should not be executed for certain MVC parts or for certain rest API parts.
 - To create our own custom filter , we need to understand how to place our filter into the filter chain. So there are 3 ways to do so.
 
-![alt text](image-35.png)
+![alt text](Images/springbootsecurity2/image-35.png)
 
 - Adding Custom filter after another filter in Filter chain
 
@@ -1226,13 +1226,13 @@ In the above code, AbcCustomFilter will added before or after the UsernamePasswo
 - Lets create our own custom filter, our custom filter **UserIdChecker** will not authenticate the user if the user contains `test` as its user id. So basically before authentication **BasicAuthenticationFilter** we need to add our own filter.
 - First lets hit the url `http://localhost:8080/login` using postman and lets see the console.
 
-![alt text](image-36.png)
+![alt text](Images/springbootsecurity2/image-36.png)
 
-![alt text](image-37.png)
+![alt text](Images/springbootsecurity2/image-37.png)
 
 - Now under the request header, there is the authorization field which consist of base64 encoded format of **username:password**.
 
-![alt text](image-38.png)
+![alt text](Images/springbootsecurity2/image-38.png)
 
 - Now to retrieve this user name and its password, to check the user id, we need to access the request header authorization using **HttpServlet** . Here we will be using **Filter** interface.
 
@@ -1356,7 +1356,7 @@ public class UserIDChecker implements Filter {
 
 - Post running, if user contains **test** as its user id, spring security will throw bad request.
 
-<video controls src="20240904-0436-49.9943335.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity2/20240904-0436-49.9943335.mp4" title="Title"></video>
 
 - Here we have also tried `addFilterAfter` and we can see in the security filter chain list the ordering of our **UserIDChecker**.
 - Lets use `addFilterAt` for a logging class
@@ -1444,9 +1444,9 @@ public class LoggingFilterAt implements Filter{
 
 - Lets run the project.
 
-![alt text](image-39.png)
+![alt text](Images/springbootsecurity2/image-39.png)
 
-![alt text](image-40.png)
+![alt text](Images/springbootsecurity2/image-40.png)
 
 ## Token
 
@@ -1462,7 +1462,7 @@ public class LoggingFilterAt implements Filter{
     - **Simple Explanation**: JWT tokens are like passports that contain some of your information, such as your identity and what you’re allowed to do, all packed into the token itself. When you present a JWT token, the service can read the information directly from the token to know who you are and what access you have, without needing to check with a central server every time.
     - **Analogy**: Imagine you have a passport that contains your photo, name, nationality, and visa information. When you show this passport, officials can see directly from the document who you are and what you're allowed to do, without having to look you up in a database.
 
-![alt text](image-41.png)
+![alt text](Images/springbootsecurity2/image-41.png)
 
 - Opaque tokens need to be validated by the authorization server every time they are used whereas JWT tokens can be validated directly by the service because they contain all necessary information.
 - Opaque tokens are just random strings with no user information whereas JWT tokens contain user information in a structured format (JSON) that is signed to ensure its integrity.
@@ -1472,7 +1472,7 @@ public class LoggingFilterAt implements Filter{
 - So if you see here, these tokens are very simple tokens. They are just some random String values,but in real applications, you may get requirements to generate the tokens based upon advanced formats like JWT tokens. For critical applications,  you may have requirement to not store the token details inside the browser cookies as well. Inside such applications, you need to transmit the token from UI to backend back into UI continuously for each request, so these kind of techniques we're going to apply inside our web application to make it more secure.
 - Inside the software industry in general, two types of token formats are going to be used by the enterprise applications. The two formats are **Opaque Tokens** and **JSON Web Tokens**.
 
-![alt text](image-42.png)
+![alt text](Images/springbootsecurity2/image-42.png)
 
 
 - Tokens are going to be generated during the authentication process. First, the client is going to send a request to the login page, the username and password. So here the client application, it has to submit the actual username and password of the end user. So the backend server, so this can be an authorization server or a normal Spring Boot-based web application. What it is going to do? is it's going to validate the credentials, and if the credentials are correct, it is going to give you a token as a response.
@@ -1480,7 +1480,7 @@ public class LoggingFilterAt implements Filter{
 
 ### Advantages of Tokens
 
-![alt text](image-43.png)
+![alt text](Images/springbootsecurity2/image-43.png)
 
 
 - The very first advantage is, whenever we are using tokens, it is going to provide limited exposure of the user credentials inside the network. What does this mean? The end user is going to share the credentials only once that is during the login operation. For all the remaining requests that the end user is going to make, the credentials are not going to be sent inside the network. Instead, the token is going to travel inside the network. So with this, we have one advantage, which is we are not necessarily exposing the user credentials to the network multiple times. In the scenarios when our an enterprise organization saw a suspicious activity where some hacker stole the tokens, what they can do is they can simply rework or invalidate all the tokens issued by the backend server. So when they invalidate the token, they are not going to actually invalidate the user credentials. So with this, what is going to happen is the end user is never going to be affected due to the data breach. Even if some hacker get holds of all the tokens, the authorization, organization don't have to worry much. They just have to revoke or invalidate all the existing tokens so that the end user, when he's trying to make the request, the login page is going to be displayed where the end user can enter actual credentials. So these are very first advantage around the **Security**.
@@ -1488,7 +1488,7 @@ public class LoggingFilterAt implements Filter{
 - The next advantage is around the **Self-contained**. This advantage comes into picture, whenever we use Jot tokens. Opaque tokens, we know that they don't have any Self-contained information but coming to the JWT tokens, they have the ability to store the necessary information about the logged in user about their roles and authorities. So from these Self-contained tokens, the client applications who received the token, they should be able to read the user information. They don't have to rely on the backend server or on the authorization server every time to know the end user details. Instead, they can read the token itself to know the user details.
 - The next advantage is around the **Reusability**. Let us take a scenario to explain this about this Reusability. Take the scenario of Google. So Google has lot many products under them, like it has maps, it has Gmail, it has photos, it has YouTube. So there are good amount of products under the same company, which is Google or Alphabet. So for all these applications, there is only going to be a single auth server, which is going to issue the tokens. So when an end user logged in into his Gmail account, inside a browser is going to get a token. So this token is going to receive from the auth server. Since this token is already present inside his browser as part of a cookie, what is going to happen is if this end user, if the end user try to access another product of the Google inside the same browser, then the authentication is not going to happen one more time. Instead, the same token will be leveraged by these applications like photos, YouTube, and maps, here the end user only logged in into his account once, and the token that the end user received can be used across applications. So this is where the advantage of Reusability. This concept is also called **Single Sign On (SSO)**.
 
-![alt text](image-44.png)
+![alt text](Images/springbootsecurity2/image-44.png)
 
 
 - Your organization may have multiple internal applications. Are you going to log in into all these multiple applications multiple times? Off course not you are only going to log in once, and the same access token can be leveraged by all other applications as well. So this kind of behavior, we call it as **single sign-on**.
@@ -1497,28 +1497,28 @@ public class LoggingFilterAt implements Filter{
 
 ### JWT Token
 
-![alt text](image-45.png)
+![alt text](Images/springbootsecurity2/image-45.png)
 
 - What is the format of Jot token and how to generate them? The reason why they are called a JSON web token is this token implementation uses the JSON format and designed to use for the web request. These Jot tokens can be used in the scenario of authorization and authentication. Every Jot token, it is going to have three parts separated by a period `.` So here we have given a sample Jot token. Whatever you see highlighted in yellow color, we call it as **header** part. And after the header, there is a period (`.`), which is a separator between the header and **payload**. After this first period, whatever you see highlighted inside the green color, we call that part or component as payload. After the payload, we are again going to have a period (`.`), which is going to act as a separator between components inside the Jot tokens. At last, whatever highlighted in white color we call this component as **signature**. So this signature component is optional, but both the header and payloads are mandatory always.
 
-![alt text](image-46.png)
+![alt text](Images/springbootsecurity2/image-46.png)
 
-![alt text](image-47.png)
+![alt text](Images/springbootsecurity2/image-47.png)
 
-![alt text](image-48.png)
+![alt text](Images/springbootsecurity2/image-48.png)
 
 - The very first component that we have is **Jot header**. So inside the header we usually store the metadata information related to the token. When I say metadata information, it will have information like what is the type of the token, what is the algorithm that we have used to derive the signature of the token? So all these kind of meta-related information, they're going to be present inside the header. So if you see here this header is a JSON, it has a key alg, which means algorithm HS256, followed by type. So both of them they have some values, but inside Jot tokens, we are never going to store as plain values inside the token. Instead, these values we are going to encode with the help of Base64, and the output we're going to store inside the Jot token. So that's the purpose of header. So header is always going to have the metadata information about the token itself.
 - The next component, which we can call it as body or **payload**, in this component, we can store details related to the user, their roles, which can be used later for the authentication and authorization. Though there is no such limitation on what we can send and how much we can send inside the payload of the Jot token, but we should always put our best efforts to keep this payload component as light as possible. So here you'll be able to see this is the sample payload JSON object. Inside this, we are trying to store lot of user-related information, like subject, name, issued at the time. Similarly, we should be able to store their roles, authorities, their email, phone number details. So whatever needed for our business logic, we should be able to store all such information inside the payload of the Jot token. But don't try to store the password of the end user inside the payload because if you try to store the password of the end user inside the payload body, anyone who has access to your token, they should be able to see the password. The reason is very simple. All your payload data, they're going to be Base64 encoded, and the encoded value they're going to be stored inside the Jot token.
 
-![alt text](image-49.png)
+![alt text](Images/springbootsecurity2/image-49.png)
 
 - Let's try to understand the purpose of the last component inside the Jot token, which is signature. In other words, we can call these last part of the token as digital signature. It is completely optional. The purpose of this digital signature is, using this signature only, the applications they're going to identify whether the token value is tampered or not. Whenever someone tampered the token body value or the header value or the signature value itself, it can be easily detected with the help of this digital signature. If you are trying to generate a token for an application which is internal to your organization, and if you're sure that the token is not going to be tampered by the client applications or by your trusted users, in such scenarios, there is no need of digital signature because you have that confidence that no one is going to tamper the tokens inside your own network. But in the scenarios where you are going to generate the tokens for the client applications or for the end users who are going to use your application from the open web, then in such scenarios, you need to make sure that the Jot token also has digital signature.
 
-![alt text](image-50.png)
+![alt text](Images/springbootsecurity2/image-50.png)
 
 - In order to generate the digital signature from the token, we need to use one of the hashing algorithm. So this **HMACSHA256** is the most commonly-used hashing algorithm. To this hashing algorithm, we need to send the input. So the input is calculated by Base64 URL encoder of the header. So the header is going to be again encoded with the help of Base64 URL encode format only to get signature. Later on, we need to add a period, and at last we should also Base64 URL encode the payload. The next input is the secret value that you want to involve. So this secret value, you need to keep carefully with you. **You should not lose this secret. Usually this secret value is going to be maintained carefully on the backend side**. Using these 3 component we get a signature.
 
-![alt text](image-51.png)
+![alt text](Images/springbootsecurity2/image-51.png)
 
 - Let's try to understand how the tampering is possible and how this tampering is going to be detected with the help of digital signature. Let's imagine one of the end user, he's trying to log in from an UI application. So the end user will enter username and password. As soon as we press Enter, the call will go to the backend application. So inside the backend application, we have the logic to generate the Jot token. If this username and password entered by the end user is valid, the backend server, it is going to generate a Jot token, and it is going to have header, payload, and digital signature. We know how the digital signature is going to be generated by the backend. It is going to use an hashing algorithm. And to this hashing algorithm, it is going to provide the Base64 URL encoding of header payload as first input parameter. And the second input parameter is a secret **which is known to the backend server only**.
 - Once the Jot token is generated, this is going to be sent as a response to the browser or to the client application. Let's assume inside the payload or inside the body of the Jot token, the role of the end user is mentioned as **user**. Let's assume the end user who logged in into the application, he's a hacker, So what he's going to do? he will check for the Jot token that he has received inside the response. He should be able to tamper the token value. So the tampering that he's going to do is he will try to change the role to admin, which means he's trying to elevate his privileges inside the application. So once the role value is changed, he's going to generate the base64 encoded value of the payload, and the same he's going to update inside the Jot token. So this updated Jot token can be sent backto the backend server for the further request. Maybe inside the second request, the end user might try to the `/admin` path with this role admin, and he will be under the assumption that the backend server is going to give you a proper response, but that is not going to happen? The backend server, which initially generated the token, it is going to validate the token if there is any tampering happen. Since the tampering happened here, it is going to throw an 403 error. 
@@ -1934,7 +1934,7 @@ public class JWTTokenGeneratorFilter extends OncePerRequestFilter {
 
 - To generate a Jot token value we need to maintain a secret value. To maintain the secret value it is always advisable to have it in the environment variable. Once the environment variable is declared, we need to read that environment variable and its value inside our code. So `getEnvironment()` method is available as part of the **GenericFilterBean**. **GenericFilterBean** is capable of reading all the environment variables.
 
-![alt text](image-52.png)
+![alt text](Images/springbootsecurity2/image-52.png)
 
 - What is my environment variable key. If there is no such environment variable created inside your system, we should also pass what is a default value it is going to consider. So here we have created a **ApplicationConstants**
 
@@ -2100,37 +2100,37 @@ public class JWTTokenValidatorFilter extends OncePerRequestFilter {
 
 - Here we are already authenticate the user , then why to create authentication object?  So whenever we create this object, when we going to create a authentication object it set the authenticated Boolean value as true.
 
-![alt text](image-53.png)
+![alt text](Images/springbootsecurity2/image-53.png)
 
 - So this is an indication to the spring security framework that the user has lready completed authentication, that's why this authentication object has a Boolean value as true. So based upon this Boolean value, spring security framework will not try to authenticate the user one more time, because the Boolean value is true. If the Boolean value is false, then only it'll try to authenticate the user one more time. Once this authentication object is created, we need to store it into the SecurityContextHolder.
 - Lets run the application and check, when we hit the `/login` endpoint using postman, in the response header we will get **EazyBankJWTAuthorization** header which consist of JWT tokens.
 
-![alt text](image-54.png)
+![alt text](Images/springbootsecurity2/image-54.png)
 
-![alt text](image-55.png)
+![alt text](Images/springbootsecurity2/image-55.png)
 
 - If we decode this we will get the user name and authorities associated with it.
 
-![alt text](image-56.png)
+![alt text](Images/springbootsecurity2/image-56.png)
 
 - Now lets send this response header as request header while accessing `/dashboard`.
 
-![alt text](image-57.png)
+![alt text](Images/springbootsecurity2/image-57.png)
 
 - Lets say if we tempered the JWT token
 
-![alt text](image-58.png)
+![alt text](Images/springbootsecurity2/image-58.png)
 
 - Lets also check expiration of token. Lets reduce the expiration time from 8 hrs (30000000) to 3 seconds (3000) for testing purpose.
 
 
-![alt text](image-59.png)
+![alt text](Images/springbootsecurity2/image-59.png)
 
 ## Method Level Security
 
 - Apart from API level security, Spring Security also supports method level security, which means with the help of Spring Security framework, we should be able to enforce security on top of our Java method. Your Java method can be present inside controller layer service layer, repository layer. The method can be in any layer, but still we should be able to secure our Java methods. In critical applications, securing the methods is also equally important because at the end of the day, all the Java methods, they're going to hold a business logic and once the business logic is executed, the Java methods are going to return lot of sensitive data.
 
-![alt text](image-60.png)
+![alt text](Images/springbootsecurity2/image-60.png)
 
 - To enable the method level security inside any web application, we need to make sure we are mentioning the annotation, which is `@EnableMethodSecurity`. This annotation you can keep on top of your Spring Boot main class or you can also keep it on top of a configuration class.
 - Method level security is also going to be useful to enforce the authorization rules in the non-web applications. What is a non-web application? Many times, few organizations, they're going to build a desktop applications. That means these applications can be used inside a particular desktop and these applications can't be accessed using web APIs or using the browsers. These types of application does not support any web services.
@@ -2143,7 +2143,7 @@ public class JWTTokenValidatorFilter extends OncePerRequestFilter {
 
 - Method security provides 3 different styles to secure any java method.
 
-![alt text](image-61.png)
+![alt text](Images/springbootsecurity2/image-61.png)
 
 1. **prePostEnabled**: 
     - This enables Spring Security's `@PreAuthorize` and `@PostAuthorize` annotations.
@@ -2228,7 +2228,7 @@ public void deleteUser(Long userId) {
 
 - This `@PreAuthorize` annotation is mentioned on top of a java method , it can be also specified on top of a class to enforce the authorization rules. When we add this annotation we should be able to provide our authorization configurations as an input.
 
-![alt text](image-62.png)
+![alt text](Images/springbootsecurity2/image-62.png)
 
 - So to this method, if you pass the hasAuthority, hasRole, hasAnyRole or has any authority methods along with the authority name or role details, behind the scenes, Spring Security framework, it is going to perform the validations, whether a given end user has enough authority or roles to invoke this method. If the end user does not have given role or authorities, then Spring Security, it is going to throw the 403 error.
 - Now when a end user hits our api, we already have api level security like authentication manager which already checks whether the end user has enough roles and authorities? when why again to specify those authorities and roles again on each method? there could be a possible scenario where the end user has enough roles to access our api but not execute certain methods like suppose there is one branch of a private bank, now this bank has its own employee, the bank consist of a vault which can be only access by the bank manager and not its other employee. Similarly, for critical web applications, we will have such kind of requirements to enforce authorization rules at multiple layers. When we enforce the authorization rule on top of a API, the Spring Security, it is only going to perform the authorization checks during the API invocation or MVC path invocation. But as part of that API or MVC path, we may invoke 100 different Java methods. If the hacker is somehow able to invoke the API without any proper role or proper authority, we should also have some extra check by enforcing these authorization rules with the help of these annotation.
@@ -2246,7 +2246,7 @@ public void deleteUser(Long userId) {
 - It is going to work exactly opposite of `@PreAuthorize` annotation. When we enforce an authorization rule with the help of `@PreAuthorize` annotation, the Java method is never going to be invoked if the authorization check fails; whereas when we're using the `@PostAuthorize` annotation, the Spring Security framework is not going to perform any authorization checks during the method invocation. Once the method invocation is completed and the method execution is completed while returning the output from the method, at that point of time, the Spring Security framework, it is going to enforce the authorization checks.
 
 
-![alt text](image-63.png)
+![alt text](Images/springbootsecurity2/image-63.png)
 
 - Why we would require `@PostAuthorize` ? lets take an example, a customer service representative views account details for customers. However, after fetching the details, the system checks if the representative is authorized to view accounts from that particular region or branch. Even if the method initially retrieves all accounts, @PostAuthorize ensures that only those the representative is allowed to manage are shown.
 - Lets say your method returns something, so whatever return object that my method is going to return, it is going to be referred as return object. Inside this return object, if we have a field with the name username, we can compare it with the logged-in user username. So if the logged-in user username is same as with the **username** present inside the return object, then only we want to return the object. Otherwise, we want to stop returning that object by throwing the 403 error.
@@ -2260,9 +2260,9 @@ public void deleteUser(Long userId) {
 
 - In Spring Security, the method-level security annotations like `@PreAuthorize` and `@PostAuthorize` are implemented using Aspect-Oriented Programming (AOP) through interceptors such as **AuthorizationManagerBeforeMethodInterceptor** and **AuthorizationManagerAfterMethodInterceptor**
 
-![alt text](image-64.png)
+![alt text](Images/springbootsecurity2/image-64.png)
 
-![alt text](image-65.png)
+![alt text](Images/springbootsecurity2/image-65.png)
 
 - **AuthorizationManagerBeforeMethodInterceptor** is linked to `@PreAuthorize` and ensures that security checks are performed before the method executes. **AuthorizationManagerAfterMethodInterceptor** is linked to `@PostAuthorize` and ensures that security checks are performed after the method executes.
 - Both are AOP interceptors, meaning they intercept method calls and apply security checks as part of the aspect-oriented programming approach in Spring Security.
@@ -2286,7 +2286,7 @@ public class RestrictedController {
 }
 ```
 
-<video controls src="20240907-0841-20.8670527.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity2/20240907-0841-20.8670527.mp4" title="Title"></video>
 
 
 - Lets see about Filtering authorization on methods. With the help of this Filtering authorization, we should be able to control what kind of input that a method can accept and what kind of output that a method can return to the client application. Basically we can filter input and output a method accepts and sends.
@@ -2296,13 +2296,13 @@ public class RestrictedController {
 
 - When a method annotated with `@PreFilter` is called, Spring Security evaluates the provided filter expression to decide which elements in the input collection should be included in the method's execution. It can exclude the items that the user shouldn't have access to before the method starts.
 
-![alt text](image-66.png)
+![alt text](Images/springbootsecurity2/image-66.png)
 
 2. **`@PostFilter`**
 
 - After the method completes its execution and returns a collection of results, Spring Security evaluates the provided filter expression to determine which elements in the result set should be included in the final output. It can exclude the items that the user shouldn't see after the method has completed.
 
-![alt text](image-67.png)
+![alt text](Images/springbootsecurity2/image-67.png)
 
 
 - Lets implement both, so first lets create a class which will accept data from response body.
@@ -2344,7 +2344,7 @@ public class IDNameCollections {
 	}
 ```
 
-![alt text](image-68.png)
+![alt text](Images/springbootsecurity2/image-68.png)
 
 - Here we are filtering input as well as output. When the collections consist of name **Harsh** and **Meet**. During output we only sent **Jeet** name data and exclude the **Test**.
 
