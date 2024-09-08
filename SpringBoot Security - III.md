@@ -658,6 +658,572 @@ spring.security.oauth2.client.registration.facebook.client-secret=${GITHUB_CLIEN
 ```
 
 
+### With Auth Server (KeyCloak)
+
+- When we build social login with the help of social logins like GitHub, Facebook, LinkedIn, Twitter, so all these auth servers, they have a very serious drawback or limitation due to which these auth servers, they can't be used inside an enterprise organization. The limitation is we will not have any control on the social login auth servers. We can't create an role or we can't create an authority based upon our business requirements inside these auth servers. Whatever user related information that we are getting from the social logins, we just have to accept them and build our business logic using them.
+- So whenever an organization is looking to build an auth server, they will have two options. The very first option is so to build from scratch. The other option is they can leverage the products that are supporting the OAuth 2 and Open ID standards. So these products are like KeyCloak, which is an open source product, and similarly we have Okta. All the cloud providers like AWS, Azure, GCP, they also have products around the OAuth 2 and OpenID Connect. When to build own our auth server and when to buy a built in product? It all depends upon the organization requirements. If an organization has huge manpower and budget and time, then they can build their own auth server from scratch by using libraries like Spring Auth Server. Otherwise, they're going to adopt the readily available products like KeyCloak and Okta.
+
+![alt text](image-40.png)
+
+- Here we will use **KeyCloak** as our auth server, our resource server will be our spring boot application, the client will be Postman or the angular UI.
+- So our Spring Boot application will have all the end user resources like accounts, loans, cards. Since we want to secure all these end user resources, so the Spring Boot application server, it is going to act as a Resource Server. Now, coming to the auth server, we are not going to have any social login auth servers because they have so many restrictions. We are going to build an auth server with the help of KeyCloak.
+- In the very first step, the client applications, they will reach out to the KeyCloak auth server to get an access token. When they're trying to get the access token from the auth server, they can involve end user as well if they're trying to follow the **AuthorizationCode** grant type flow or **PKSE** flow. Otherwise, if they're simply following the **ClientCredentials** grant type flow, they don't have to involve any end user. So once the access token is received from the auth server, these client applications, they're going to send the access token to the Resource Server as part of the request.
+- Once the access token is received by spring boot Resource Server, the Resource Server, it is going to validate if the access token is valid or not in the step three. So this validation, it is going to perform by connecting with the auth server, which is KeyCloak in our scenario. If the provided access token is valid, at last, the Resource Server is going to respond with the secured resources.
+- The client applications, they're going to receive the response from the Resource Server.
+- Lets first install KeyClock, we can do it using docker or download the [zip](https://www.keycloak.org/downloads)
+
+![alt text](image-41.png)
+
+- Unzip the file and run the command `bin\kc.bat start-dev`. KeyClock is started in the development mode at 8080 port (default)
+
+![alt text](image-42.png)
+
+![alt text](image-43.png)
+
+- Create an administrative account and sign in.
+
+![alt text](image-44.png)
+
+- Lets create our own realm. A realm is a space which is going to manage a set of users, credentials, roles, and groups. This is very similar to the environments. For example, if your organization have environments like dev, QA, production, we are not going to maintain the same users, same credentials across multiple environments. To support these kind of requirements or scenarios, every auth server that is built on top of OAuth 2.0, they're going to have a concept called realm.
+- So using the realm, we are going to create a space which is going to handle a specific environment.
+
+<video controls src="20240908-1230-14.0256644.mp4" title="Title"></video>
+
+- Lets build a client credentials grant type flow, So for example, think like there is a third-party application which is interested to talk with my MyOwnAuthServer server and to get some secured details. So whenever this third-party application wants to connect with my Resource Server (spring boot application), first, it needs to register its details inside the auth server. So when this registration happens, the auth server is going to give the client ID and the client secret which can be leveraged by my third-party application to get an access token. The same access token can be sent to the Resource Server, so the Resource Server, once validated with the authorization server about the access token, is going to respond back with the proper response. So here, there is no end user involved.
+- So lets register a third party application on our KeyClock server and get the client id and client secret for it.
+
+<video controls src="20240908-1240-32.2969463.mp4" title="Title"></video>
+
+- If you see we need to enabled **Client authentication** because it will authenticate the client id and its secret when the third party provide the request to keyclock with the details.
+- Since we are implementing **Client Credentials** grant type we need to disable **Standard flow** (Authorization Code grant type) and **Direct access flow** (Password grant type)
+- Lets create a resource server in spring boot application.
+
+![alt text](image-45.png)
+
+- Lets also leverage the use of MySQL database, so all the user related details and authorities will be store inside the database. So adding database related dependencies and lombok library.
+
+
+```
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+```
+
+- Lets define customer, their accounts and their authority entities.
+
+```
+Customer Entity
+
+package com.springboot.security.model.entity;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.sql.Date;
+import java.util.Set;
+
+@Entity
+@Getter
+@Setter
+public class Customer {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "customer_id")
+    private long id;
+
+    private String name;
+
+    private String email;
+
+    @Column(name = "mobile_number")
+    private String mobileNumber;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String pwd;
+
+    private String role;
+
+    @Column(name = "create_dt")
+    @JsonIgnore
+    private Date createDt;
+
+    @OneToMany(mappedBy = "customer", fetch = FetchType.EAGER)
+    @JsonIgnore
+    private Set<Authority> authorities;
+
+}
+
+
+Customer Authority Entity
+
+package com.springboot.security.model.entity;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Getter @Setter
+@Table(name="authorities")
+public class Authority {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+
+    private String name;
+
+    @ManyToOne
+    @JoinColumn(name="customer_id")
+    private Customer customer;
+
+}
+
+
+Customer Account Entity
+
+package com.springboot.security.model.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.sql.Date;
+
+@Entity
+@Getter @Setter
+public class Accounts {
+
+	@Column(name = "customer_id")
+	private long customerId;
+
+	@Id
+	@Column(name="account_number")
+	private long accountNumber;
+
+	@Column(name="account_type")
+	private String accountType;
+
+	@Column(name = "branch_address")
+	private String branchAddress;
+
+	@Column(name = "create_dt")
+	private Date createDt;
+	
+}
+```
+
+- Lets create the repository for customer and their accounts.
+
+```
+Accounts Repository
+
+package com.springboot.security.repository;
+
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
+
+import com.springboot.security.model.entity.Accounts;
+
+@Repository
+public interface AccountsRepository extends CrudRepository<Accounts, Long> {
+
+    Accounts findByCustomerId(long customerId);
+
+}
+
+Customer Repository
+
+package com.springboot.security.repository;
+
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
+
+import com.springboot.security.model.entity.Customer;
+
+import java.util.Optional;
+
+@Repository
+public interface CustomerRepository extends CrudRepository<Customer,Long> {
+
+    Optional<Customer> findByEmail(String email);
+
+}
+```
+
+- Here we are not creating the service class , just for demonstration purpose we will directly call all the database related operation using repository.
+
+- Lets first create some controllers.
+
+```
+Accounts Controller (Secured)
+
+package com.springboot.security.controller;
+
+import java.util.Optional;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.springboot.security.model.entity.Accounts;
+import com.springboot.security.model.entity.Customer;
+import com.springboot.security.repository.AccountsRepository;
+import com.springboot.security.repository.CustomerRepository;
+
+import lombok.RequiredArgsConstructor;
+
+@RestController
+@RequiredArgsConstructor
+public class AccountsController {
+
+    private final AccountsRepository accountsRepository;
+    private final CustomerRepository customerRepository;
+
+    @GetMapping("/myAccount")
+    public Accounts getAccountDetails(@RequestParam String email) {
+        Optional<Customer> optionalCustomer = customerRepository.findByEmail(email);
+        if (optionalCustomer.isPresent()) {
+            Accounts accounts = accountsRepository.findByCustomerId(optionalCustomer.get().getId());
+            if (accounts != null) {
+                return accounts;
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+	
+}
+
+
+Notice Controller (Public or Unsecured)
+
+
+package com.springboot.security.controller;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class NoticeController {
+
+	@GetMapping("/notices")
+	public String getNotice() {
+		return "Bank Notice";
+	}
+}
+```
+
+- Here the in the account controller, we will fetch accounts details for the customer which has a email id. Also here we are not defining any custom authentication method because it will be handle by KeyCloak. Now lets create a class **KeycloakRoleConverter**. The purpose of these class is very simple. We know that right now the responsibility of generating the Access token or JWT tokens is going to be with the key cloak. And inside these JWT Token itself, we are going to have various information related to the end user along with the roles details as well. So key cloak is going to send the roles details inside the access token. Inside the Access token only, we are going to have various information about the end user or about the client application. These details include the username, what is the email of the end user, what is the email of the client application and what are the roles of the client application or what are the roles of the end user.
+- So since the access token is going to send the roles information, we need to write an converter, which is going to take the responsibility of extracting the roles information from the access token. And once the roles information is extracted, we need to convert the roles information into the form of simple granted authority. Because Spring's security framework can only understand the roles and authorities information when we present them in the form of granted authority or simple granted authority.
+- So here we also need implement interface **Converter**
+
+```
+package com.springboot.security.config;
+
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.Jwt;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+public class KeycloakRoleConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
+
+	
+    @Override
+    public Collection<GrantedAuthority> convert(Jwt source) {
+    	
+
+        Map<String, Object> realmAccess = (Map<String, Object>) source.getClaims().get("realm_access");
+        if (realmAccess == null || realmAccess.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        /**
+         * Get List of all the authorities in with each role prefix by ROLE_ since spring security
+         * expects all roles should be prefix with 'ROLE_'. Each role values is converted into 
+         * Simple Granted authority .map(SimpleGrantedAuthority::new)
+         */
+        Collection<GrantedAuthority> returnValue = ((List<String>) realmAccess.get("roles"))
+                .stream().map(roleName -> "ROLE_" + roleName)
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+        return returnValue;
+    }
+}
+```
+
+- Lets add our project security configuration.
+
+```
+package com.springboot.security.config;
+
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.Collections;
+
+@Configuration
+public class ProjectSecurityConfig {
+
+
+    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+    	
+    	/**
+    	 * So using JwtAuthenticationConverter object only, we are going to configure the KeycloakRoleConverter.
+    	 * So with the help of these object reference, we are going to invoke a method which is 
+    	 * setJwtGrantedAuthoritiesConverter(). So this method is going to responsible to convert the roles
+    	 * from the JWT token to the GrantedAuthorities. So to this method, we need to pass the object
+    	 * of KeycloakRoleConverter.
+    	 */
+        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(new KeycloakRoleConverter());
+        CsrfTokenRequestAttributeHandler csrfTokenRequestAttributeHandler = new CsrfTokenRequestAttributeHandler();
+        http.sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .cors(corsConfig -> corsConfig.configurationSource(new CorsConfigurationSource() {
+                    @Override
+                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+                        CorsConfiguration config = new CorsConfiguration();
+                        config.setAllowedOrigins(Collections.singletonList("http://localhost:8081"));
+                        config.setAllowedMethods(Collections.singletonList("*"));
+                        config.setAllowCredentials(true);
+                        config.setAllowedHeaders(Collections.singletonList("*"));
+                        config.setExposedHeaders(Arrays.asList("Authorization"));
+                        config.setMaxAge(3600L);
+                        return config;
+                    }
+                }))
+                .csrf(csrfConfig -> csrfConfig.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
+                        .ignoringRequestMatchers("/contact", "/register")
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                .requiresChannel(rcc -> rcc.anyRequest().requiresInsecure()) // Only HTTP
+                .authorizeHttpRequests((requests) -> requests
+                        .requestMatchers("/myAccount").hasRole("USER")
+                        .requestMatchers("/myBalance").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/notices", "/register").permitAll());
+        
+        /**
+         * Since our Spring boot application will act as a Resource Server we need to use the method
+         * 'oauth2ResourceServer'. With the help of rsc.jwt() we tell spring security that we will receive a
+         * JWT token and not a opaque token, since auth server can sent two types of token.
+         */
+        http.oauth2ResourceServer(rsc -> rsc.jwt(jwtConfigurer ->
+                jwtConfigurer.jwtAuthenticationConverter(jwtAuthenticationConverter)));
+        
+        /**
+         * Since our spring boot server will act like a resource server we don't need to add
+         * http.formLogin(Customize.withDefaults());
+         */
+        return http.build();
+    }
+
+}
+```
+
+- Now since right now, we are using the JWT tokens as a format of the access tokens, we need to make sure we are configuring below property in application property.
+
+```
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri=${JWK_SET_URI:http://localhost:8080/realms/MyOwnAuthServer/protocol/openid-connect/certs}
+```
+
+- Wait how i got this url for `jwk-uri`? using KeyCloak Realm setting
+
+<video controls src="20240908-1600-26.4005968.mp4" title="Title"></video>
+
+- Lets open up the `jwk-uri`.
+
+![alt text](image-46.png)
+
+- So if you try to open this URL inside the browser, you will see there are certain keys that are provided by the auth server.  So using these keys, any resource server, they should be able to validate whether the given access token is valid or not. Behind the scenes, like  what is going to happen is always the auth server, while KeyCloak is trying to generate an access token, it is going to digitally sign it with an private key. Whereas anyone who want to validate if the access token is valid or not,
+all such parties, they need to take this public key. Using these public keys only, the resource servers or any other applications, they should be able to validate if a given access token is valid or not. So that's the purpose of the certs URL.
+- So the same we have configured here. So with this, what is going to happen is during the startup, the spring boot resource server, it is going to download these certificate details or public key details from the auth server. With that, my resource server should be able to validate all the access tokens without connecting to the auth server for each and every request.
+
+Whereas, if we follow the opaque style of access tokens,
+
+then for each and every request,
+
+the resource server is going to make a call
+
+to the auth server.
+
+I'm going to show you the demo of opaque tokens
+
+as well in the coming lectures.
+
+For now, I'm assuming you're clear about these property,
+
+why we are setting here.
+
+So let me change this property value
+
+by providing ${}.
+
+Inside these curly braces, first,
+
+I'm going to mention the environment variable name
+
+as JWK_SET_URI.
+
+In case if you want to pass this property value
+
+as an environment variable,
+
+you can use this name as a property name.
+
+Otherwise, I'm going to set the else value
+
+where I'm going to mention the local host value.
+
+So let me copy the same
+
+into the other application.property file that we have.
+
+So here, we have prob property file.
+
+Here, also, I'm trying to paste the same.
+
+So this OpenID configuration endpoint
+
+is a very famous endpoint,
+
+and it is a standard that is being followed
+
+by all the auth servers inside the industry.
+
+Anyone who's building an auth server
+
+by following the OAuth 2.0 and OpenID standards,
+
+they need to make sure they are exposing
+
+all the auth server-related information
+
+with the help of this URL.
+
+For example, if we are looking for the details
+
+of the auth server that is built by the Google,
+
+we can simply open the URL which is
+
+accounts.google.com/.well-known/openid-configuration.
+
+So this is going to have similar information,
+
+the same kind of information, right now,
+
+our Keycloak is also exposing.
+
+With these changes, I'm assuming we have completed
+
+all the resource server-related changes.
+
+So let me do the build.
+
+Once the bill is completed,
+
+I'll try to start my application
+
+and see if there are any surprises.
+
+So let me start in Debug mode.
+
+So here, I don't need to set this JWT_SECRET value anymore.
+
+So let me click on this Apply and select this Debug option.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
