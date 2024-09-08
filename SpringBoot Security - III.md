@@ -873,6 +873,23 @@ public interface CustomerRepository extends CrudRepository<Customer,Long> {
 - Lets first create some controllers.
 
 ```
+Information Controller (Client Credentials Grant type)
+
+package com.springboot.security.controller;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class InformationController {
+
+	@GetMapping("/info")
+	public String shareInfo() {
+		return "This is just a service which only shares info without any end user dependency";
+	}
+}
+
+
 Accounts Controller (Secured)
 
 package com.springboot.security.controller;
@@ -933,6 +950,7 @@ public class NoticeController {
 }
 ```
 
+- Here the information controller class, which will give only information acting a microservice for a client.
 - Here the in the account controller, we will fetch accounts details for the customer which has a email id. Also here we are not defining any custom authentication method because it will be handle by KeyCloak. Now lets create a class **KeycloakRoleConverter**. The purpose of these class is very simple. We know that right now the responsibility of generating the Access token or JWT tokens is going to be with the key cloak. And inside these JWT Token itself, we are going to have various information related to the end user along with the roles details as well. So key cloak is going to send the roles details inside the access token. Inside the Access token only, we are going to have various information about the end user or about the client application. These details include the username, what is the email of the end user, what is the email of the client application and what are the roles of the client application or what are the roles of the end user.
 - So since the access token is going to send the roles information, we need to write an converter, which is going to take the responsibility of extracting the roles information from the access token. And once the roles information is extracted, we need to convert the roles information into the form of simple granted authority. Because Spring's security framework can only understand the roles and authorities information when we present them in the form of granted authority or simple granted authority.
 - So here we also need implement interface **Converter**
@@ -1075,130 +1093,23 @@ spring.security.oauth2.resourceserver.jwt.jwk-set-uri=${JWK_SET_URI:http://local
 - So if you try to open this URL inside the browser, you will see there are certain keys that are provided by the auth server.  So using these keys, any resource server, they should be able to validate whether the given access token is valid or not. Behind the scenes, like  what is going to happen is always the auth server, while KeyCloak is trying to generate an access token, it is going to digitally sign it with an private key. Whereas anyone who want to validate if the access token is valid or not,
 all such parties, they need to take this public key. Using these public keys only, the resource servers or any other applications, they should be able to validate if a given access token is valid or not. So that's the purpose of the certs URL.
 - So the same we have configured here. So with this, what is going to happen is during the startup, the spring boot resource server, it is going to download these certificate details or public key details from the auth server. With that, my resource server should be able to validate all the access tokens without connecting to the auth server for each and every request.
+- So this OpenID configuration endpoint is a very famous endpoint, and it is a standard that is being followed by all the auth servers inside the industry. Anyone who's building an auth server by following the OAuth 2.0 and OpenID standards, they need to make sure they are exposing all the auth server-related information with the help of this URL. For example, if we are looking for the details of the auth server that is built by the Google, we can simply open the URL which is `accounts.google.com/.well-known/openid-configuration`. So this is going to have similar information, the same kind of information.
 
-Whereas, if we follow the opaque style of access tokens,
+![alt text](image-47.png)
 
-then for each and every request,
+- Lets run our application and hit the `/info` path via postman (client application).
 
-the resource server is going to make a call
+<video controls src="20240908-1649-52.6648147.mp4" title="Title"></video>
 
-to the auth server.
+- So here if you see we need to add Access Token URL which the endpoint of the authentication server. Since we are testing client credentials grant type , we get the access token post sending client id and client secret, so here manually we enter those data from KeyCloak , we have registered the **thirdpartyid** as our client which is our postman. Now using this token we are able to access the `/info`. Now since we are using postman we need to use **OAuth 2.0** as auth type.
 
-I'm going to show you the demo of opaque tokens
+![alt text](image-22.png)
 
-as well in the coming lectures.
+- If you see the video, the default token expiration is 5 minutes. Now when we disable and enable the auto refresh token functionality of postman. We can see our token expire, we can again generate a new token using refresh token grant type.
 
-For now, I'm assuming you're clear about these property,
+<video controls src="20240908-1657-18.5322299.mp4" title="Title"></video>
 
-why we are setting here.
-
-So let me change this property value
-
-by providing ${}.
-
-Inside these curly braces, first,
-
-I'm going to mention the environment variable name
-
-as JWK_SET_URI.
-
-In case if you want to pass this property value
-
-as an environment variable,
-
-you can use this name as a property name.
-
-Otherwise, I'm going to set the else value
-
-where I'm going to mention the local host value.
-
-So let me copy the same
-
-into the other application.property file that we have.
-
-So here, we have prob property file.
-
-Here, also, I'm trying to paste the same.
-
-So this OpenID configuration endpoint
-
-is a very famous endpoint,
-
-and it is a standard that is being followed
-
-by all the auth servers inside the industry.
-
-Anyone who's building an auth server
-
-by following the OAuth 2.0 and OpenID standards,
-
-they need to make sure they are exposing
-
-all the auth server-related information
-
-with the help of this URL.
-
-For example, if we are looking for the details
-
-of the auth server that is built by the Google,
-
-we can simply open the URL which is
-
-accounts.google.com/.well-known/openid-configuration.
-
-So this is going to have similar information,
-
-the same kind of information, right now,
-
-our Keycloak is also exposing.
-
-With these changes, I'm assuming we have completed
-
-all the resource server-related changes.
-
-So let me do the build.
-
-Once the bill is completed,
-
-I'll try to start my application
-
-and see if there are any surprises.
-
-So let me start in Debug mode.
-
-So here, I don't need to set this JWT_SECRET value anymore.
-
-So let me click on this Apply and select this Debug option.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+- So our **thirdpartyid** client is used for client credentials grant type flow.
 
 
 
