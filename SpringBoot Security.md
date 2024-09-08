@@ -59,6 +59,10 @@ public class BankController {
 
 ![alt text](Images/springbootsecurity/image-3.png)
 
+
+>[!IMPORTANT]
+> - When we define **`@Controller`** annotation we need to also define static resources like html file for it whereas when we use **`@RestController`** annotation, if the method returns the string value, the same gets display as response on the browser without need of any html or static resources.
+
 - By default, Spring Security will assume and protect each and every API and MVC path available inside your project.
 - Where is the login page located? how the user name and password is being getting generated? lets see
 - **Login Page**: 
@@ -104,7 +108,7 @@ spring.security.user.password=${SPRINGBOOT_PASSWORD:password@1234}
 
 - Behind the scenes Spring boot security also manages sessions automatically.
 
-- Inpsect your page and go to application , you will a JSESSION ID
+- Inspect your page and go to application , you will a JSESSION ID
 
 ![alt text](Images/springbootsecurity/image-10.png)
 

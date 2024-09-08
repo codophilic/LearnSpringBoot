@@ -1,6 +1,6 @@
 # SpringBoot Security III
 
-## OAuth2 (Open Authorization 2.0)
+## OAuth2 (Open Authorization 2.0) - Theory
 
 ### What problems does OAuth2 solves?
 
@@ -95,7 +95,7 @@
 ![alt text](image-9.png)
 
 
-## Grant Type - Authorization Code 
+### Grant Type - Authorization Code 
 
 
 ![alt text](image-10.png)
@@ -166,7 +166,7 @@ grant_type=authorization_code
 
 ![alt text](image-14.png)
 
-## Grant Type - Implicit Grant (Deprecated)
+### Grant Type - Implicit Grant (Deprecated)
 
 ![alt text](image-15.png)
 
@@ -178,7 +178,7 @@ grant_type=authorization_code
 - Here if you see there is no **client_secret** present in the request when the client sents request to auth server. The request type is **Get**. The reason why client secret is not involved is, since this is a GET request, inside the GET request, there is no meaning of sending the client secret. That's why this flow does not support client secret as part of the step three request. And with that what is going to happen? Anyone who knows the client_id, they will be able to mimic as a client application with the auth server, and once the end user entered his credentials, they should be able to get the access token. So since there is no way for the auth server inside this flow to validate the identity of the client application, this is marked as deprecated.
 - Apart from these drawback, the other serious drawback is when the auth server is trying to share the access token with the client application, the access token is going to be shared inside the request URL itself because, initially, the request went using GET, so to this GET, as a response, the auth server can only send using GET only since it is going to send the access token inside the GET URL itself, there's a very good chance that anyone who has access to your browser history, they'll be able to steal your access token. Think of a scenario, one of the auth server is issuing an access token with an expiration of seven days.In this scenario, you might have used the access token on day one and you left the computer. If some other user has access to your browser history, they'll be able to easily know what is the access token that auth server sent initially. Using the same access token, there is a good chance that they may misuse it.
 
-## Grant Type - PKCE (Proof Key For Code Exchange)
+### Grant Type - PKCE (Proof Key For Code Exchange)
 
 - PKCE OAuth2 flow is going to work very similar to authorization code grant type flow, but it has some minor differences. In other words, we can call this PKCE as another flavor of authorization code grant type flow. When we are discussing about the authorization code grant type flow, as part of the step five, the client application, they have to share their client credentials. So as part of these client credentials, they need to pass their **client_id** and the **client_secret**. But unfortunately, the client secret can't be saved by the public clients like JavaScript-based applications, single page applications which are built based upon angular reactive framework, mobile applications. Because all the client code, it is going to be built with the help of plain JavaScript and anyone can see the source code inside the browser or by downloading the mobile application installation file. And with that, they'll be able to see the client secret very clearly. That's why for public-facing clients, where they're going to build a code with the help of JavaScript for such applications, instead of following the authorization code grant type flow, they follow **PKCE** grant type flow.
 
@@ -271,7 +271,7 @@ grant_type=authorization_code
 ![alt text](image-20.png)
 
 
-## Grant Type - Password Grant
+### Grant Type - Password Grant
 
 ![alt text](image-21.png)
 
@@ -284,7 +284,7 @@ grant_type=authorization_code
 - The reason is this flow is very simple to follow, but whenever someone is following this flow, they'll make sure this client application and this AUTH server, Resource Server, they all belongs to the same organization. So in this kind of setup, there is no chance that this client application can misuse the credentials of the end user because both client and AUTH server belongs to the same organization or the same project.
 
 
-## Grant Type - Client Credentials
+### Grant Type - Client Credentials
 
 ![alt text](image-22.png)
 
@@ -298,7 +298,7 @@ grant_type=authorization_code
 ![alt text](image-23.png)
 
 
-## Grant Type - Refresh Token
+### Grant Type - Refresh Token
 
 
 
@@ -319,3 +319,345 @@ grant_type=authorization_code
 - So this is an indication to the auth server that Refresh Token Grant Type flow is initiated. With this grant type flow behind the scenes, the auth server, it is going to expect the value under the refresh_token.
 - Why can't we make an access_token, which is never going to be expired? So that we can avoid extra complexity around the refresh_token. If we issue an access_token with an unlimited time, then it is going to be as good as end user credentials. So anyone who has this access_token, they'll be able to use these forever because the token is never going to be expired. So to avoid these kind of security related issues, always the access_token, they are going to be issued with a short duration. Most of the times it is going to be issued with 24 hours time, which will work for most of the applications. But if your application is a super critical application, like a bank application, then obviously you can't issue an access_token with an expiration of 24 hours. You need to reduce the time to one hour or 30 minutes based upon your business requirements.
 - Then Why can't we make our refresh_token to never expire? though it is possible but it is not recommended considering the scenarios where the refresh tokens can be stolen by some bad users.
+
+
+### How Resources Server validates the token issue by Auth Server ?
+
+- The Resource Server is going to receive an access token from the client. So there are two different approaches how this Resource Server is going to validate the access token that it has received from the client application.
+
+
+#### 1. Opaque Token
+
+![alt text](image-25.png)
+
+- The very first approach is validating the access tokens remotely. Inside this approach, what is going to happen is whenever the Resource Server, it receives an access token, it will simply send that access token to the Authorization Server to check if the access token is valid or not.
+- So inside this approach, always, the Resource Server is going to depend on the Authorization Server by making a API invocation on the auth server to identify if a token is valid or not. Usually, the auth servers, they're going to expose an API with the name `/introspect`. Using these `/introspect` API, the Resource Servers, they can identify whether a given token is valid or not.
+- But this approach, it has some drawbacks. The drawback is it always going to introduce latency inside your application, thus bringing some performance issues. Imagine that your Resource Server is receiving thousands of requests from different, different clients with the different, different access tokens.  Before responding to each of the requests, it has to make a network call to the auth server, and if your auth server is taking 200 milliseconds time to respond, then, obviously, these 200 milliseconds is going to be added to your overall request to network latency. That's why most of the organizations, they don't use this approach, but this approach is going to be useful for the organizations where they have some super critical data. Such organizations. they can follow this approach.
+- The format of their access token is of type opaque token. So inside the first approach, always, the token has to be in a Opaque format so that the Resource Server can send this Opaque token to the auth server to know more details about the end user and to know whether the Opaque token is valid or not.
+
+
+#### 2. JWKS (JSON Web Key Set)
+
+
+<details>
+
+<summary> What is JWKS ?</summary>
+
+
+![alt text](image-26.png)
+
+- Imagine a secure service issues JWTs to users, which they use to access another service (like an API).
+- The JWTs are signed with a private key that only the service issuer knows.
+- The API needs to verify these JWTs to ensure they’re legitimate. However, to do this, the API needs the corresponding public key.
+- Instead of hardcoding this public key, the API can fetch it from a JWKS endpoint provided by the service issuer. This endpoint serves the JWKS, which is a collection of public keys that the API can use to verify JWTs. Once its fetch, it can very all the JWT generated by service issuer using the same public key.
+- JWKS is closely related to cryptography, particularly in the context of signing and verifying data, but it primarily deals with digital signatures rather than encryption and decryption.
+- When a JWT is created, it's often signed using a private key. This signature ensures that the JWT hasn't been tampered with. The recipient of the JWT uses the public key (which is part of the JWKS) to verify that the JWT’s signature is valid. If the signature checks out, it means the JWT is authentic and hasn't been altered.
+- Private Key is used to sign the JWT. This key is kept secret by the issuer.
+- Public Key is shared openly (often via JWKS endpoint) and used by recipients to verify the JWT’s signature.
+
+#### In JWT we have secret key right? then why JWKS is required because now it involves two more keys which is private and public?
+
+- **The difference between using a secret key in JWT and using public/private keys with JWKS involves the type of cryptographic approach being used, symmetric versus asymmetric cryptography**.
+
+##### Symmetric Cryptography (Secret Key in JWT)
+
+- In symmetric cryptography, the same key is used for both signing the JWT and verifying it. This key is shared between the issuer and the recipient. This approach is simpler and faster, but it requires that both the issuer and recipient have the secret key. If the key is leaked or compromised, anyone with it can **both create and verify** JWTs. If someone unauthorized gains access to the secret key, they can create fake JWTs that appear legitimate because they can sign them with the same key.
+
+##### Asymmetric Cryptography (Public/Private Keys in JWKS)
+
+- Private Key: Used by the issuer to sign the JWT. This key is kept secret and never shared.
+- Public Key: Used by anyone (including the recipient) to verify the JWT. The public key is shared openly, often via a JWKS endpoint.
+- Use Case: This approach is more secure for situations where multiple services or clients need to verify the JWT. Since only the private key can sign JWTs, and the public key is used only for verification, the risk of key compromise is reduced. The public key can be safely distributed without compromising the security of the JWT.
+
+##### Why Use JWKS (Asymmetric) Instead of a Secret Key (Symmetric)?
+
+- **Security**: In asymmetric cryptography, the private key is never shared, reducing the risk of unauthorized signing. Even if the public key is widely distributed, it cannot be used to create valid JWTs, only to verify them.
+- **Scalability**: When you have multiple services or clients that need to verify JWTs, using a public/private key pair is more scalable. The issuer only needs to keep the private key secure, while the public key can be distributed via JWKS to any number of recipients.
+- **Decentralized Verification**: Services can independently verify the JWT using the public key from the JWKS without needing to contact the issuer or share a secret key. This is particularly useful in distributed systems where multiple services may need to verify the authenticity of a JWT.
+
+</details>
+
+
+
+
+- The next approach, which is the most commonly used approach, is validating the access tokens locally. In this scenario, the Resource Server, it is going to validate the token locally without making a network call to the Authorization Server.
+
+![alt text](image-27.png)
+
+
+- To make this approach work, we need to follow two rules. The very first rule is the token format should be of type JWT. Since JWTs, they're going to have digital signature to validate locally, but inside the OAuth 2 flow, the secret value is not going to be used. Instead, JWKS approach is going to be followed. 
+- So as part of this approach, what is going to happen is Authorization Server, it is going to have a private key. Using this private key, it can issue that tokens. Corresponding to this private key, there will be a public key which the Resource Server has to download during the startup of the application or the resource server can either fetch the public key from the authorization server the first time it needs it or be pre-configured with the public key.
+- Using this public key, the Resource Server can validate if the given digital signature of a token is valid or not. So here, there is no secret involved. The auth server will make sure that it is not losing this private key, and this public key can be given to any number of Resource Servers to validate that token by checking that digital signature with the help of this public key.
+- The same public key can be used by the Resource Server locally to validate the all tokens issued by the auth server. So this approach has an advantage, which is it is not going to depend on the auth server to validate the tokens. With that, you're not going to have any performance or latency issues. But there is a drawback with this approach.
+- Think like the auth server issued an access token with the 24 hours expiration time. So the Resource Server will keep accepting the token for 24 hours. For some reason, within these 24 hours, if the token is stolen or if the token want to be revoked, we need to destory or invalidate that toke before it reaches the resource server, we can't do that because there is no way for the Authorization Server to communicate with the Resource Server to invalidate these token value within 24 hours.
+- So that's why to mitigate these drawback or issue, usually, organizations which have some critical applications, they're going to issue the access tokens with a short life, for example, with a five minutes time. So this is going to reduce the risk of using a revoked token.
+
+## Open ID Connect - Theory
+
+
+![alt text](image-28.png)
+
+- OpenID Connect is a protocol that sits on top of OAuth 2.0 framework, which means this OpenID Connect just a thin wrapper sitting on top of OAuth 2.0 framework. OAuth 2.0 built on top of the HTTP protocol. On top of the OAuth 2.0, again, there is a thin wrapper or a thin layer built with the name OpenID Connect.
+- In other words, we can say this OpenID Connect and OAuth 2.0, they're going to compliment with each other. Without OAuth 2.0, we can't build or use OpenID Connect. And similarly, by having this extra layer on top of OAuth 2.0, OAuth 2.0 also is going to get some advantages and benefits. Both of these work together and not are separate entities.
+- **What is the need to build an extra layer on top of the OAuth 2.0 framework when OAuth 2.0 framework is able to solve all our security problems**? Initially, when the OAuth 2.0 framework introduced, it is introduced by considering authorization into picture. So, with the help of OAuth 2.0, what we're trying to do, an end user is going to give an authorization access to a third party application or a two different application to access his or her resource on behalf of himself or herself. So, that's a original intention of authorization. That's why inside the authorization standards or specifications, we have concepts like **scopes**. Using these scopes only, we can control what kind of access that we can give to the third party application.
+- Apart from scope, we have access token. Inside this access token only, all the scope details are also going to be maintained by the auth work. With the help of social login, we saw inside the LinkedIn scenarios, there are options for the end user to sign up or to sign in into their website with the help of Google,, Facebook, GitHub, Twitter etc.. But when they started OAuth 2.0 for authentication, they end up having a problem which is whenever the OAuth 2.0 framework is being used by an application, it is only going to have the access token. Inside this access token, we are going to have details around scopes and in some scenarios, it is also going to have some user-related information.
+- In certain scenarios, the website, by looking at this access token, they will not be able to understand to whom these access token belongs or to which identity this access token belongs. And to solve this problem, most of the organizations, they used to have some workarounds to identify to which user this access token belongs. And to identify more details about the end user, they used to follow different workaround.
+- **And since everyone is going to have their own workarounds, there is no uniform approach inside the OAuth 2.0 framework in sharing the user details or identity details. So, since there is no uniform way of sharing the user details inside the OAuth 2.0 framework, a new small wrapper is built on top of this OAuth 2.0. This wrapper is called OpenID Connect.**
+- So, OpenID Connect built by focusing the authentication. So, during the authentication, what is going to happen, we are going to focus on the end user to identify who is the end user. With the OpenID Connect, there is more standard way or there is more uniform way came into picture to know more details about the end user.
+- So if you are implementing OpenID connect and wanted to know the end user details irrespective of whatever grant type you are using, in the scope field of your request you need to specify **openid** and your additional information. Inside your request, if you mention the scope as OpenID, with that, the OpenID Connect is going to be enabled. And as a response your authorization server, it is going to issue two types of tokens.
+- First one is **access token** and the other one is **ID token**. Off course there is third token which is refresh token as well. The ID token will have the user details like what is the username, what is his email, what is his address details, so, all such details, they're going to come inside this ID token. So, anytime client application has a question around to which end user this access token belongs, they can directly refer to these ID token for the details.
+- **This way, the drawbacks of OAuth 2.0 are addressed with the help of OpenID Connect.**
+
+
+![alt text](image-29.png)
+
+- So, OIDC Connect is the short form of OpenID Connect. This OIDC standardizes the scopes to OpenID profile, email, and address. So, these are the scopes that got introduced as part of OpenID. Whenever someone is trying to mention these scope details inside the request, they're going to get all the user-related information in the form of ID Token. whenever someone is using OpenID Connect in their communication, they're going to get an ID token on top of access token. **This ID token also is going to use the format of JWT tokens**. Any auth server that has been implemented with the help of Open ID Connect, it is also going to expose an REST API with the name **`userinfo`**. At any point of time, if the client application is looking for more details of an end user, it can get those details by invoking these REST API.
+- So, with the introduction of OpenID Connect, a new concept came into picture, which is **IAM**. So, identity and access management. So, the OpenID Connect, it is going to help you to identify the end user and it is going to help you in the process of authentication, whereas the OAuth standard or framework is going to help you during the access management and during the authorization process Since we are trying to club both of them, a new concept with the name **IAM** came into picture. So, if you go to any website where they're trying to provide the capabilities of auth server, for example, Keycloak, Okta, AWS Cognito. So, all these products, they're going to highlight about this concept which is identity and access management, which means behind the scenes, they're using both this OpenID Connect and OAuth 2.0 inside the auth server that they're going to provide.
+
+- Lets perform a playground on OAuth2 portal.
+
+<video controls src="20240908-0802-56.9054346.mp4" title="Title"></video>
+
+- So, this is going to look very similar to the Authorization Code Grant Type flow. If you observe here is under the scope, this time, we have scopes like openid, profile, email. So, previously, we used to send only the photos as a scope. So, photos is a scope which is used to access the resources like photos. But coming to the user-related information, the remaining scopes like openid, profile, and email, they're going to help us to reach you the user-related information. So, when you're trying to send multiple scopes here, you need to use this plus operator. So, different auth servers and different organizations that are going to follow different separators. So, here, the separator is plus symbol.
+
+```
+https://authorization-server.com/authorize?
+  response_type=code
+  &client_id=MvzdjZTazjkJOXx95qXT0bR9
+  &redirect_uri=https://www.oauth.com/playground/oidc.html
+  &scope=openid+profile+email+photos
+  &state=C_f4s5QxSWFZupGD
+  &nonce=0cCeGqt1KCUNxxw1
+```
+
+Now, if your try to click on this Authorize button, it is going to ask your credentials and consent.
+
+
+<video controls src="20240908-0808-15.1044168.mp4" title="Title"></video>
+
+
+- The grant type, it is going to be **authorization_code**.
+
+```
+?state=C_f4s5QxSWFZupGD&code=4K1uhhL1ebqcHemUHi0hVDFsVBqUibvXuHj0e1d-tx0OwmHW
+```
+
+<video controls src="20240908-0810-08.4438416.mp4" title="Title"></video>
+
+```
+POST https://authorization-server.com/token
+
+grant_type=authorization_code
+&client_id=MvzdjZTazjkJOXx95qXT0bR9
+&client_secret=kwlwhXWtMVyiSswwDEGJQr0gZoPYRvnGS3E-qe1VBRwTDup-
+&redirect_uri=https://www.oauth.com/playground/oidc.html
+&code=4K1uhhL1ebqcHemUHi0hVDFsVBqUibvXuHj0e1d-tx0OwmHW
+```
+
+
+![alt text](image-30.png)
+
+- Now when you click in the Go button you will get an access token as well an ID token. Inside this demo, we're not getting the refresh token. Maybe they might have disabled it, but it is completely possible to get access_token, id_token, refresh_token inside the same response.
+
+
+
+## OAuth2 (Open Authorization 2.0) - Implementation
+
+- There are two ways to implement OAuth2, one way is to use social logins where the auth servers is with big organization like GitHub, Meta, Google etc.. and another way is to create your own auth server without any social login.
+- In the first approach we are just going to leverage the Auth server belongs to other organizations, and this approach will work only for simple applications like blog applications or some single page applications where they don't have lot of business functionality. In second approach is most likely applicable for real enterprise applications, like a bank application or a insurance application, for all such applications, the organization, they have to build their own Auth server either by leveraging the products inside the market like Keyclock, Okta, or they can build their own Auth server with the help of Spring based Auth server library.
+
+### Without Auth Server
+
+- Lets create a new simple spring boot project, below are the dependencies required for it.
+
+![alt text](image-31.png)
+
+
+- Here we need to add OAuth2 Client because our Spring Boot application itself is going to act as a both client and the Resource Server. That's why we need to select both OAuth2 Client and OAuth2 Resource Server. Whereas the other dependency that we have which is, OAuth2 Authorization Server, we need to use this when we are trying to build our own Spring Authorization Server.
+- Lets add below things under application property file.
+
+```
+spring.security.user.name=${SECURITY_USERNAME:defaultUserName}
+spring.security.user.password=${SECURITY_PASSWORD:12345}
+logging.level.org.springframework.security=${SPRING_SECURITY_LOG_LEVEL:TRACE}
+logging.pattern.console = ${LOGPATTERN_CONSOLE:%green(%d{HH:mm:ss.SSS}) %blue(%-5level) %red([%thread]) %yellow(%logger{15}) - %msg%n}
+```
+
+- So here we have one user created under property file. Lets create a controller.
+
+```
+package com.springboot.securityWithoutAuth.controller;
+
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
+
+@RestController
+public class SampleController {
+
+	
+	@GetMapping("/sample")
+	public String SamplePage() {
+		return "This is a sample page";
+	}
+}
+```
+
+- When we run the project at this point of time, we will get this below
+
+![alt text](image-32.png)
+
+- It seems that OAuth2 is default configured for GitHub and Facebook. But it won't work at this point of time.
+
+>[!NOTE]
+> - In the latest versions of Spring Boot Security, specifically from Spring Security 5.x onwards, the OAuth2 client support has been significantly improved and simplified. When you add the OAuth2 client dependencies in your project, Spring Boot auto-configures a lot of the necessary components to enable OAuth2 login with providers like GitHub & Facebook etc.
+
+- Lets create a project security configuration.
+
+
+```
+@Configuration
+public class ProjectSecurityConfig {
+
+    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity.authorizeHttpRequests((requests) -> requests.requestMatchers("/sample").authenticated()
+                .anyRequest().permitAll())
+                .formLogin(Customizer.withDefaults());
+        return httpSecurity.build();
+    }
+
+}
+```
+
+- Now when we run the application we get below page.
+
+<video controls src="20240908-0930-23.4033498.mp4" title="Title"></video>
+
+- Now along with these form login lets implement OAuth2 standards. So inside the project security configuration we need to add `oauth2Login` method.
+
+```
+    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity.authorizeHttpRequests((requests) -> requests.requestMatchers("/sample").authenticated()
+                .anyRequest().permitAll())
+                .formLogin(Customizer.withDefaults())
+                .oauth2Login(Customizer.withDefaults());
+        return httpSecurity.build();
+    }
+```
+
+- Since we don't want to customize our OAuth2 login we are using the defaults `withDefaults`. Now we have enabled OAuth2 login but whenever we enable the OAuth 2.0 login, we need to give clue to our Spring Security framework on which authorization server we are trying to use, whether we are using social logins or whether we are trying to use our own auth server. For that we need to add bean of **ClientRegistrationRepository**, this is an interface which has been implemented by **InMemoryClientRegistrationRepository** and **SupplierClientRegistrationRepository**. Most of the times, developers, they're going to use **InMemoryClientRegistrationRepository**. Using these repository class, we are going to store all our authorization server related details in the form of **ClientRegistration** object.
+
+![alt text](image-33.png)
+
+
+- Lets add this bean in our project security configuration.
+
+```
+    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity.authorizeHttpRequests((requests) -> requests.requestMatchers("/sample").authenticated()
+                .anyRequest().permitAll())
+                .formLogin(Customizer.withDefaults())
+                .oauth2Login(Customizer.withDefaults());
+        return httpSecurity.build();
+    }
+
+    @Bean
+    ClientRegistrationRepository clientRegistrationRepository() {
+
+        return new InMemoryClientRegistrationRepository();
+    }
+```
+
+- But we wanted to use social logins, we need to use other organization auth servers like GitHub, Facebook , Google etc.. So first lets explore one Enum class called **CommonOAuth2Provider**.
+
+![alt text](image-34.png)
+![alt text](image-35.png)
+
+- Inside this class, there are good amount of enums with the name **GOOGLE**, **GITHUB**, **FACEBOOK**, and **OKTA**. So for these famous social logins, Spring Security team, they already created **ClientRegistration** object with the details like what is a `scope`, what is a `authorizationUri`, what is a `tokenUri`, what is a `jwkSetUri`, `issuerUri`. So these are all that details usually you need to get from the authorizations aware organization. For example, if you don't have these **CommonOAuth2Provider**, then you need to read the documentation of Google, and you need to understand all these details, like what is the `authorizationUri`, where we need to redirect the client once he click on the login button on the UI. Similarly, there are many other URIs which are required by the OAuth 2.0 flow. So all these URIs, we need to get from the official documentation. To make our job easy, Spring Security, they have created this enum class which has four different enums for Google, GitHub, Facebook, and Okta. 
+- So using these enums, we are going to create the objects of **ClientRegistration**. Once the ClientRegistration objects are created, we can try to store them inside these **InMemoryClientRegistrationRepository**.
+- Lets update the project security configuration
+
+```
+@Configuration
+public class ProjectSecurityConfig {
+
+    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity.authorizeHttpRequests((requests) -> requests.requestMatchers("/sample").authenticated()
+                .anyRequest().permitAll())
+                .formLogin(Customizer.withDefaults())
+                .oauth2Login(Customizer.withDefaults());
+        return httpSecurity.build();
+    }
+
+    @Bean
+    ClientRegistrationRepository clientRegistrationRepository() {
+        ClientRegistration github = githubClientRegistration();
+        return new InMemoryClientRegistrationRepository(github);
+    }
+
+ 
+    private ClientRegistration githubClientRegistration() {
+        return CommonOAuth2Provider.GITHUB.getBuilder("github").clientId("")
+                .clientSecret("").build();
+    }
+
+}
+```
+
+- First we need to create a method, based for that particular social login. Each social login will have a method `getBuilder`. To this builder method, we need to provide a name, which is going to act as a registration ID. So in case of GITHUB we have specified `github` as registration ID. So using these registration ID name, the details of GitHub, they're going to be stored inside these **InMemoryClientRegistrationRepository** just for identification purpose when there are multiple auth server details.
+- Here for each social login we need to have its own **client_id** and **client_secret**, where do we ge this? you need to respective website and generate the value.
+- Below is the flow for getting client ID and secret for GitHub. Here we will use only GitHub as our social login, for other social login you need to perform RnD and get client id and secret for it.
+
+<video controls src="20240908-1013-29.0997060.mp4" title="Title"></video>
+
+- Now we have added client id and client secret, now lets run the application.
+
+![alt text](image-36.png)
+
+- Lets login via GitHub
+
+![alt text](image-37.png)
+
+- We have been re-directed towards GitHub page. If you see there will be a client id on the re-directed url `https://github.com/login?client_id=Ov23liTxzzZkfKRSIs91..`
+- Post entering credentials, GitHub will take consent from us.
+
+![alt text](image-38.png)
+
+![alt text](image-39.png)
+
+- We got the sample page. Lets say if you wanted to logged whether the user has used social login or normal user name password you can do it using below way
+
+```
+@RestController
+public class SampleController {
+
+	
+	@GetMapping("/sample")
+	public String SamplePage(Authentication auth) {
+        if(auth instanceof UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken){
+            System.out.println(usernamePasswordAuthenticationToken);
+        } else if (auth instanceof OAuth2AuthenticationToken oAuth2AuthenticationToken) {
+            System.out.println(oAuth2AuthenticationToken);
+        }
+		return "This is a sample page";
+	}
+}
+```
+
+- Instead of hardcoding these client credentials , it can be added in the properties file also.
+
+```
+spring.security.oauth2.client.registration.github.client-id=${GITHUB_CLIENT_ID:Ov23liCBLLUjii41pS7k}
+spring.security.oauth2.client.registration.github.client-secret=${GITHUB_CLIENT_SECRET:9da8734b56aad52d91b268fe6834a8df12447d95}
+
+spring.security.oauth2.client.registration.facebook.client-id=${GITHUB_CLIENT_ID:974042741122392}
+spring.security.oauth2.client.registration.facebook.client-secret=${GITHUB_CLIENT_SECRET:36d48c25c1767d58b3101551513d7e1e}
+```
+
+
+
+
+
