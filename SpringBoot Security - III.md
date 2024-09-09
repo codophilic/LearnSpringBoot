@@ -1148,7 +1148,36 @@ all such parties, they need to take this public key. Using these public keys onl
                         .requestMatchers("/notices", "/register").permitAll());
 ```
 
-- So lets create new role and map that to the **client**
+- So lets create new role and map that to the **user**, because based on user define role we can access the end point `/myAccount`
+
+<video controls src="20240909-1847-49.4657487.mp4" title="Title"></video>
+
+- So here we create a **Realm Role** and assign that to the user. Post assigning we need to refresh the token to get the new details for the user. In the console you can see the email id is printed
+
+![alt text](image-49.png)
+
+- But still we got a empty response? we got a 200 means we are able to access the path but response is empty because we have not create the user in our database. Lets do that.
+
+![alt text](image-50.png)
+
+![alt text](image-51.png)
+
+- Lets again hit the api , now we get the proper response.
+
+![alt text](image-52.png)
+
+- By default in KeyCloak the access token lifespan is only **5 minutes**, current time is **12:29 AM** and the expiration time is **12:24 AM**.
+
+![alt text](image-53.png)
+
+- Lets say you want to create the refresh token for an hour. You can do it inside the KeyCloak.
+
+<video controls src="20240909-1904-42.2335486.mp4" title="Title"></video>
+
+- We can change the [default theme page](https://www.keycloak.org/docs/latest/server_development/#_themes) when the user are being redirected to keycloak to enter their credentials and provide consent to access their resources by the client.
+
+
+
 
 
 
