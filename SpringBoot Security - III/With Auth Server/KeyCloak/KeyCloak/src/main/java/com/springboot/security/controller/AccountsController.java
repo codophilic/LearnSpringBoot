@@ -22,6 +22,7 @@ public class AccountsController {
 
     @GetMapping("/myAccount")
     public Accounts getAccountDetails(@RequestParam String email) {
+    	System.out.println("Email ID -"+email);
         Optional<Customer> optionalCustomer = customerRepository.findByEmail(email);
         if (optionalCustomer.isPresent()) {
             Accounts accounts = accountsRepository.findByCustomerId(optionalCustomer.get().getId());

@@ -1109,12 +1109,46 @@ all such parties, they need to take this public key. Using these public keys onl
 
 <video controls src="20240908-1657-18.5322299.mp4" title="Title"></video>
 
+- In the theory of client credentials we learned about the client will sent the post request and in that will be client id , secret and grant type. So in the console when we request for generating a new token we can see that.
+
+![alt text](image-48.png)
+
 - So our **thirdpartyid** client is used for client credentials grant type flow.
+- Let perform Authorization Code grant type. For that lets create a new client. Here postman will use browser to authenticate end user credentials.
+
+<video controls src="20240909-0328-28.5762121.mp4" title="Title"></video>
+
+- Here we selected the checkbox **Standard Flow** because it provides Authorization code grant type OAuth2. In the valid redirect URLs for now, we are going to mention `*`. That means we are fine with any page where the auth server is going to redirect the end user after the authentication is complete. But in real production application, we need to mention a proper URL of your application so that the end user is going to be landed onto these redirect URL once authentication is completed.
+- Now lets create a user , since our auth server along with client will also validate user credentials post that it gonna provide token in exchange of authorization code.
+
+<video controls src="20240909-0335-51.7133660.mp4" title="Title"></video>
+
+- Here after entering the user details we also enable this email verified. This gives a confirmation to the keycloak that so and so user email is verified.
+- But where is the password for this email id? we need to create it but before creating that we need to enforce that password end user must not be data breach. Just like in spring boot we have a method **HaveIBeenPwnedRestApiPasswordChecker** which checks whether a password could be compromise or not similarly in KeyCloak we can define some policy on the end user password. Without any configuration KeyCloak will accept any kind of password set for the user.
+- Lets configure some policies on the end user password.
+
+<video controls src="20240909-0347-01.6464841.mp4" title="Title"></video>
+
+- Here we create a user with name `happy@example.com` and password as `Example@1234`
+- So here we have manually create a user, so do we need to create manually one by one going to KeyCloak console? , ofcourse not, KeyCloak provided [Rest APIS](https://www.keycloak.org/docs-api/21.1.1/rest-api/#_users_resource) which can be leverage to add the user from the application registration or sign up page.
+- Lets hit the `/myAccounts` to get the account details via postman.
+
+<video controls src="20240909-0436-56.7438840.mp4" title="Title"></video>
 
 
+- Here we selected **Authorized using browser**. With this checkbox, what is going to happen is whenever we're trying to get an access token with this grant flow, the Postman is going to leverage the browser to ask the end user credentials. Once the end user authentication is successful, this is the URL where the Auth server is going to redirect back to the Postman.
+- Now coming to the **Auth URL**, you can get this URL from the well-known Open ID configurations URL. So here we have authorization endpoint. The same you need to mention inside the Postman.
+- Still at this point we got 403 error. This is because to access `/myAccount` we require roles for it.
 
+```
+                .authorizeHttpRequests((requests) -> requests
+                		.requestMatchers("/info").authenticated() // Client Credentials Grant Type
+                        .requestMatchers("/myAccount").hasRole("USER")
+                        .requestMatchers("/myBalance").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/notices", "/register").permitAll());
+```
 
-
+- So lets create new role and map that to the **client**
 
 
 
