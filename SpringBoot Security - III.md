@@ -1175,10 +1175,25 @@ all such parties, they need to take this public key. Using these public keys onl
 <video controls src="20240909-1904-42.2335486.mp4" title="Title"></video>
 
 - We can change the [default theme page](https://www.keycloak.org/docs/latest/server_development/#_themes) when the user are being redirected to keycloak to enter their credentials and provide consent to access their resources by the client.
+- Lets implement PKCE grant type flow. Whenever the client is not capable of storing the client secret. For example, all JavaScript-based or Angular/React-based applications, they can't store client secret. For all such public facing client applications, we need to use the PKCE Grant Type flow. As part of this flow, a **code_verifier** and a **code_challenge** is going to be generated.
+- So first lets create a new client.
+
+<video controls src="20240910-0435-15.2587731.mp4" title="Title"></video>
+
+- Once we make sure that the standard flow is the only flow that is checked inside this page. As an next step, you should also make sure this client authentication is disabled. So by default it is going to be disabled so don't try to enable it. So this is one of the indication to auth server that this client application, it is going to leverage Authorization Code Grant Type flow with the help of PKCE. If you want to combine both the PKCE along with the client credentials, then you need to enable these client authentication.
+- Since we disable the client authentication, there is no credentials tab here.
+- Under the advance tab , there will be **Proof Key for Code Exchange Code Challenge Method**, here we need to select SHA256. With this we are telling to the auth server that we are going to leverage SH256 hashing function to generate the code challenge from the code verifier.
 
 
+![alt text](image-54.png)
 
+- Using the same end user `happy@example.com`, we can test the PKCE grant type flow using postman.
 
+<video controls src="20240910-0541-53.3428649.mp4" title="Title"></video>
+
+- Since our application.properties has `spring.jpa.hibernate.ddl-auto = create`, the existing user gets deleted. Post creating user details we get the below output.
+
+![alt text](image-55.png)
 
 
 
