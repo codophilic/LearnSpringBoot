@@ -2347,5 +2347,6 @@ public class IDNameCollections {
 ![alt text](Images/springbootsecurity2/image-68.png)
 
 - Here we are filtering input as well as output. When the collections consist of name **Harsh** and **Meet**. During output we only sent **Jeet** name data and exclude the **Test**.
-
+- Above learnings are implemented [here](https://github.com/codophilic/LearnSpringBoot/tree/main/SpringBoot%20Security%20-%20II/eazyschool-start)
+- Learn more about [Spring Security (OAuth2, OpenId and MFA)](https://github.com/codophilic/LearnSpringBoot/blob/main/SpringBoot%20Security%20-%20III.md#springboot-security-iii)
 
