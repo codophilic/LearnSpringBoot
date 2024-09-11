@@ -6,5 +6,4 @@ Learn about [SpringBoot](https://github.com/codophilic/LearnSpringBoot/blob/main
 >[!NOTE]
 > - Make the clone of repository and using visual studio code to open preview of the markdown files during the process of learning.
 > - Some videos are length which may not be supported on GitHub Web browser markdown preview.
-> - Do like the repository.
 
