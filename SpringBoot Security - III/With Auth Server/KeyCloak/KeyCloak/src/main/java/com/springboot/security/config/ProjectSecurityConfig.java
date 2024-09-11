@@ -21,14 +21,17 @@ import java.util.Collections;
 @Configuration
 public class ProjectSecurityConfig {
 
-    /*@Value("${spring.security.oauth2.resourceserver.opaque.introspection-uri}")
+	/**
+	 * Injecting values from the property fields
+	 */
+    @Value("${spring.security.oauth2.resourceserver.opaquetoken.introspection-uri}")
     String introspectionUri;
 
-    @Value("${spring.security.oauth2.resourceserver.opaque.introspection-client-id}")
+    @Value("${spring.security.oauth2.resourceserver.opaquetoken.client-id}")
     String clientId;
 
-    @Value("${spring.security.oauth2.resourceserver.opaque.introspection-client-secret}")
-    String clientSecret;*/
+    @Value("${spring.security.oauth2.resourceserver.opaquetoken.client-secret}")
+    String clientSecret;
 
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -72,16 +75,15 @@ public class ProjectSecurityConfig {
          * 'oauth2ResourceServer'. With the help of rsc.jwt() we tell spring security that we will receive a
          * JWT token and not a opaque token, since auth server can sent two types of token.
          */
-        http.oauth2ResourceServer(rsc -> rsc.jwt(jwtConfigurer ->
-                jwtConfigurer.jwtAuthenticationConverter(jwtAuthenticationConverter)));
+//        http.oauth2ResourceServer(rsc -> rsc.jwt(jwtConfigurer ->
+//                jwtConfigurer.jwtAuthenticationConverter(jwtAuthenticationConverter)));
         
         /**
-         * Since our spring boot server will act like a resource server we don't need to add
-         * http.formLogin(Customize.withDefaults());
+         * Opaque Token Configuration
          */
         
-        /*http.oauth2ResourceServer(rsc -> rsc.opaqueToken(otc -> otc.authenticationConverter(new KeycloakOpaqueRoleConverter())
-                .introspectionUri(this.introspectionUri).introspectionClientCredentials(this.clientId,this.clientSecret)));*/
+        http.oauth2ResourceServer(rsc -> rsc.opaqueToken(otc -> otc.authenticationConverter(new KeycloakOpaqueRoleConverter())
+                .introspectionUri(this.introspectionUri).introspectionClientCredentials(this.clientId,this.clientSecret)));
         return http.build();
     }
 
