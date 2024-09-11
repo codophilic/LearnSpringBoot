@@ -4,7 +4,7 @@
 
 ### What problems does OAuth2 solves?
 
-![alt text](image.png)
+![alt text](Images/springbootsecurity3/image.png)
 
 - 100% of the enterprise organizations or enterprise projects, they leverage OAuth2 to implement authentication and authorization inside their applications. Only smaller organizations or some startup organizations or some low-critical applications, they're going to ignore the OAuth2 framework.
 - We all use this various Google products. Google has primarily Gmail as a product. They also have Google Maps, YouTube, Google Photo, Google Drive. So similarly, there are many other applications which are developed and maintained by Google or Alphabet. All these applications of Google, they have their own separate code base. They're going to be deployed in different, different servers. But have you anytime wondered how all these Google products, they allow the same credentials as an input? We as an end user, whenever we want to use any Google product, we need to create our own account with the help of Gmail. So the same Gmail credentials you can use to authenticate in all the remaining applications. For example, if you want to use YouTube to see the videos or to upload some videos, we can log in into these YouTube mobile application or web application with the Gmail credentials that we have created previously. The same applies for the remaining Google products.
@@ -13,7 +13,7 @@
 - Let's try to take one more scenario and try to understand what are the advantages that we get if you try to maintain a separate Auth server inside an organization.
 
 
-![alt text](image-2.png)
+![alt text](Images/springbootsecurity3/image-2.png)
 
 
 - Think like, there is a bank application which has multiple websites supporting accounts, loans, and cards. If these bank application, if they're not following the OAuth2 framework, then the bank customers, they have to register and maintain different user profiles in all the three systems. So there is a Loans application, Cards application, and Accounts application. Inside each of these applications, if they have their own authentication and authorization logic, then the end user will end up creating different credentials for different applications, and all these credentials are going to be stored in different storage systems.
@@ -22,7 +22,7 @@
 - It is recommended that always try to separate your security-related logic into an Auth server so that your individual applications, they are going to simply have the logic related to the business logic. This way, you are not clubbing the business logic with the security logic.
 - OAuth2 framework tries to solve **Delegated Authentication or Authorization** issue.
 
-![alt text](image-1.png)
+![alt text](Images/springbootsecurity3/image-1.png)
 
 - Think like you are an end user who maintain all your photos inside the Google Photos, and there is a third-party app with the name PhotoEditor. So this PhotoEditor third-party app, it is going to allow you to edit your photos with the help of AI, and it is also going to help you to create albums out of your photos. It is also going to help you to create collage of your photos.
 - Since this third-party app is providing all these features, you decided to use this third-party app. So let's try to imagine this scenario without OAuth2. In a very common basic scenario, what you're going to do? You're going to download the photo from your Google Photo. The same you're going to upload into the PhotoEditor for performing some edits because the PhotoEditor has its own credentials for you login process. So this is going to be very cumbersome process.
@@ -33,7 +33,7 @@
 ### About OAuth2
 
 
-![alt text](image-3.png)
+![alt text](Images/springbootsecurity3/image-3.png)
 
 - OAuth2 stands for **Open Authorization**, so whatever number you see, which is 2.0, this represents the current version of OAuth2 framework that is being used by everyone. In short, we can call this OAuth 2.O as OAuth 2.
 - Before OAuth 2, there used to be a framework with the name OAuth 1, which is the very first version of OAuth. Since this OAuth 1 has lot many drawbacks, this OAuth 1 is updated with the newer version with the name OAuth 2 by addressing all the latest security standards.
@@ -49,7 +49,7 @@
 
 - The beauty of OAuth 2 framework lies inside the grant types that it is going to support.
 
-![alt text](image-4.png)
+![alt text](Images/springbootsecurity3/image-4.png)
 
 - So based upon the type of application or based upon the scenario that your organization is into, you need to follow one of the grant types that are supported by the OAuth 2 framework. So inside the [OAuth 2](https://oauth.net/2/) specifications , there are clear guidelines explaining about which grant type flow that we need to use under which scenario.
 - For example, if an end user is involved during the authentication and authorization process, then we can use either of the **Authorization Code or PKCE** grant type flow based upon the type of our application. If your application is built using the JavaScript frameworks, like, Angular, React, or mobile applications, in such scenarios, you need to use **PKCE**. Otherwise, you can safely use Authorization Code.
@@ -60,7 +60,7 @@
 
 ### OAuth2 Terminology
 
-![alt text](image-5.png)
+![alt text](Images/springbootsecurity3/image-5.png)
 
 
 - Lets see about these jargons used in OAuth2 
@@ -75,7 +75,7 @@
 
 - Lets take an example , when we login on LinkedIn we get below page.
 
-![alt text](image-6.png)
+![alt text](Images/springbootsecurity3/image-6.png)
 
 - If you see here, we have option to sign up using email or use social login. LinkedIn website is also supporting social login. So what is a social login? Social login is a process where we can quickly sign in into a third party application by entering our social credentials from Google or Apple or Facebook, Twitter, GitHub, LinkedIn. So since all these Google, Apple, or any other social organizations, since they are very big organizations, they have their own authorization servers.
 - So whenever we use social login option, what is going to happen? your profile details which are stored inside the Google auth server, they are going to be fetched and given to the LinkedIn. So LinkedIn behind the scenes, what it is going to do is, by taking your profile details from Google or Apple, it is going to create an account for your very quickly.
@@ -83,22 +83,22 @@
 - What happens behind the scene? behind the scenes, what LinkedIn is going to do is before it try to enable this button on this website, they will approach to the Google team and express their interest in using social login in the LinkedIn website, and Google team, what they're going to say, they'll say, "Um fine, you just have to create your own details inside my Auth server so that the integration between Auth server and LinkedIn is going to work seamlessly."
 - So if you go to the official [documentation](https://developers.google.com/identity/protocols/oauth2) of OAuth 2.0 from Google inside this website, you'll be able to see what are the steps that any organization has to follow if they want to use Google as an auth server inside their websites.
 
-![alt text](image-11.png)
+![alt text](Images/springbootsecurity3/image-11.png)
 
-![alt text](image-7.png)
+![alt text](Images/springbootsecurity3/image-7.png)
 
 - So first, the organization like LinkedIn, they have to register themselves to get the client ID and their client secret. So these credentials are different from the end user credentials. These client ID and client secret, they're going to be used by the Google Auth server to identify which client application is trying to invoke the authentication or authorization process. Here, the client is going to be LinkedIn, so LinkedIn is going to get its own ID and secret, which it has to use while it is trying to invoke the authentication process here. So here, if you click on the sign in with the Google, it is going to redirect you to the Google login page. You can see the domain, `accounts.google.com`, and here there is a client ID which, so this client ID represents LinkedIn. So based upon this client ID only, Google is trying to give your information that sign in with your Gmail so that you can continue to use LinkedIn. So this LinkedIn information is coming based upon this client ID. As soon as you click Next, google will take your consent which states like **by continuing Google will share my name, email address, language preference, profile picture with the LinkedIn**.
 - So here, as soon as you click continue, behind the scenes an access token will be issued by Auth server. The same will be sent back to the LinkedIn, and LinkedIn will land me onto their website.
 
-![alt text](image-8.png)
+![alt text](Images/springbootsecurity3/image-8.png)
 
-![alt text](image-9.png)
+![alt text](Images/springbootsecurity3/image-9.png)
 
 
 ### Grant Type - Authorization Code 
 
 
-![alt text](image-10.png)
+![alt text](Images/springbootsecurity3/image-10.png)
 
 
 - **Authorization code grant type flow must be used when an end user is involved during the authentication process. If there are no credentials that are going to be entered by end user, then this is not the grant type flow you need to use**.
@@ -111,7 +111,7 @@
 - But how the Resource Server is going to validate the access token is issued by the Auth Server? this token can be issue by any other server right? there is no direct communication between resource and auth server? it is done using **JWT Token**. Inside the JWT tokens, there is a digital signature concept. Using the digital signature concept, one can validate if the token is valid or not by them self without the need of reaching out to the token-issuing component.
 - Okay but the client may have other products or pages , now how auth server will which of its pages does the user needs to be landed up? the answer is based on the request format that Client application is going to send to the Auth Server.
 
-![alt text](image-12.png)
+![alt text](Images/springbootsecurity3/image-12.png)
 
 - **As a part of step 2 & 3**, where the end user identity is going to be verified by the Auth Server, what client application it is going to do is, it is going to send the **client_id only**. So using this **client_id**, the Auth Server can identify the details of the client application, and the same details, it is going to show you on the login page of the auth server saying that so-and-so client is trying to access your resources. Are you fine with that? So this kind of consent the Auth Server is going to show based upon this client_id that it received as part of step two and three.
 - Apart from client_id, the client application, it is also going to send other details like **redirect_uri**, scope, state, and response_type. The purpose of **redirect_uri** is very simple. Inside these request parameter only, the client application is going to mention what is the URI value that the Auth Server needs to redirect post to end user's successful authentication. And inside the scope, the client application is also going to mention what are the authorities or what are the level of access that the client is looking inside the Resource Server.  For example, if the client is looking for the READ scope. So inside the state request parameter, we are going to send a randomly generated CSRF token value. So this is to protect from the CSRF attacks. At last, inside the **response_type**, the value **code** is going to be mentioned, because as part of the step two and three, the end user identity is going to be verified. If the end user identity is verified, the client application is expecting an **Authorization Code** as its response
@@ -120,11 +120,11 @@
 - Lets take a demo of it. So on internet there is a [OAuth2 playground](https://www.oauth.com/playground/index.html) available which help you understand the OAuth authorization flows and show each step of the process of obtaining an access token.
 - So now first we need to have a client and a user details.
 
-<video controls src="20240907-1658-41.5085194.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240907-1658-41.5085194.mp4" title="Title"></video>
 
 - So here we have a user details like email id **muddy-worm@example.com** and password **Inquisitive-Pig-95** and client details like id **YKd9xgF9JEkrUfBwc97fyeMq** and client secret **UzfP3D5v8xNen82j09dW7ofgLm0O61dITG-77YLCCKzeoXIl**. Now this playground directly takes the client credentials just for demonstration, now click on **Back to flows**.
 
-<video controls src="20240907-1702-30.7567721.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240907-1702-30.7567721.mp4" title="Title"></video>
 
 - Now in the real time, client will built a authorization url or a request, it consist of below things.
 
@@ -137,7 +137,7 @@
 
 - Here instead of CSRF token, a random string is generated for the **state**. If you observe here the **client_secret** is not specified because first the user credentials authentication occurs (**step 3 in the image**).
 
-<video controls src="20240907-1710-07.8788599.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240907-1710-07.8788599.mp4" title="Title"></video>
 
 - When we click on **Authorize** , we need to enter the user credentials and the auth server takes our consent. Now if we see the url,
 
@@ -148,7 +148,7 @@ https://www.oauth.com/playground/authorization-code.html?state=3bVTRpV0nbHf173k&
 - This consist of **state** value and a authorization code `code=wXh2iNZq7ozeBYhKbzB6W9sItCFVxJZ1ZaXaUOB-LVv9E36H` present in it. You need to first verify that the state parameter matches the value stored in this user's session so that you protect against CSRF attacks. (**step 4 in the image**)
 - Now click on **It Matches! Continue**.
 
-![alt text](image-13.png)
+![alt text](Images/springbootsecurity3/image-13.png)
 
 - Now the client is ready for exchange the authorization code for an access token. ( **step 5 in the image**). It prepares a post request which includes **client_secret** and **authorization code**. If you try to send all these details inside the get request as a query param then there won't be any security and there is a good chance that client application may lose their secret. That's why here, we are following the post. ( **step 6 in the image**)
 
@@ -164,16 +164,16 @@ grant_type=authorization_code
 
 - Now when we click on **Go**. We get the token and its expiration time.
 
-![alt text](image-14.png)
+![alt text](Images/springbootsecurity3/image-14.png)
 
 ### Grant Type - Implicit Grant (Deprecated)
 
-![alt text](image-15.png)
+![alt text](Images/springbootsecurity3/image-15.png)
 
 
 - The flow is similar to authorization code but here when we validate the user credentials, at that time instead of sending the authorization code we sent directly the token. Now this becomes the risk factor, how ?
 
-![alt text](image-16.png)
+![alt text](Images/springbootsecurity3/image-16.png)
 
 - Here if you see there is no **client_secret** present in the request when the client sents request to auth server. The request type is **Get**. The reason why client secret is not involved is, since this is a GET request, inside the GET request, there is no meaning of sending the client secret. That's why this flow does not support client secret as part of the step three request. And with that what is going to happen? Anyone who knows the client_id, they will be able to mimic as a client application with the auth server, and once the end user entered his credentials, they should be able to get the access token. So since there is no way for the auth server inside this flow to validate the identity of the client application, this is marked as deprecated.
 - Apart from these drawback, the other serious drawback is when the auth server is trying to share the access token with the client application, the access token is going to be shared inside the request URL itself because, initially, the request went using GET, so to this GET, as a response, the auth server can only send using GET only since it is going to send the access token inside the GET URL itself, there's a very good chance that anyone who has access to your browser history, they'll be able to steal your access token. Think of a scenario, one of the auth server is issuing an access token with an expiration of seven days.In this scenario, you might have used the access token on day one and you left the computer. If some other user has access to your browser history, they'll be able to easily know what is the access token that auth server sent initially. Using the same access token, there is a good chance that they may misuse it.
@@ -198,13 +198,13 @@ grant_type=authorization_code
 
 
 
-![alt text](image-17.png)
+![alt text](Images/springbootsecurity3/image-17.png)
 
 
 - Since these public clients cannot securely store the client secret, there is a workaround provided inside the OAuth 2.0 to standard with the help of **Proof Key for Code Exchange** flow. So let's try to understand what is going to happen inside the PKCE flow.
 
 
-![alt text](image-18.png)
+![alt text](Images/springbootsecurity3/image-18.png)
 
 
 - Whenever an end user clicks on the login button or whenever he tried to initiate an operation inside the client application, then we know the client application, it is going to redirect the end user to the Auth Server login page. So during this redirection, behind the scenes the client application, what it is going to do is it is going to generate two different values.
@@ -214,19 +214,19 @@ grant_type=authorization_code
 - Using this code verifier, the Auth Server, it is going to apply the same hashing function on top of this code verifier, and with that whatever initial value that it has received as part of code challenge, it has to be equally same; otherwise the Auth Server is not going to issue the access token.
 - This way, Auth Server is making sure that whatever client application that initially initiates the request in the very first step, the same client application has to get the access token.
 
-![alt text](image-19.png)
+![alt text](Images/springbootsecurity3/image-19.png)
 
 - So here we are passing request two times, again if we pass only request once we will landed up into **implicit grant type**.
 - So here you may have a question which is **why code challenge is being shared first followed by code verifier at later point of time**? We know the **code_challenge is a hash representation of code_verifier**. This code challenge or hash value is going to be shared to the Auth Server so that in between, if someone steals this code challenge it is not going to make any sense to them because using this code challenge, they cannot derive the code verifier because it's a hash value. Only the client application which generates this code challenge, they will only know this code verifier plain text value.
 - So once all the validations are completed on the Auth Server, it is going to issue an access token, ID token, refresh token, based upon what is being requested by the client application. This way, though there is no client credential involved inside the authentication flow, the Auth Server will make sure that it is issuing an access token to only the original client application who initiates the authentication flow.
 - Let's see the demo of this PKCE flow very quickly. Inside this playground website,
 
-<video controls src="20240907-1906-49.9584738.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240907-1906-49.9584738.mp4" title="Title"></video>
 
 - In the very first step, the client application, it has to generate the **code_verifier** and the **code_challenge** using SHA256 algorithm and base64 encoding.
 - Now the client application generated both code_verifier and code_challenge and it is going to store these details somewhere inside the request.
 
-<video controls src="20240907-1908-38.2811828.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240907-1908-38.2811828.mp4" title="Title"></video>
 
 ```
 https://authorization-server.com/authorize?
@@ -242,7 +242,7 @@ https://authorization-server.com/authorize?
 
 - Here it is going to send a get request. Inside this get request, the response type, it is going to mention as code client_id and the redirect_uri, scope, state. Coming to the code challenge, it is going to mention whatever code challenge it is calculated here, so the same code challenge it is trying to provide here. And the code challenge method also it has to provide which is SHA256.
 
-<video controls src="20240907-1910-18.2477537.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240907-1910-18.2477537.mp4" title="Title"></video>
 
 - Here, once I click on this Log in button, ypu will get a consent, you will approve this consent. And with that, we'll go to the next step where the state parameter we need to validate. So this state parameter protects us from the CSRF attacks and inside the get response, we also receive the authorization code value.
 
@@ -252,7 +252,7 @@ https://authorization-server.com/authorize?
 
 - Next time, the client application, it is going to make a POST request to get the access token. So as part of this POST request, it is going to mention the grant type as authorization code. So the grant type value is always going to be the same, regardless whether you're using the traditional authorization code grant type flow or the PKCE flow.
 
-<video controls src="20240907-1912-50.4885824.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240907-1912-50.4885824.mp4" title="Title"></video>
 
 ```
 POST https://authorization-server.com/token
@@ -268,12 +268,12 @@ grant_type=authorization_code
 - How Auth Server will identify whether you are trying to use the PKCE flow or whether you're trying to use the authorization code grant type flow or combination of them, is based upon the request that you are going to send. So if the authorization code grant type flow sees the fields like code_verifier, code_request, code_challenge method. So if it sees all such information, then it is a confirmation to the authorization server that you are trying to use the PKCE flow. So after the grant type, we need to mention what is the client ID and the client secret (optional)
 - So now using this code verifier,behind the scenes the authorization server, it is going to generate the code challenge by following the same formula that we have used inside the step one. If the initially shared code challenge is matching with the newly calculated code challenge, then only the authorization server is going to issue an access token.
 
-![alt text](image-20.png)
+![alt text](Images/springbootsecurity3/image-20.png)
 
 
 ### Grant Type - Password Grant
 
-![alt text](image-21.png)
+![alt text](Images/springbootsecurity3/image-21.png)
 
 
 - Password Grant Type Flow, also called as Resource Owner Credentials Grant Type Flow. Inside this flow what is going to happen is that end user is going to hand over his credentials to the client application itself. What is going to happen is the client application, it is going to redirect the end user to the login page of the odd server to enter his credentials. But inside this flow, the client application itself is going to have their own login page where they are going to ask the end user credentials that he's maintaining inside the AUTH server. 
@@ -286,7 +286,7 @@ grant_type=authorization_code
 
 ### Grant Type - Client Credentials
 
-![alt text](image-22.png)
+![alt text](Images/springbootsecurity3/image-22.png)
 
 
 - It is the most commonly used grant type flow inside the microservices environment. We need to use this grant type flow when now there is no end user is involved and when our two backend applications are two different APIs that are trying to communicate with each other. So this Resource Server can be a microservice and this client also can be another microservice, or some other backend application or backend API who are trying to talk with each other.
@@ -295,7 +295,7 @@ grant_type=authorization_code
 - The client is going to approach the auth server to provide an access token and inside the request it is also going to mention its client credentials and since there is no user involved inside this, it's not going to share any end user-related details. If the client credentials are valid, the auth server, it is going to issue an access token to the client.
 - Now the client, which can be a microservice or a backend API or a backend server, it can invoke another backend server or another backend API or microservice which is the resource server
 
-![alt text](image-23.png)
+![alt text](Images/springbootsecurity3/image-23.png)
 
 
 ### Grant Type - Refresh Token
@@ -304,7 +304,7 @@ grant_type=authorization_code
 
 - Whenever we are using Authorization Code Grant Type flow or PKCE Grant Type flow, inside the response we get two types of tokens. The very first one is **access_token** and the other one is **refresh_token**. There is a purpose for this **refresh_token**. Using this **refresh_token**, we can use Refresh Grant Type flow. 
 
-![alt text](image-14.png)
+![alt text](Images/springbootsecurity3/image-14.png)
 
 - Let's try to understand the flow of this grant type flow by looking at the slides. The Refresh Token Grant Type flow, it is only going to be initiated by the client application behind the scenes without involving the end user. That's why here we have only three components, Client, Auth Server and Resource Server.
 - The end user will only be involved in the scenarios where he has to enter his credentials during the initial authentication process. So let's imagine of a scenario where my client application does not know whether a given access token is expired or not. In this scenario, the client application, as usual, it is going to make a request to the Resource Server with the access_token. But this time, the Resource Server, since the access_token is expired, it is going to throw an error, which is 403 forbidden.
@@ -313,7 +313,7 @@ grant_type=authorization_code
 - Now using the access_token that it has resolved inside the step four, my client application, it is going to make a request to the Resource Server. This time, since the access_token is valid, the Resource Server, it is going to respond with the proper response which can be processed by the client application.
 
 
-![alt text](image-24.png)
+![alt text](Images/springbootsecurity3/image-24.png)
 
 - So what details we are going to send as part of step three, the client application, it is going to send the client_id and client_secret, along with the refresh_token that it has resolved during the initial authentication process. The purpose of the scope you already know, coming to the grant_type. This time we need to mention the value as **refresh_token**.
 - So this is an indication to the auth server that Refresh Token Grant Type flow is initiated. With this grant type flow behind the scenes, the auth server, it is going to expect the value under the refresh_token.
@@ -328,7 +328,7 @@ grant_type=authorization_code
 
 #### 1. Opaque Token
 
-![alt text](image-25.png)
+![alt text](Images/springbootsecurity3/image-25.png)
 
 - The very first approach is validating the access tokens remotely. Inside this approach, what is going to happen is whenever the Resource Server, it receives an access token, it will simply send that access token to the Authorization Server to check if the access token is valid or not.
 - So inside this approach, always, the Resource Server is going to depend on the Authorization Server by making a API invocation on the auth server to identify if a token is valid or not. Usually, the auth servers, they're going to expose an API with the name `/introspect`. Using these `/introspect` API, the Resource Servers, they can identify whether a given token is valid or not.
@@ -344,7 +344,7 @@ grant_type=authorization_code
 <summary> What is JWKS ?</summary>
 
 
-![alt text](image-26.png)
+![alt text](Images/springbootsecurity3/image-26.png)
 
 - Imagine a secure service issues JWTs to users, which they use to access another service (like an API).
 - The JWTs are signed with a private key that only the service issuer knows.
@@ -382,7 +382,7 @@ grant_type=authorization_code
 
 - The next approach, which is the most commonly used approach, is validating the access tokens locally. In this scenario, the Resource Server, it is going to validate the token locally without making a network call to the Authorization Server.
 
-![alt text](image-27.png)
+![alt text](Images/springbootsecurity3/image-27.png)
 
 
 - To make this approach work, we need to follow two rules. The very first rule is the token format should be of type JWT. Since JWTs, they're going to have digital signature to validate locally, but inside the OAuth 2 flow, the secret value is not going to be used. Instead, JWKS approach is going to be followed. 
@@ -395,7 +395,7 @@ grant_type=authorization_code
 ## Open ID Connect - Theory
 
 
-![alt text](image-28.png)
+![alt text](Images/springbootsecurity3/image-28.png)
 
 - OpenID Connect is a protocol that sits on top of OAuth 2.0 framework, which means this OpenID Connect just a thin wrapper sitting on top of OAuth 2.0 framework. OAuth 2.0 built on top of the HTTP protocol. On top of the OAuth 2.0, again, there is a thin wrapper or a thin layer built with the name OpenID Connect.
 - In other words, we can say this OpenID Connect and OAuth 2.0, they're going to compliment with each other. Without OAuth 2.0, we can't build or use OpenID Connect. And similarly, by having this extra layer on top of OAuth 2.0, OAuth 2.0 also is going to get some advantages and benefits. Both of these work together and not are separate entities.
@@ -409,14 +409,14 @@ grant_type=authorization_code
 - **This way, the drawbacks of OAuth 2.0 are addressed with the help of OpenID Connect.**
 
 
-![alt text](image-29.png)
+![alt text](Images/springbootsecurity3/image-29.png)
 
 - So, OIDC Connect is the short form of OpenID Connect. This OIDC standardizes the scopes to OpenID profile, email, and address. So, these are the scopes that got introduced as part of OpenID. Whenever someone is trying to mention these scope details inside the request, they're going to get all the user-related information in the form of ID Token. whenever someone is using OpenID Connect in their communication, they're going to get an ID token on top of access token. **This ID token also is going to use the format of JWT tokens**. Any auth server that has been implemented with the help of Open ID Connect, it is also going to expose an REST API with the name **`userinfo`**. At any point of time, if the client application is looking for more details of an end user, it can get those details by invoking these REST API.
 - So, with the introduction of OpenID Connect, a new concept came into picture, which is **IAM**. So, identity and access management. So, the OpenID Connect, it is going to help you to identify the end user and it is going to help you in the process of authentication, whereas the OAuth standard or framework is going to help you during the access management and during the authorization process Since we are trying to club both of them, a new concept with the name **IAM** came into picture. So, if you go to any website where they're trying to provide the capabilities of auth server, for example, Keycloak, Okta, AWS Cognito. So, all these products, they're going to highlight about this concept which is identity and access management, which means behind the scenes, they're using both this OpenID Connect and OAuth 2.0 inside the auth server that they're going to provide.
 
 - Lets perform a playground on OAuth2 portal.
 
-<video controls src="20240908-0802-56.9054346.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240908-0802-56.9054346.mp4" title="Title"></video>
 
 - So, this is going to look very similar to the Authorization Code Grant Type flow. If you observe here is under the scope, this time, we have scopes like openid, profile, email. So, previously, we used to send only the photos as a scope. So, photos is a scope which is used to access the resources like photos. But coming to the user-related information, the remaining scopes like openid, profile, and email, they're going to help us to reach you the user-related information. So, when you're trying to send multiple scopes here, you need to use this plus operator. So, different auth servers and different organizations that are going to follow different separators. So, here, the separator is plus symbol.
 
@@ -433,7 +433,7 @@ https://authorization-server.com/authorize?
 Now, if your try to click on this Authorize button, it is going to ask your credentials and consent.
 
 
-<video controls src="20240908-0808-15.1044168.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240908-0808-15.1044168.mp4" title="Title"></video>
 
 
 - The grant type, it is going to be **authorization_code**.
@@ -442,7 +442,7 @@ Now, if your try to click on this Authorize button, it is going to ask your cred
 ?state=C_f4s5QxSWFZupGD&code=4K1uhhL1ebqcHemUHi0hVDFsVBqUibvXuHj0e1d-tx0OwmHW
 ```
 
-<video controls src="20240908-0810-08.4438416.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240908-0810-08.4438416.mp4" title="Title"></video>
 
 ```
 POST https://authorization-server.com/token
@@ -455,7 +455,7 @@ grant_type=authorization_code
 ```
 
 
-![alt text](image-30.png)
+![alt text](Images/springbootsecurity3/image-30.png)
 
 - Now when you click in the Go button you will get an access token as well an ID token. Inside this demo, we're not getting the refresh token. Maybe they might have disabled it, but it is completely possible to get access_token, id_token, refresh_token inside the same response.
 
@@ -470,7 +470,7 @@ grant_type=authorization_code
 
 - Lets create a new simple spring boot project, below are the dependencies required for it.
 
-![alt text](image-31.png)
+![alt text](Images/springbootsecurity3/image-31.png)
 
 
 - Here we need to add OAuth2 Client because our Spring Boot application itself is going to act as a both client and the Resource Server. That's why we need to select both OAuth2 Client and OAuth2 Resource Server. Whereas the other dependency that we have which is, OAuth2 Authorization Server, we need to use this when we are trying to build our own Spring Authorization Server.
@@ -504,7 +504,7 @@ public class SampleController {
 
 - When we run the project at this point of time, we will get this below
 
-![alt text](image-32.png)
+![alt text](Images/springbootsecurity3/image-32.png)
 
 - It seems that OAuth2 is default configured for GitHub and Facebook. But it won't work at this point of time.
 
@@ -531,7 +531,7 @@ public class ProjectSecurityConfig {
 
 - Now when we run the application we get below page.
 
-<video controls src="20240908-0930-23.4033498.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240908-0930-23.4033498.mp4" title="Title"></video>
 
 - Now along with these form login lets implement OAuth2 standards. So inside the project security configuration we need to add `oauth2Login` method.
 
@@ -548,7 +548,7 @@ public class ProjectSecurityConfig {
 
 - Since we don't want to customize our OAuth2 login we are using the defaults `withDefaults`. Now we have enabled OAuth2 login but whenever we enable the OAuth 2.0 login, we need to give clue to our Spring Security framework on which authorization server we are trying to use, whether we are using social logins or whether we are trying to use our own auth server. For that we need to add bean of **ClientRegistrationRepository**, this is an interface which has been implemented by **InMemoryClientRegistrationRepository** and **SupplierClientRegistrationRepository**. Most of the times, developers, they're going to use **InMemoryClientRegistrationRepository**. Using these repository class, we are going to store all our authorization server related details in the form of **ClientRegistration** object.
 
-![alt text](image-33.png)
+![alt text](Images/springbootsecurity3/image-33.png)
 
 
 - Lets add this bean in our project security configuration.
@@ -572,8 +572,8 @@ public class ProjectSecurityConfig {
 
 - But we wanted to use social logins, we need to use other organization auth servers like GitHub, Facebook , Google etc.. So first lets explore one Enum class called **CommonOAuth2Provider**.
 
-![alt text](image-34.png)
-![alt text](image-35.png)
+![alt text](Images/springbootsecurity3/image-34.png)
+![alt text](Images/springbootsecurity3/image-35.png)
 
 - Inside this class, there are good amount of enums with the name **GOOGLE**, **GITHUB**, **FACEBOOK**, and **OKTA**. So for these famous social logins, Spring Security team, they already created **ClientRegistration** object with the details like what is a `scope`, what is a `authorizationUri`, what is a `tokenUri`, what is a `jwkSetUri`, `issuerUri`. So these are all that details usually you need to get from the authorizations aware organization. For example, if you don't have these **CommonOAuth2Provider**, then you need to read the documentation of Google, and you need to understand all these details, like what is the `authorizationUri`, where we need to redirect the client once he click on the login button on the UI. Similarly, there are many other URIs which are required by the OAuth 2.0 flow. So all these URIs, we need to get from the official documentation. To make our job easy, Spring Security, they have created this enum class which has four different enums for Google, GitHub, Facebook, and Okta. 
 - So using these enums, we are going to create the objects of **ClientRegistration**. Once the ClientRegistration objects are created, we can try to store them inside these **InMemoryClientRegistrationRepository**.
@@ -611,22 +611,22 @@ public class ProjectSecurityConfig {
 - Here for each social login we need to have its own **client_id** and **client_secret**, where do we ge this? you need to respective website and generate the value.
 - Below is the flow for getting client ID and secret for GitHub. Here we will use only GitHub as our social login, for other social login you need to perform RnD and get client id and secret for it.
 
-<video controls src="20240908-1013-29.0997060.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240908-1013-29.0997060.mp4" title="Title"></video>
 
 - Now we have added client id and client secret, now lets run the application.
 
-![alt text](image-36.png)
+![alt text](Images/springbootsecurity3/image-36.png)
 
 - Lets login via GitHub
 
-![alt text](image-37.png)
+![alt text](Images/springbootsecurity3/image-37.png)
 
 - We have been re-directed towards GitHub page. If you see there will be a client id on the re-directed url `https://github.com/login?client_id=Ov23liTxzzZkfKRSIs91..`
 - Post entering credentials, GitHub will take consent from us.
 
-![alt text](image-38.png)
+![alt text](Images/springbootsecurity3/image-38.png)
 
-![alt text](image-39.png)
+![alt text](Images/springbootsecurity3/image-39.png)
 
 - We got the sample page. Lets say if you wanted to logged whether the user has used social login or normal user name password you can do it using below way
 
@@ -663,7 +663,7 @@ spring.security.oauth2.client.registration.facebook.client-secret=${GITHUB_CLIEN
 - When we build social login with the help of social logins like GitHub, Facebook, LinkedIn, Twitter, so all these auth servers, they have a very serious drawback or limitation due to which these auth servers, they can't be used inside an enterprise organization. The limitation is we will not have any control on the social login auth servers. We can't create an role or we can't create an authority based upon our business requirements inside these auth servers. Whatever user related information that we are getting from the social logins, we just have to accept them and build our business logic using them.
 - So whenever an organization is looking to build an auth server, they will have two options. The very first option is so to build from scratch. The other option is they can leverage the products that are supporting the OAuth 2 and Open ID standards. So these products are like KeyCloak, which is an open source product, and similarly we have Okta. All the cloud providers like AWS, Azure, GCP, they also have products around the OAuth 2 and OpenID Connect. When to build own our auth server and when to buy a built in product? It all depends upon the organization requirements. If an organization has huge manpower and budget and time, then they can build their own auth server from scratch by using libraries like Spring Auth Server. Otherwise, they're going to adopt the readily available products like KeyCloak and Okta.
 
-![alt text](image-40.png)
+![alt text](Images/springbootsecurity3/image-40.png)
 
 - Here we will use **KeyCloak** as our auth server, our resource server will be our spring boot application, the client will be Postman or the angular UI.
 - So our Spring Boot application will have all the end user resources like accounts, loans, cards. Since we want to secure all these end user resources, so the Spring Boot application server, it is going to act as a Resource Server. Now, coming to the auth server, we are not going to have any social login auth servers because they have so many restrictions. We are going to build an auth server with the help of KeyCloak.
@@ -672,33 +672,33 @@ spring.security.oauth2.client.registration.facebook.client-secret=${GITHUB_CLIEN
 - The client applications, they're going to receive the response from the Resource Server.
 - Lets first install KeyClock, we can do it using docker or download the [zip](https://www.keycloak.org/downloads)
 
-![alt text](image-41.png)
+![alt text](Images/springbootsecurity3/image-41.png)
 
 - Unzip the file and run the command `bin\kc.bat start-dev`. KeyClock is started in the development mode at 8080 port (default)
 
-![alt text](image-42.png)
+![alt text](Images/springbootsecurity3/image-42.png)
 
-![alt text](image-43.png)
+![alt text](Images/springbootsecurity3/image-43.png)
 
 - Create an administrative account and sign in.
 
-![alt text](image-44.png)
+![alt text](Images/springbootsecurity3/image-44.png)
 
 - Lets create our own realm. A realm is a space which is going to manage a set of users, credentials, roles, and groups. This is very similar to the environments. For example, if your organization have environments like dev, QA, production, we are not going to maintain the same users, same credentials across multiple environments. To support these kind of requirements or scenarios, every auth server that is built on top of OAuth 2.0, they're going to have a concept called realm.
 - So using the realm, we are going to create a space which is going to handle a specific environment.
 
-<video controls src="20240908-1230-14.0256644.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240908-1230-14.0256644.mp4" title="Title"></video>
 
 - Lets build a client credentials grant type flow, So for example, think like there is a third-party application which is interested to talk with my MyOwnAuthServer server and to get some secured details. So whenever this third-party application wants to connect with my Resource Server (spring boot application), first, it needs to register its details inside the auth server. So when this registration happens, the auth server is going to give the client ID and the client secret which can be leveraged by my third-party application to get an access token. The same access token can be sent to the Resource Server, so the Resource Server, once validated with the authorization server about the access token, is going to respond back with the proper response. So here, there is no end user involved.
 - So lets register a third party application on our KeyClock server and get the client id and client secret for it.
 
-<video controls src="20240908-1240-32.2969463.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240908-1240-32.2969463.mp4" title="Title"></video>
 
 - If you see we need to enabled **Client authentication** because it will authenticate the client id and its secret when the third party provide the request to keyclock with the details.
 - Since we are implementing **Client Credentials** grant type we need to disable **Standard flow** (Authorization Code grant type) and **Direct access flow** (Password grant type)
 - Lets create a resource server in spring boot application.
 
-![alt text](image-45.png)
+![alt text](Images/springbootsecurity3/image-45.png)
 
 - Lets also leverage the use of MySQL database, so all the user related details and authorities will be store inside the database. So adding database related dependencies and lombok library.
 
@@ -1084,56 +1084,56 @@ spring.security.oauth2.resourceserver.jwt.jwk-set-uri=${JWK_SET_URI:http://local
 
 - Wait how i got this url for `jwk-uri`? using KeyCloak Realm setting
 
-<video controls src="20240908-1600-26.4005968.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240908-1600-26.4005968.mp4" title="Title"></video>
 
 - Lets open up the `jwk-uri`.
 
-![alt text](image-46.png)
+![alt text](Images/springbootsecurity3/image-46.png)
 
 - So if you try to open this URL inside the browser, you will see there are certain keys that are provided by the auth server.  So using these keys, any resource server, they should be able to validate whether the given access token is valid or not. Behind the scenes, like  what is going to happen is always the auth server, while KeyCloak is trying to generate an access token, it is going to digitally sign it with an private key. Whereas anyone who want to validate if the access token is valid or not,
 all such parties, they need to take this public key. Using these public keys only, the resource servers or any other applications, they should be able to validate if a given access token is valid or not. So that's the purpose of the certs URL.
 - So the same we have configured here. So with this, what is going to happen is during the startup, the spring boot resource server, it is going to download these certificate details or public key details from the auth server. With that, my resource server should be able to validate all the access tokens without connecting to the auth server for each and every request.
 - So this OpenID configuration endpoint is a very famous endpoint, and it is a standard that is being followed by all the auth servers inside the industry. Anyone who's building an auth server by following the OAuth 2.0 and OpenID standards, they need to make sure they are exposing all the auth server-related information with the help of this URL. For example, if we are looking for the details of the auth server that is built by the Google, we can simply open the URL which is `accounts.google.com/.well-known/openid-configuration`. So this is going to have similar information, the same kind of information.
 
-![alt text](image-47.png)
+![alt text](Images/springbootsecurity3/image-47.png)
 
 - Lets run our application and hit the `/info` path via postman (client application).
 
-<video controls src="20240908-1649-52.6648147.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240908-1649-52.6648147.mp4" title="Title"></video>
 
 - So here if you see we need to add Access Token URL which the endpoint of the authentication server. Since we are testing client credentials grant type , we get the access token post sending client id and client secret, so here manually we enter those data from KeyCloak , we have registered the **thirdpartyid** as our client which is our postman. Now using this token we are able to access the `/info`. Now since we are using postman we need to use **OAuth 2.0** as auth type.
 
-![alt text](image-22.png)
+![alt text](Images/springbootsecurity3/image-22.png)
 
 - If you see the video, the default token expiration is 5 minutes. Now when we disable and enable the auto refresh token functionality of postman. We can see our token expire, we can again generate a new token using refresh token grant type.
 
-<video controls src="20240908-1657-18.5322299.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240908-1657-18.5322299.mp4" title="Title"></video>
 
 - In the theory of client credentials we learned about the client will sent the post request and in that will be client id , secret and grant type. So in the console when we request for generating a new token we can see that.
 
-![alt text](image-48.png)
+![alt text](Images/springbootsecurity3/image-48.png)
 
 - So our **thirdpartyid** client is used for client credentials grant type flow.
 - Let perform Authorization Code grant type. For that lets create a new client. Here postman will use browser to authenticate end user credentials.
 
-<video controls src="20240909-0328-28.5762121.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240909-0328-28.5762121.mp4" title="Title"></video>
 
 - Here we selected the checkbox **Standard Flow** because it provides Authorization code grant type OAuth2. In the valid redirect URLs for now, we are going to mention `*`. That means we are fine with any page where the auth server is going to redirect the end user after the authentication is complete. But in real production application, we need to mention a proper URL of your application so that the end user is going to be landed onto these redirect URL once authentication is completed.
 - Now lets create a user , since our auth server along with client will also validate user credentials post that it gonna provide token in exchange of authorization code.
 
-<video controls src="20240909-0335-51.7133660.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240909-0335-51.7133660.mp4" title="Title"></video>
 
 - Here after entering the user details we also enable this email verified. This gives a confirmation to the keycloak that so and so user email is verified.
 - But where is the password for this email id? we need to create it but before creating that we need to enforce that password end user must not be data breach. Just like in spring boot we have a method **HaveIBeenPwnedRestApiPasswordChecker** which checks whether a password could be compromise or not similarly in KeyCloak we can define some policy on the end user password. Without any configuration KeyCloak will accept any kind of password set for the user.
 - Lets configure some policies on the end user password.
 
-<video controls src="20240909-0347-01.6464841.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240909-0347-01.6464841.mp4" title="Title"></video>
 
 - Here we create a user with name `happy@example.com` and password as `Example@1234`
 - So here we have manually create a user, so do we need to create manually one by one going to KeyCloak console? , ofcourse not, KeyCloak provided [Rest APIS](https://www.keycloak.org/docs-api/21.1.1/rest-api/#_users_resource) which can be leverage to add the user from the application registration or sign up page.
 - Lets hit the `/myAccounts` to get the account details via postman.
 
-<video controls src="20240909-0436-56.7438840.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240909-0436-56.7438840.mp4" title="Title"></video>
 
 
 - Here we selected **Authorized using browser**. With this checkbox, what is going to happen is whenever we're trying to get an access token with this grant flow, the Postman is going to leverage the browser to ask the end user credentials. Once the end user authentication is successful, this is the URL where the Auth server is going to redirect back to the Postman.
@@ -1150,56 +1150,56 @@ all such parties, they need to take this public key. Using these public keys onl
 
 - So lets create new role and map that to the **user**, because based on user define role we can access the end point `/myAccount`
 
-<video controls src="20240909-1847-49.4657487.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240909-1847-49.4657487.mp4" title="Title"></video>
 
 - So here we create a **Realm Role** and assign that to the user. Post assigning we need to refresh the token to get the new details for the user. In the console you can see the email id is printed
 
-![alt text](image-49.png)
+![alt text](Images/springbootsecurity3/image-49.png)
 
 - But still we got a empty response? we got a 200 means we are able to access the path but response is empty because we have not create the user in our database. Lets do that.
 
-![alt text](image-50.png)
+![alt text](Images/springbootsecurity3/image-50.png)
 
-![alt text](image-51.png)
+![alt text](Images/springbootsecurity3/image-51.png)
 
 - Lets again hit the api , now we get the proper response.
 
-![alt text](image-52.png)
+![alt text](Images/springbootsecurity3/image-52.png)
 
 - By default in KeyCloak the access token lifespan is only **5 minutes**, current time is **12:29 AM** and the expiration time is **12:24 AM**.
 
-![alt text](image-53.png)
+![alt text](Images/springbootsecurity3/image-53.png)
 
 - Lets say you want to create the refresh token for an hour. You can do it inside the KeyCloak.
 
-<video controls src="20240909-1904-42.2335486.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240909-1904-42.2335486.mp4" title="Title"></video>
 
 - We can change the [default theme page](https://www.keycloak.org/docs/latest/server_development/#_themes) when the user are being redirected to KeyCloak to enter their credentials and provide consent to access their resources by the client.
 - When the Resource server is started up, at the first request it download all the JWT certificates are downloaded by the resource server from the Auth Server using `jwk-set-uri`. With this setup right now, the resource server, it is trying to validate the access tokens locally without having any dependency on the auth server. So if the auth server is shutdown and the token isn't expire, the resource server will still be able to perform authentication.
 
-<video controls src="20240911-0713-35.9396846.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240911-0713-35.9396846.mp4" title="Title"></video>
 
 
 
 - Lets implement PKCE grant type flow. Whenever the client is not capable of storing the client secret. For example, all JavaScript-based or Angular/React-based applications, they can't store client secret. For all such public facing client applications, we need to use the PKCE Grant Type flow. As part of this flow, a **code_verifier** and a **code_challenge** is going to be generated.
 - So first lets create a new client.
 
-<video controls src="20240910-0435-15.2587731.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240910-0435-15.2587731.mp4" title="Title"></video>
 
 - Once we make sure that the standard flow is the only flow that is checked inside this page. As an next step, you should also make sure this client authentication is disabled. So by default it is going to be disabled so don't try to enable it. So this is one of the indication to auth server that this client application, it is going to leverage Authorization Code Grant Type flow with the help of PKCE. If you want to combine both the PKCE along with the client credentials, then you need to enable these client authentication.
 - Since we disable the client authentication, there is no credentials tab here.
 - Under the advance tab , there will be **Proof Key for Code Exchange Code Challenge Method**, here we need to select SHA256. With this we are telling to the auth server that we are going to leverage SH256 hashing function to generate the code challenge from the code verifier.
 
 
-![alt text](image-54.png)
+![alt text](Images/springbootsecurity3/image-54.png)
 
 - Using the same end user `happy@example.com`, we can test the PKCE grant type flow using postman.
 
-<video controls src="20240910-0541-53.3428649.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240910-0541-53.3428649.mp4" title="Title"></video>
 
 - Since our application.properties has `spring.jpa.hibernate.ddl-auto = create`, the existing user gets deleted. Post creating user details we get the below output.
 
-![alt text](image-55.png)
+![alt text](Images/springbootsecurity3/image-55.png)
 
 #### MFA (Multi-factor authentication)
 
@@ -1213,7 +1213,7 @@ all such parties, they need to take this public key. Using these public keys onl
 
 ##### What is MFA?
 
-![alt text](image-56.png)
+![alt text](Images/springbootsecurity3/image-56.png)
 
 - MFA works in this way because, let’s suppose one of the factors is hacked by the attackers or invalid user, the chances of another factor also getting compromised are pretty low. That is why MFA authentication requires multiple factors, and this is how it provides a higher level of security to consumers’ identity data.
 - Lets take an example.
@@ -1231,7 +1231,7 @@ all such parties, they need to take this public key. Using these public keys onl
 - Multi-factor authentication, as the name suggests, for authentication requires multiple verification information. One of the most common factors that are widely used is OTP-based authentication. OTP or one-time passwords are 4–6 digit codes you will receive via SMS and work as a one-time entry token. It is generated periodically whenever an authentication request is made.
 - MFA addresses this by requiring additional forms of verification, making it much harder for attackers to gain unauthorized access, even if they have the password.
 
-![alt text](image-57.png)
+![alt text](Images/springbootsecurity3/image-57.png)
 
 - There are mainly three methods on which MFA authentication heavily relies, and those are:
     - **Things You Know (Knowledge)**:
@@ -1259,14 +1259,14 @@ all such parties, they need to take this public key. Using these public keys onl
 - So here we will be implement OAuth and OpenID as our single factor authentication and our second factor authentication will be taking code or OTP from authenticator of Microsoft.
 - So to enable MFA in KeyCloak follow below steps. Here we will create a new user. Overall process remains same only we have added MFA.
 
-<video controls src="20240910-1110-08.7547607.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240910-1110-08.7547607.mp4" title="Title"></video>
 
 
-<video controls src="20240910-1121-34.7382605.mp4" title="Title"></video>
+<video controls src="Images/springbootsecurity3/20240910-1121-34.7382605.mp4" title="Title"></video>
 
 #### Opaque Token
 
-![alt text](image-25.png)
+![alt text](Images/springbootsecurity3/image-25.png)
 
 - Up till now we have use JWT tokens, now to configure opaque token we need to tell the resource server now it will have dependency on auth server to verify the opaque token provided by the client.
 - First lets configure application properties to use opaque token
@@ -1280,15 +1280,15 @@ spring.security.oauth2.resourceserver.opaquetoken.client-secret=${INTROSPECT_SEC
 
 - Since we are using opaque token we need to change our URI, so we need to give details to the resource server, which endpoint URL that resource server has to call on the auth server whenever it want to validate a given opaque token or a given access token. So those details we are trying to mention with the help of these properties. These details can be taken from Open ID Configuration page.
 
-![alt text](image-58.png)
+![alt text](Images/springbootsecurity3/image-58.png)
 
 - The client must register with auth server to get its client id and its secret , so here we have create a new client.
 
-![alt text](image-59.png)
+![alt text](Images/springbootsecurity3/image-59.png)
 
-![alt text](image-60.png)
+![alt text](Images/springbootsecurity3/image-60.png)
 
-![alt text](image-61.png)
+![alt text](Images/springbootsecurity3/image-61.png)
 
 - So the client credentials have been specified in the above application properties.
 
@@ -1430,7 +1430,7 @@ public class ProjectSecurityConfig {
 
 - Lets test it. So here we are using Auth Code to just issue the token which is of JWT type, behind the scene the spring boot resource server will connect will connect with auth server to validate the issue token. 
 
-![alt text](image-62.png)
+![alt text](Images/springbootsecurity3/image-62.png)
 
 - The format to send the request using Auth Code remains the same. Only we are using token which is of JWT type instead of random generate string.
 
@@ -1439,15 +1439,713 @@ public class ProjectSecurityConfig {
 > - Spring Authorization server will issue token in opaque token.
 > - We can also built social login using KeyCloak.
 
-![alt text](image-63.png)
+![alt text](Images/springbootsecurity3/image-63.png)
 
 
 
+### With Auth Server (Spring Authorization Server) 
+
+- If an organization wanted to create their own authorization server they can use Spring authorization server. It has been introduce in 2023.
+- Lets create a new spring boot with the following dependencies.
 
 
+![alt text](Images/springbootsecurity3/image-64.png)
+
+- Lets create a project security config.
+
+```
+package com.springboot.security.config;
+
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.SecurityContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.password.CompromisedPasswordChecker;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.oidc.OidcScopes;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
+import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
+import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
+import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
+import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
+import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat;
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
+import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
+import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.time.Duration;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Configuration
+@EnableWebSecurity
+public class ProjectSecurityConfig {
+
+    @Bean
+    @Order(1)
+    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
+            throws Exception {
+    	/**
+    	 * Apply some default the configurations related to the authorization server.
+    	 */
+        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+        http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
+                .oidc(Customizer.withDefaults());    // Enable OpenID Connect 1.0
+        http
+                // Redirect to the login page when not authenticated from the
+                // authorization endpoint
+                .exceptionHandling((exceptions) -> exceptions
+                		/**
+                		 * With the help of this `defaultAuthenticationEntryPoint()`,
+                		 * we're going to redirect the end user to the login page
+                		 * whenever exception occurs related to authentication
+                		 */
+                        .defaultAuthenticationEntryPointFor(
+                                new LoginUrlAuthenticationEntryPoint("/login"),
+                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
+                        )
+                )
+                /**
+                 * Convert these authorizations (OAuth2AuthorizationServerConfiguration) server as an OAuth2 resource server
+                 * to accept Accept access tokens for User Info and/or Client Registration
+                 */
+                .oauth2ResourceServer((resourceServer) -> resourceServer
+                        .jwt(Customizer.withDefaults()));
+
+        return http.build();
+    }
+
+    /**
+     * Another bean with the same type is being created,
+     * but with the order as two.
+     * That means the above bean is going
+     * to be created first followed by this bean.
+     * 
+     * This bean handles web page related security details `.anyRequest().authenticated()`
+     * 
+     * Why two different beans?
+     * - Just to keep authorization server configuration into different area and web mvc path related configuration in different area
+     * - In the very first bean, spring is trying to define all the configurations which are specific to the auth server.
+     * 	 Whereas coming to the second bean, you can see they're trying to configure these .authenticated() and formLogin().
+     *   At the end of the day, the authorization server also, it is also going to expose some secured APIs and secure pages.
+     *   So all these pages, since they have to be authenticated properly, and in the case whenever we want to access these pages,
+     *   we should be able to access them by entering our credentials with the help of formLogin() approach.
+     *   So that's why they tried to create two different beans.
+     */
+    @Bean
+    @Order(2)
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
+            throws Exception {
+        http
+                .authorizeHttpRequests((authorize) -> authorize
+                        .anyRequest().authenticated()
+                )
+                // Form login handles the redirect to the login page from the
+                // authorization server filter chain
+                .formLogin(Customizer.withDefaults());
+
+        return http.build();
+    }
+
+    /**
+     * Since we don't have admin console just like we had in KeyCloak, so whenever we want to register a client,
+     * this is how we need to register. We need to register a client with the help of this registered client class.
+     * So inside this class we have so many methods like clientId, clientSecret, what is the type of authentication method,
+     * what are the authorization grant type that your client is going to support, redirectUri, scopes.
+     * So once the registered client object is created, they're trying to pass the object of this
+     * to the InMemoryRegisteredClientRepository.
+     * This means all the clients that we are going to configure,
+     * they're going to be saved inside the memory of the application.
+     * 
+     * If you wanna store the client credentials in a database you can use RegisteredClientRepository
+     * implementation JdbcRegisteredClientRepository
+     */
+    @Bean
+    public RegisteredClientRepository registeredClientRepository() {
+		RegisteredClient oidcClient = RegisteredClient.withId(UUID.randomUUID().toString())
+				.clientId("oidc-client")
+				.clientSecret("{noop}secret")
+				.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+				.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+				.redirectUri("http://127.0.0.1:8080/login/oauth2/code/oidc-client")
+				.postLogoutRedirectUri("http://127.0.0.1:8080/")
+				.scope(OidcScopes.OPENID)
+				.scope(OidcScopes.PROFILE)
+				.clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
+				.build();
+		return new InMemoryRegisteredClientRepository(oidcClient);
+    }
+
+    /**
+     * Any auth server that is built based upon the OAuth2 standards, behind the scenes, 
+     * it's going to generate private and public certificates or keys. So using the private key 
+     * or certificate, the auth server, it is going to digitally sign the access tokens, 
+     * ID tokens, or any other tokens.
+     * 
+     * On the resource server side, they should be able to validate these tokens locally by 
+     * using the public certificate or public key. So this method or this bean,
+     * it is going to take care of generating a public key and a private key during the startup.
+     * So it is also going to use the helper method, which is generateRsaKey().
+     */
+    @Bean
+    public JWKSource<SecurityContext> jwkSource() {
+        KeyPair keyPair = generateRsaKey();
+        RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
+        RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
+        RSAKey rsaKey = new RSAKey.Builder(publicKey)
+                .privateKey(privateKey)
+                .keyID(UUID.randomUUID().toString())
+                .build();
+        JWKSet jwkSet = new JWKSet(rsaKey);
+        return new ImmutableJWKSet<>(jwkSet);
+    }
+
+    /**
+     * So this is the helper method which will generate a key pair,
+     * which is going to have both the private and the public keys.
+     */
+    private static KeyPair generateRsaKey() {
+        KeyPair keyPair;
+        try {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            keyPairGenerator.initialize(2048);
+            keyPair = keyPairGenerator.generateKeyPair();
+        } catch (Exception ex) {
+            throw new IllegalStateException(ex);
+        }
+        return keyPair;
+    }
+
+    /**
+     * Inside this method we're trying to configure the bean of JWKSource that got generated here.
+     * So with this, what we're trying to tell to the auth server is, so whenever you are trying to generate an access token,
+     * please digitally sign it with the help of these JwkSource.
+     */
+    @Bean
+    public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
+        return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
+    }
+
+    /**
+     *  Responsible to configure all the settings inside the authorization server
+     */
+    @Bean
+    public AuthorizationServerSettings authorizationServerSettings() {
+        return AuthorizationServerSettings.builder().build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
+    /**
+     * From Spring Security 6.3 version
+     *
+     * @return
+     */
+    @Bean
+    public CompromisedPasswordChecker compromisedPasswordChecker() {
+        return new HaveIBeenPwnedRestApiPasswordChecker();
+    }
+
+}
+```
+
+- Adding below details in application properties
+
+```
+spring.application.name=springauthserver
+
+server.port= ${AS_SERVER_PORT:9000}
+logging.level.org.springframework.security=${SPRING_SECURITY_LOG_LEVEL:TRACE}
+
+spring.datasource.url=jdbc:mysql://${DATABASE_HOST:localhost}:${DATABASE_PORT:3306}/${DATABASE_NAME:springbootsecuritykeycloak}
+spring.datasource.username=root
+spring.datasource.password=Meetpandya40@
+spring.jpa.show-sql=${JPA_SHOW_SQL:true}
+spring.jpa.properties.hibernate.format_sql=${HIBERNATE_FORMAT_SQL:true}
+spring.jpa.hibernate.ddl-auto = update
+logging.pattern.console = ${LOGPATTERN_CONSOLE:%green(%d{HH:mm:ss.SSS}) %blue(%-5level) %red([%thread]) %yellow(%logger{15}) - %msg%n}
+```
+
+- So lets first create a new client and create client credentials grant type flow.
+
+```
+    @Bean
+    public RegisteredClientRepository registeredClientRepository() {
+    	// Generating a random Unique ID
+		RegisteredClient oidcClient = RegisteredClient.withId(UUID.randomUUID().toString())
+				.clientId("oidc-client")
+				.clientSecret("{noop}secret")
+				.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+				.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+				.redirectUri("http://127.0.0.1:8080/login/oauth2/code/oidc-client")
+				.postLogoutRedirectUri("http://127.0.0.1:8080/")
+				.scope(OidcScopes.OPENID)
+				.scope(OidcScopes.PROFILE)
+				.clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
+				.build();
+		RegisteredClient thirdparty = RegisteredClient.withId(UUID.randomUUID().toString())
+				.clientId("thirdparty")
+				.clientSecret("{noop}arandomgeneratestring") // Can be stored in Bcrypt format as well
+				
+				/**
+				 * How will the client sent its credentials ? in headers or body or in basic http standards?
+				 * @CLIENT_SECRET_BASIC -> Basic HTTP Standard
+				 */
+				.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+//				.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN) // Not require now
+				
+				/**
+				 * Below details will require when you have UI page.
+				 */
+//				.redirectUri("http://127.0.0.1:8080/login/oauth2/code/oidc-client")
+//				.postLogoutRedirectUri("http://127.0.0.1:8080/")
+				
+				// Defining scopes
+//				.scope(OidcScopes.OPENID) 
+//				.scope(OidcScopes.EMAIL)
+				
+				.scopes(i->i.addAll(List.of(OidcScopes.OPENID,"ADMIN","USER")))
+				
+				/**
+				 * Defining JWT token or self contained token format along with expiration of token.
+				 * So using this it will validate the tokens locally
+				 */
+                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofMinutes(10))
+                        .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED).build())
+                
+                /**
+                 * Taking consent from the user when redirected.
+                 * So true indicates we need to take consent from the user
+                 * whenever authentication is perform
+                 * 
+                 * Not applicable for Client Credentials grant type
+                 */
+//				.clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
+				.build();
+		return new InMemoryRegisteredClientRepository(oidcClient,thirdparty);
+    }
+```
+
+- Lets run the application and check the well known open id configuration `http://localhost:9000/.well-known/openid-configuration`.
+
+![alt text](Images/springbootsecurity3/image-65.png)
+
+- We have set up the authorization server using spring boot but what about the resource server?, so within the same workspace lets create a resource server using spring.
+
+![alt text](Images/springbootsecurity3/image-66.png)
+
+- Adding up dependencies for the resource server.
+
+![alt text](Images/springbootsecurity3/image-67.png)
+
+- Copying the controller, entity and repository methods from KeyCloak project. So that we can use the same set of users.
+- Now first we need to change the `jwks-set-uri` in application configuration of our resource spring server to our auth server well know open id configuration provided.
+
+![alt text](Images/springbootsecurity3/image-68.png)
 
 
+- Resource server application property
+
+```
+spring.application.name=springresourceserver
+logging.level.org.springframework.security=${SPRING_SECURITY_LOG_LEVEL:TRACE}
+logging.pattern.console = ${LOGPATTERN_CONSOLE:%green(%d{HH:mm:ss.SSS}) %blue(%-5level) %red([%thread]) %yellow(%logger{15}) - %msg%n}
+server.port=8081
+spring.datasource.url=jdbc:mysql://localhost:3306/springbootsecuritykeycloak
+spring.datasource.username=root
+spring.datasource.password=Meetpandya40@
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.database-platform = org.hibernate.dialect.MySQL8Dialect
+spring.jpa.generate-ddl=true
+spring.jpa.hibernate.ddl-auto = update
+spring.jpa.show-sql=true
 
 
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri=${JWK_SET_URI:http://localhost:9000/oauth2/jwks}
+```
+
+- Now in the KeyCloak we had **KeycloakRoleConverter** and **KeycloakOpaqueRoleConverter**. So lets rename those file to **SpringAuthRoleConverter** and **SpringAuthOpaqueRoleConverter** based on this update the project security configuration.
+- Lets run the both the auth server and resource server in eclipse.
+
+<video controls src="Images/springbootsecurity3/20240911-1235-01.8461953.mp4" title="Title"></video>
+
+- Since we are refering the same MVC path and endpoint which we used in KeyCloak , lets generate a JWT token using postman.
+
+<video controls src="Images/springbootsecurity3/20240911-1256-06.2277791.mp4" title="Title"></video> 
 
 
+>[!NOTE]
+> - Here we are using port number of resource server (8081) and not the authorization server (9000), because we are accessing the endpoint of the resource server.
+
+- Now if you see the roles are in a form of Array list, now in the current code **SpringAuthRoleConverter** we are accepting it in a Map based format.
+- Current code
+
+```
+    @Override
+    public Collection<GrantedAuthority> convert(Jwt source) {
+    	
+        Map<String, Object> realmAccess = (Map<String, Object>) source.getClaims().get("realm_access");
+        if (realmAccess == null || realmAccess.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        /**
+         * Get List of all the authorities in with each role prefix by ROLE_ since spring security
+         * expects all roles should be prefix with 'ROLE_'. Each role values is converted into 
+         * Simple Granted authority .map(SimpleGrantedAuthority::new)
+         */
+        Collection<GrantedAuthority> returnValue = ((List<String>) realmAccess.get("roles"))
+                .stream().map(roleName -> "ROLE_" + roleName)
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+        return returnValue;
+    }
+```
+
+- Modified Code
+
+```
+    @Override
+    public Collection<GrantedAuthority> convert(Jwt source) {
+    	
+        ArrayList<String> roles = (ArrayList<String>) source.getClaims().get("roles");
+        if (roles == null || roles.isEmpty()) {
+            return new ArrayList<>();
+        }
+        Collection<GrantedAuthority> returnValue = roles.stream().map(roleName -> "ROLE_" + roleName)
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+        return returnValue;
+    }
+```
+
+- The same can be done for **SpringAuthOpaqueRoleConverter**
+
+```
+        ArrayList<String> roles  = authenticatedPrincipal.getAttribute("scope");
+        Collection<GrantedAuthority> grantedAuthorities = roles
+                .stream().map(roleName -> "ROLE_" + roleName)
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+        return new UsernamePasswordAuthenticationToken(authenticatedPrincipal.getName(), null,
+                grantedAuthorities);
+```
+
+- Lets hit the api now, we will get a success response.
+
+![alt text](Images/springbootsecurity3/image-69.png)
+
+- Thats how we achieve client credentials grant type using spring authorization server.
+- Lets say you have a requirement where you wanted to customize your access token generation, you wanna duplicate the scope field and create a new field with roles having same values of scope field. So to customize the token we need to use an interface **OAuth2TokenCustomizer**.
+
+![alt text](Images/springbootsecurity3/image-70.png)
+
+
+```
+/**
+     * To customize the tokens awe need to use interface OAuth2TokenCustomizer with a generic type
+     * Since right now we are generating the tokens by using the jot format, we 
+     * need to mention the class name as `JWTEncodingContext`.
+     */
+    @Bean
+    public OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer() {
+    	
+    	/**
+    	 * So all the token values which will be generated will go under this Context object.
+    	 * So the framework is going to provide an object of JWTEncodingContext as an input to this lambda expression.
+    	 */
+        return (context) -> {
+        	
+        	/**
+        	 * Check the token type whether it is ACCESS_TOKEN or REFRESH_TOKEN
+        	 */
+            if (context.getTokenType().equals(OAuth2TokenType.ACCESS_TOKEN)) {
+                context.getClaims().claims((claims) -> {
+                	
+                	/**
+                	 * Checks the Grant type , in case of CLIENT_CREDENTIALS we wanted to duplicate the scope fields
+                	 * and add duplicated values inside the roles field.
+                	 */
+                    if (context.getAuthorizationGrantType().equals(AuthorizationGrantType.CLIENT_CREDENTIALS)) {
+                    	
+                    	/**
+                    	 * So context.getClaims() is going to give me all the claims available inside the Context object or inside an access token.
+                    	 * Claims are nothing but all these fields.
+                    	 * 
+                    	 * {
+							  "sub": "thirdpartycc",
+							  "aud": "thirdpartycc",
+							  "nbf": 1726063137,
+							  "scope": [
+							    "openid",
+							    "ADMIN",
+							    "USER"
+							  ],
+							  "iss": "http://localhost:9000",
+							  "exp": 1726063737,
+							  "iat": 1726063137,
+							  "jti": "cca9fddc-6ab4-483d-8b5d-488d1b6c9ff2"
+							}
+                    	 */
+                        Set<String> roles = context.getClaims().build().getClaim("scope");
+                        claims.put("roles", roles);
+                    }
+                });
+            }
+        };
+    }
+```
+
+- Lets run the application and see the new token.
+
+![alt text](Images/springbootsecurity3/image-71.png)
+
+- If you see a new role field which has same values of scope is duplicated. This is how we can customize tokens.
+- Lets implement Authorization code and PKCE grant type flow. So for that inside the method **RegisteredClientRepository** we need to register two more clients.
+
+```
+	RegisteredClient thirdpartyAC = RegisteredClient.withId(UUID.randomUUID().toString())
+				.clientId("thirdpartyac")
+				.clientSecret("{noop}arandomgeneratestringac") // Can be stored in Bcrypt format as well
+				/**
+				 * The auth server will expect these clientId and clientSecret as part of that RequestBody because
+				 * we have specified CLIENT_SECRET_POST
+				 */
+				.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+
+				/**
+				 * Grant type
+				 */
+				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+				
+				/**
+				 * whenever we are configuring this authorization code, 
+				 * we also want to support the Refresh Grant Type flow as well.
+				 */
+				.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+				
+				/**
+				 * We need to invoke a method which is redirectUri(). Usually, in real applications
+				 * we want the end user to be redirected to a different page once the authentication is successful.
+				 * For example, like a dashboard or a profile page, it can be anything. But since right now,
+				 * we are trying to mimic the client application
+				 * with the help of postman, what we have to do is we have to mention the URL provided by the postman.
+				 */
+				.redirectUri("https://oauth.pstmn.io/v1/callback")
+				
+				/**
+				 * ADMIN, USER scopes are not recommended scopes for client , because client requires
+				 * access of products like email , or any other profile etc. ADMIN USER scopes are applicable
+				 * for user
+				 */
+                .scope(OidcScopes.OPENID).scope(OidcScopes.EMAIL)
+                
+                /**
+                 * Below lines defines expiration of access token
+                 */
+                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofMinutes(10))
+
+                /**
+                 * Below lines defines expiration of refresh token, so if any access tokens expires
+                 * using refresh token we generate a new access token, so how much time that refresh token should be valid?
+                 * so we can define that , also we if the refresh token gets expired so the auth server
+                 * must provide a new refresh token or not that can be defined using reuseRefreshTokens() method
+                 * when false, with this configuration what is going to happen is, whenever the client application,
+                 * it is trying to leverage the Refresh Token Grant Type flow,
+                 * it is going to get a new refresh token
+                 * every time it provides a previous refresh token.
+                 * Otherwise, if you configure this value as true, then always the client application
+                 * is going to get the same refresh token value.
+                 */
+                .refreshTokenTimeToLive(Duration.ofHours(8)).reuseRefreshTokens(false)
+
+                // JWT Token format
+                .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED).build())
+                
+                /**
+                 * 
+                 */
+				.build();
+		
+		RegisteredClient thirdpartyPKCE = RegisteredClient.withId(UUID.randomUUID().toString())
+				.clientId("thirdpartypkce")
+				.clientSecret("{noop}arandomgeneratestringpkce") // Can be stored in Bcrypt format as well
+				// PKEC flow does not have client secret
+				.clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+				/**
+				 * Grant type (Authorization code but without client secret which becomes PKCE)
+				 */
+				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+				.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+				.redirectUri("https://oauth.pstmn.io/v1/callback")
+                .scope(OidcScopes.OPENID).scope(OidcScopes.EMAIL)
+                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofMinutes(10))
+                .refreshTokenTimeToLive(Duration.ofHours(8)).reuseRefreshTokens(false)
+                .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED).build())
+                /**
+                 * if the client is required to provide a proof key challenge 
+                 * and verifier when performing the Authorization Code Grant flow.
+                 * and default SHA256 algorithm is used
+                 */
+                .clientSettings(ClientSettings.builder().requireProofKey(true).build())
+				.build();		
+		
+		/**
+		 * So the constructor of InMemoryRegisteredClientRepository class, 
+		 * it is capable of accepting any number of registered client as an input.
+		 */
+		return new InMemoryRegisteredClientRepository(oidcClient,thirdpartyCC,thirdpartyAC,thirdpartyPKCE);
+```
+
+- So can we run now our application? Nope, because we have configure authentication for client but have not configure authentication for the end user. To do so authentication provider user detail service implementation will help us during the end user authentication process.
+- So we need to create user authentication on our authorization server.
+- So first we need to copy the model and repository folder from the resource server to authorization server to get the repository and entity set-up. Post that we need to create our own custom authentication provider.
+
+```
+package com.springboot.security.config;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+public class CustomUsernamePwdAuthenticationProvider implements AuthenticationProvider {
+
+    private final UserDetailsService userDetailsService;
+    private final PasswordEncoder passwordEncoder;
+
+    @Override
+    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+        String username = authentication.getName();
+        String pwd = authentication.getCredentials().toString();
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        if (passwordEncoder.matches(pwd, userDetails.getPassword())) {
+            return new UsernamePasswordAuthenticationToken(username, pwd, userDetails.getAuthorities());
+        } else {
+            throw new BadCredentialsException("Invalid password!");
+        }
+    }
+
+    @Override
+    public boolean supports(Class<?> authentication) {
+        return (UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication));
+    }
+
+}
+```
+
+- Service layer
+
+```
+package com.springboot.security.config;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+import com.springboot.security.entity.Customer;
+import com.springboot.security.repository.CustomerRepository;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class CustomService implements UserDetailsService {
+
+    private final CustomerRepository customerRepository;
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Customer customer = customerRepository.findByEmail(username).orElseThrow(() -> new
+                UsernameNotFoundException("User details not found for the user: " + username));
+        List<GrantedAuthority> authorities = customer.getAuthorities().stream().map(authority -> new
+                SimpleGrantedAuthority(authority.getName())).collect(Collectors.toList());
+        return new User(customer.getEmail(), customer.getPwd(), authorities);
+    }
+
+}
+```
+
+- So we need to add the below configuration to specify authorities under the role.
+
+```
+else if (context.getAuthorizationGrantType().equals(AuthorizationGrantType.AUTHORIZATION_CODE)) {
+                    	System.out.println(context.getPrincipal().getAuthorities());
+                        Set<String> roles = AuthorityUtils.authorityListToSet(context.getPrincipal().getAuthorities())
+                                .stream()
+                                .map(c -> c.replaceFirst("^ROLE_", ""))
+                                .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
+                        System.out.println("ROLES---------------"+roles);
+                        claims.put("roles", roles);
+                    }
+```
+
+- First update the password for the user inside the database by suffixing `{noop}`. 
+
+![alt text](Images/springbootsecurity3/image-74.png)
+
+- Now here in Authorization code, we need to have authorities with the user. So to access `/myAccount` resource path, we need to give atleast **ROLE_USER** authority to the end user.
+
+![alt text](Images/springbootsecurity3/image-75.png)
+
+- Lets run both authorization server and resource server.
+
+<video controls src="Images/springbootsecurity3/20240911-1709-40.7906637.mp4" title="Title"></video>
+
+<video controls src="Images/springbootsecurity3/20240911-1703-27.4251481.mp4" title="Title"></video>
+
+- Similarly for PKEC grant type flow
+
+<video controls src="Images/springbootsecurity3/20240911-1721-14.9422076.mp4" title="Title"></video>
+
+- [Repository reference](https://github.com/eazybytes/spring-security)
+- [Udemy Course](https://www.udemy.com/share/103RhQ3@3V3KPsLlwCFhWW4RP61LDBWb5p75hkX_A1VRSsgyQlMUPXthRVpozKvXCUf47SFY/)
