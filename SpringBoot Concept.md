@@ -174,7 +174,7 @@ public class MyApplication {
 		</dependency>
 ```
 
-- We also get a main method which has `@SpringBootApplication` annotation . This annotation can be co-relate with `@Configuration`,`@AutoConfiguration` and `@ComponentScan`. Here we have added an sysout to and run our project.
+- We also get a main method which has `@SpringBootApplication` annotation . This annotation can be co-relate with `@Configuration`,`@EnableAutoConfiguration` and `@ComponentScan`. Here we have added an sysout to and run our project.
 
 ```
 package com.spring.boot.project;
@@ -220,7 +220,7 @@ Spring Project
 		- For example, if spring-webmvc is on the classpath, this annotation flags the application as a web application and activates key behaviors, like setting up a DispatcherServlet.
 	3. **@ComponentScan**:
 		- Tells Spring to look for other components, configurations, and services in the specified package, allowing it to find controllers, services, and other components you define.
-- Instead of using three separate annotations (@Configuration, @EnableAutoConfiguration, and @ComponentScan), you can just use one.
+- Instead of using three separate annotations (`@Configuration`, `@EnableAutoConfiguration`, and `@ComponentScan`), you can just use one.
 - Reduces the amount of configuration you need to write, letting you focus on writing the application logic.
 
 - There is no **web.xml** file and not even any spring configuration file mentioned. Spring Boot eliminates the need for traditional web.xml files or extensive Spring configuration files (applicationContext.xml, etc.). Instead, it uses a **convention over configuration** approach, where configurations defaults are automatically applied, significantly reducing the need for boilerplate code.
