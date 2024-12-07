@@ -132,6 +132,110 @@ headers.set("Authorization", "Bearer your_token");
 ![alt text](/Images/springbootexternalapi/image-3.png)
 
 - `delete(url)` sends a DELETE request without returning any response body
+
+## `WebClient`
+
+- `WebClient` is a modern, **non-blocking HTTP client** introduced in the Spring `WebFlux` module. It is designed to handle reactive and asynchronous programming models. Unlike the **older `RestTemplate`, which operates synchronously**, `WebClient` is **fully asynchronous and leverages reactive streams**, making it suitable for high-concurrency, low-latency applications
+- Lets first download the dependency
+
+```
+   <dependency>
+       <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-webflux</artifactId>
+   </dependency>
+```
+
+- Lets configure webflux
+
+```
+package com.api.api;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+
+@Configuration
+public class ApiConfiguration {
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+    
+    @Bean
+    public WebClient webClient() {
+      return WebClient.builder().baseUrl("https://jsonplaceholder.typicode.com/").build();
+    }
+}
+```
+
+- Lets set up `GET` and `POST` method
+
+```
+package com.api.api;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import reactor.core.publisher.Mono;
+
+@RestController
+public class ExternalApiCall {
+
+    @Autowired
+    private WebClient webClient;
+
+    @GetMapping("/webclient/get")
+    public Mono<String> getJsonDataViaWebFlux() {
+    	return webClient.get()
+    			.uri("/posts")
+                .retrieve()
+                .bodyToMono(String.class);
+    }
+    
+    @PostMapping("/webclient/post")
+    public Mono<String> postJsonDataViaWebFlux(@RequestBody String requestBody) {
+
+        return webClient.post()
+                .uri("/posts")
+                .header("Content-Type", "application/json")
+                .bodyValue(requestBody)
+                .retrieve()
+                .bodyToMono(String.class);
+    }
+    
+}
+```
+
+- So when we hit the endpoint we get the response
+
+![alt text](Images/springbootexternalapi/image-4.png)
+
+![alt text](Images/springbootexternalapi/image-5.png)
+
+
+| **Feature**               | **RestTemplate**                      | **WebClient**                           |
+|---------------------------|---------------------------------------|-----------------------------------------|
+| **Blocking/Non-blocking** | Blocking (synchronous).               | Non-blocking (asynchronous).            |
+| **Programming Paradigm**  | Imperative programming.               | Reactive programming.                   |
+| **Performance**           | Better for low-concurrency scenarios. | Scales well for high-concurrency.       |
+| **Thread Usage**          | Blocks threads while waiting for IO.  | Frees up threads, better resource use.  |
+| **Scalability**           | Limited by thread pool size.          | Highly scalable for large workloads.    |
+| **Return Type**           | Direct objects (e.g., String).        | Reactive types (Mono, Flux).            |
+| **Complexity**            | Simple to use.                        | Requires knowledge of reactive streams. |
+| **Spring Framework**      | Part of Spring MVC.                   | Part of Spring WebFlux.                 |
+
+
 - Lets learn about [SpringBoot without Maven](https://github.com/codophilic/LearnSpringBoot/blob/main/SpringBoot%20Without%20Maven.md)
 
 

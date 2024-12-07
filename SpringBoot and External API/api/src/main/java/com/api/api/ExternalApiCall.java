@@ -10,15 +10,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import reactor.core.publisher.Mono;
 
 @RestController
 public class ExternalApiCall {
 
     @Autowired
     private RestTemplate restTemplate;
+    
+    @Autowired
+    private WebClient webClient;
 
     @GetMapping("/restTemplate/get")
     public ResponseEntity<String> getJsonData() {
@@ -44,5 +49,24 @@ public class ExternalApiCall {
         return id+" is delete";
     }
     
+    
+    @GetMapping("/webclient/get")
+    public Mono<String> getJsonDataViaWebFlux() {
+    	return webClient.get()
+    			.uri("/posts")
+                .retrieve()
+                .bodyToMono(String.class);
+    }
+    
+    @PostMapping("/webclient/post")
+    public Mono<String> postJsonDataViaWebFlux(@RequestBody String requestBody) {
+
+        return webClient.post()
+                .uri("/posts")
+                .header("Content-Type", "application/json")
+                .bodyValue(requestBody)
+                .retrieve()
+                .bodyToMono(String.class);
+    }
     
 }
