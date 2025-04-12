@@ -1,17 +1,19 @@
 # LearnSpringBoot
-Learn about [SpringBoot](https://github.com/codophilic/LearnSpringBoot/blob/main/SpringBoot%20Concept.md)
+
+> [!IMPORTANT]
+> 📌 **Clone this repository and use [Visual Studio Code](https://code.visualstudio.com/download) to preview all the Markdown files during your learning process.**
+>
+> 📹 **Some videos may be lengthy and might not be supported in the GitHub web version.**
 
 
->[!IMPORTANT]
-> - Make the clone of repository and use visual studio code to preview all the markdown files during the process of learning.
-> - Some videos are length which may not be supported on GitHub Web browser markdown preview.
+<br>
 
+- Learn about [SpringBoot](SpringBoot%20Concept.md)
 
+<br>
+<br>
 
-
-
-
-
-  <img align="center" alt="image"  src="https://github.com/user-attachments/assets/7ee7156e-8164-4fcd-a35b-4b4674efb43d"/>
-
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/7ee7156e-8164-4fcd-a35b-4b4674efb43d" width="70%" height="60%" />
+</p>
 
